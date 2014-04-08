@@ -1,8 +1,4 @@
-app =
-	state: "/"
-	github: null
-	auth: false
-
+###
 class GDraft
 	construct: (slug, commit) ->
 	push: (content, commit) ->
@@ -25,22 +21,29 @@ documentManager =
 
 repo =
 	construct: ->
-
-view =
-	render: (template, params, placement) ->
-		if not placement
-			placement = params
-			params = {}
-
-		$.get template, params, (data) ->
-			template = Handlebars.compile data
-			$('body').html(template())
+###
+App = require('./framework/App')
+AlwaysCtrl = require('./controllers/AlwaysCtrl')
+ErrorCtrl = require('./controllers/ErrorCtrl')
+IndexCtrl = require('./controllers/IndexCtrl')
+DashboardCtrl = require('./controllers/DashboardCtrl')
+NewDocumentCtrl = require('./controllers/NewDocumentCtrl')
+ModalComponent = require('./components/containers/ModalComponent')
 
 $('document').ready ->
-	OAuth.initialize 'poZr5pdrx7yFDfoE-gICayo2cBc'
-	$('button').click ->
-		OAuth.popup 'github', (err, res) ->
-			return console.log err if err
-			console.log res
-			app.github = new Github token: res.access_token, auth: 'oauth'
-			view.render '/tmpl/main/dashboard.html', 'body'
+	app = new App()
+
+	app.initializeRouter(
+		'always': AlwaysCtrl
+		'/': IndexCtrl
+		'/404': ErrorCtrl
+		'/documents':
+			ctrl: DashboardCtrl
+			partials: [
+				'/new':
+					ctrl: NewDocumentCtrl
+					container: ModalComponent
+			]
+	)
+
+	app.setLayout('index').start()

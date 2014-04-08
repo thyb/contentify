@@ -1,76 +1,62 @@
-var GDocument, GDraft, app, documentManager, repo, view;
 
-app = {
-  state: "/",
-  github: null,
-  auth: false
-};
+/*
+class GDraft
+	construct: (slug, commit) ->
+	push: (content, commit) ->
+	diff: (commit) ->
 
-GDraft = (function() {
-  function GDraft() {}
+class GDocument
+	construct: (slug, options) ->
+	getContent: ->
+	getMeta: ->
+	createDraft: ->
 
-  GDraft.prototype.construct = function(slug, commit) {};
+documentManager =
+	documents: [],
+	createOrOpen: (slug, options) ->
+		 *git branch document-{slug} if not exists
+		 *git checkout document-{slug}
+		 *
+	diff: (slug, v1, v2) ->
+	list: ->
 
-  GDraft.prototype.push = function(content, commit) {};
+repo =
+	construct: ->
+ */
+var AlwaysCtrl, App, DashboardCtrl, ErrorCtrl, IndexCtrl, ModalComponent, NewDocumentCtrl;
 
-  GDraft.prototype.diff = function(commit) {};
+App = require('./framework/App');
 
-  return GDraft;
+AlwaysCtrl = require('./controllers/AlwaysCtrl');
 
-})();
+ErrorCtrl = require('./controllers/ErrorCtrl');
 
-GDocument = (function() {
-  function GDocument() {}
+IndexCtrl = require('./controllers/IndexCtrl');
 
-  GDocument.prototype.construct = function(slug, options) {};
+DashboardCtrl = require('./controllers/DashboardCtrl');
 
-  GDocument.prototype.getContent = function() {};
+NewDocumentCtrl = require('./controllers/NewDocumentCtrl');
 
-  GDocument.prototype.getMeta = function() {};
-
-  GDocument.prototype.createDraft = function() {};
-
-  return GDocument;
-
-})();
-
-documentManager = {
-  documents: [],
-  createOrOpen: function(slug, options) {},
-  diff: function(slug, v1, v2) {},
-  list: function() {}
-};
-
-repo = {
-  construct: function() {}
-};
-
-view = {
-  render: function(template, params, placement) {
-    if (!placement) {
-      placement = params;
-      params = {};
-    }
-    return $.get(template, params, function(data) {
-      template = Handlebars.compile(data);
-      return $('body').html(template());
-    });
-  }
-};
+ModalComponent = require('./components/containers/ModalComponent');
 
 $('document').ready(function() {
-  OAuth.initialize('poZr5pdrx7yFDfoE-gICayo2cBc');
-  return $('button').click(function() {
-    return OAuth.popup('github', function(err, res) {
-      if (err) {
-        return console.log(err);
-      }
-      console.log(res);
-      app.github = new Github({
-        token: res.access_token,
-        auth: 'oauth'
-      });
-      return view.render('/tmpl/main/dashboard.html', 'body');
-    });
+  var app;
+  app = new App();
+  app.initializeRouter({
+    'always': AlwaysCtrl,
+    '/': IndexCtrl,
+    '/404': ErrorCtrl,
+    '/documents': {
+      ctrl: DashboardCtrl,
+      partials: [
+        {
+          '/new': {
+            ctrl: NewDocumentCtrl,
+            container: ModalComponent
+          }
+        }
+      ]
+    }
   });
+  return app.setLayout('index').start();
 });
