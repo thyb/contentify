@@ -2,5 +2,12 @@
   "my-super-document": {
     "name": "My super document",
     "extension": "md"
+  },
+  "readme": {
+    "name": "README",
+    "extension": "md",
+    "create": 1397153982210,
+    "path": "",
+    "filename": "readme.md"
   }
 }
