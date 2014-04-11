@@ -1,12 +1,21 @@
-README
-======
+Github Content Manager
+======================
 
-Installation
-------------
+Installation Javascript
+-----------------------
 
-    <div>ok</div>
+Download the [Javascript SDK](sdk/gcm.js)
+
+    <script type="text/javascript" src="/path/to/gcm.js"></script>
+
+Installation Node.js
+--------------------
+
+Install `gcm` package using `npm`
+
+    npm install gcm
 
 License
 -------
 
-MIT LICENSE2
+APACHE2 LICENSE
