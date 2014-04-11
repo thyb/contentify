@@ -1,3 +1,6 @@
-This is a new document.
+Youpi
+=====
 
-And this is a test
+This is a new `document`.
+
+And this is a **test**
