@@ -18,8 +18,8 @@
     "created": 1397236623498,
     "path": "",
     "filename": "test-document.md",
-    "lastVersion": "Youpi\n=====\n\nThis is a new `document`.\ndvsavdsa\nAnd this is a **test**",
-    "updated": 1397258745300
+    "lastVersion": "Youpi 42\n========\n\nThis is a new `document`.\n\nAnd this is a **test**",
+    "updated": 1397260076225
   },
   "getting-started": {
     "name": "Getting started",
