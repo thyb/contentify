@@ -9,7 +9,16 @@
     "create": 1397153982210,
     "path": "",
     "filename": "readme.md",
-    "lastVersion": "README\n======\n\nInstallation\n------------\n\n    <div>ok</div>\n\nLicense\n-------\n\nMIT LICENSE",
-    "updated": 1397236378530
+    "lastVersion": "README\n======\n\nInstallation\n------------\n\n    <div>ok</div>\n\nLicense\n-------\n\nMIT LICENSE2",
+    "updated": 1397259617863
+  },
+  "test-document": {
+    "name": "Test document",
+    "extension": "md",
+    "created": 1397236623498,
+    "path": "",
+    "filename": "test-document.md",
+    "lastVersion": "Youpi\n=====\n\nThis is a new `document`.\ndvsavdsa\nAnd this is a **test**",
+    "updated": 1397258745300
   }
 }
