@@ -20,5 +20,12 @@
     "filename": "test-document.md",
     "lastVersion": "Youpi\n=====\n\nThis is a new `document`.\ndvsavdsa\nAnd this is a **test**",
     "updated": 1397258745300
+  },
+  "getting-started": {
+    "name": "Getting started",
+    "extension": "md",
+    "created": 1397259955069,
+    "path": "",
+    "filename": "getting-started.md"
   }
 }
