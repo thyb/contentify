@@ -1,5 +1,5 @@
-Youpi
-=====
+Youpi 42
+========
 
 This is a new `document`.
 
