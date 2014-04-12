@@ -19,11 +19,12 @@ module.exports = IndexCtrl = (function(_super) {
           if (err) {
             return console.log(err);
           }
-          _this.app.env.set('github', new Github({
+          _this.app.env.set('access_token', res.access_token);
+          _this.app.github = new Github({
             token: res.access_token,
             auth: 'oauth'
-          }));
-          _this.app.router.change('/documents');
+          });
+          _this.app.redirect('/documents');
           return _this.app.event.emit("signin");
         });
       };

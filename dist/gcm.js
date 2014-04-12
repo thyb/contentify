@@ -1,32 +1,10 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var ModalComponent;
-
-module.exports = ModalComponent = (function() {
-  function ModalComponent() {}
-
-  ModalComponent.prototype.initialize = function() {
-    return this.settings = {
-      "extends": 'div',
-      lifecycle: {
-        created: function() {}
-      },
-      accessors: {
-        title: {}
-      }
-    };
-  };
-
-  return ModalComponent;
-
-})();
-
-},{}],2:[function(require,module,exports){
 module.exports = {
   repository: 'gcm',
   username: 'thyb'
 };
 
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 var AlwaysCtrl, Ctrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -57,8 +35,8 @@ module.exports = AlwaysCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":9}],4:[function(require,module,exports){
-var Ctrl, DashboardCtrl, config,
+},{"../framework/Ctrl":8}],3:[function(require,module,exports){
+var Ctrl, DashboardCtrl, DocumentManagerService, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -66,37 +44,64 @@ Ctrl = require('../framework/Ctrl');
 
 config = require('../config');
 
+DocumentManagerService = require('../services/DocumentManagerService');
+
 module.exports = DashboardCtrl = (function(_super) {
   __extends(DashboardCtrl, _super);
 
-  function DashboardCtrl() {
-    return DashboardCtrl.__super__.constructor.apply(this, arguments);
+  function DashboardCtrl(app) {
+    DashboardCtrl.__super__.constructor.call(this, app);
+    console.log("construct dashboard");
+    if (!this.app.github) {
+      return this.app.redirect('/');
+    }
+    this.services.documentManager = new DocumentManagerService(this.app.github);
   }
 
   DashboardCtrl.prototype.initialize = function(callback) {
-    var repo;
-    repo = this.app.env.get('github').getRepo(config.username, config.repository);
-    console.log(repo);
-    return repo.read('master', 'documents.json', function(err, data) {
-      if (err === 'not found') {
+    return this.services.documentManager.list((function(_this) {
+      return function(err, data) {
+        if (err === 'not found') {
+          if (callback) {
+            return callback({
+              documents: null
+            });
+          }
+        }
+        console.log("list", data);
+        _this.app.documents = data;
         if (callback) {
           return callback({
-            documents: null
+            documents: data
           });
         }
-      }
-      if (callback) {
-        return callback({
-          documents: data
-        });
-      }
-    });
+      };
+    })(this));
   };
 
   DashboardCtrl.prototype["do"] = function() {
-    return $('#create-document').click((function(_this) {
+    $('#create-document').click(function() {
+      return $('#new-document-modal').modal('show');
+    });
+    $('#name-input').keyup(function() {
+      return $('#slug-input').val($(this).val().dasherize());
+    });
+    return $('#create-button').click((function(_this) {
       return function() {
-        return _this.app.router.change('/documents/new');
+        var formData, type;
+        type = $('#new-document-modal .btn-group label.active').text().trim().toLowerCase();
+        if (type === 'markdown') {
+          type = 'md';
+        }
+        formData = {
+          name: $('#name-input').val(),
+          slug: $('#slug-input').val(),
+          extension: type
+        };
+        return _this.services.documentManager.create(formData, function(err) {
+          $('.modal-backdrop').remove();
+          return _this.app.redirect('/document/' + formData.slug);
+        });
       };
     })(this));
   };
@@ -105,7 +110,226 @@ module.exports = DashboardCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../config":2,"../framework/Ctrl":9}],5:[function(require,module,exports){
+},{"../config":1,"../framework/Ctrl":8,"../services/DocumentManagerService":19}],4:[function(require,module,exports){
+var Ctrl, DocumentCtrl, DocumentManagerService,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Ctrl = require('../framework/Ctrl');
+
+DocumentManagerService = require('../services/DocumentManagerService');
+
+module.exports = DocumentCtrl = (function(_super) {
+  __extends(DocumentCtrl, _super);
+
+  function DocumentCtrl(app, params) {
+    DocumentCtrl.__super__.constructor.call(this, app, params);
+    if (!this.app.github) {
+      return this.app.redirect('/');
+    }
+    this.services.documentManager = new DocumentManagerService(this.app.github);
+    Handlebars.registerHelper('releaseDotImg', function(passedString) {
+      if (passedString.substr(0, 6) === 'Delete') {
+        return 'img/delete-dot.png';
+      } else {
+        return 'img/release-dot.png';
+      }
+    });
+  }
+
+  DocumentCtrl.prototype.initialize = function(callback) {
+    return this.services.documentManager.getDocument(this.params.slug, (function(_this) {
+      return function(doc) {
+        console.log('getDocument', doc);
+        if (!doc) {
+          _this.app.redirect('/documents');
+        }
+        return _this.services.documentManager.getDocumentHistory(_this.params.slug, function(err, documentHistory) {
+          return _this.services.documentManager.getReleaseHistory(_this.params.slug, function(err, releaseHistory) {
+            var localChanges, localContent, merge, _ref, _ref1;
+            localContent = JSON.parse(localStorage.getItem(_this.params.slug));
+            localChanges = false;
+            if ((localContent != null ? (_ref = localContent[_this.params.slug]) != null ? _ref.content.length : void 0 : void 0) > 0 && (localContent != null ? (_ref1 = localContent[_this.params.slug]) != null ? _ref1.content.trim() : void 0 : void 0) !== doc.lastVersion) {
+              localChanges = true;
+            }
+            merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
+            _this.viewParams = {
+              doc: doc,
+              slug: _this.params.slug,
+              diff: documentHistory,
+              history: merge,
+              localChanges: localChanges
+            };
+            if (callback) {
+              return callback(_this.viewParams);
+            }
+          });
+        });
+      };
+    })(this));
+  };
+
+  DocumentCtrl.prototype.checkLocalChanges = function(callback) {
+    var localChanges, localContent, _ref;
+    localContent = JSON.parse(localStorage.getItem(this.params.slug));
+    localChanges = false;
+    if ((localContent != null ? (_ref = localContent[this.params.slug]) != null ? _ref.content.length : void 0 : void 0) > 0 && localContent[this.params.slug].content.trim() !== this.viewParams.doc.lastVersion) {
+      localChanges = true;
+    }
+    return callback(localChanges, localContent);
+  };
+
+  DocumentCtrl.prototype.saveDraft = function(callback) {
+    var content, filename, message, slug;
+    if (!this.draftMessageOpen) {
+      $('#draft-add-message').slideDown('fast');
+      this.draftMessageOpen = true;
+      $('#release').attr('disabled', 'disabled');
+      if (callback) {
+        callback(false);
+      }
+    } else {
+      $('#release,#save-draft').attr('disabled', 'disabled');
+      message = $("#draft-message").val();
+      content = this.editor.exportFile().trim();
+      filename = this.viewParams.doc.filename;
+      slug = this.viewParams.slug;
+      this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
+        return function() {
+          $("#history p:first").text(' ' + message).prepend('<img src="img/draft-dot.png">');
+          $('#draft-add-message').slideUp('fast');
+          _this.draftMessageOpen = false;
+          $('#release').removeAttr('disabled');
+          if (callback) {
+            return callback(true);
+          }
+        };
+      })(this));
+    }
+    return false;
+  };
+
+  DocumentCtrl.prototype.release = function(callback) {
+    var content, filename, message, releaseFct, slug;
+    if (!this.draftMessageOpen) {
+      $('#draft-add-message').slideDown('fast');
+      $('#save-draft').attr('disabled', 'disabled');
+      this.releaseMessage = true;
+      this.draftMessageOpen = true;
+      if (callback) {
+        callback(false);
+      }
+    } else {
+      $('#release,#save-draft').attr('disabled', 'disabled');
+      message = $("#draft-message").val();
+      content = this.editor.exportFile().trim();
+      filename = this.viewParams.doc.filename;
+      slug = this.viewParams.slug;
+      releaseFct = (function(_this) {
+        return function() {
+          return _this.services.documentManager.release(slug, filename, content, message, function() {
+            $("#history").prepend('<p></p>').find('p:first').text(' ' + message).prepend('<img src="img/release-dot.png">');
+            $('#draft-add-message').slideUp('fast');
+            _this.draftMessageOpen = false;
+            _this.releaseMessage = false;
+            if (callback) {
+              return callback(true);
+            }
+          });
+        };
+      })(this);
+      this.checkLocalChanges((function(_this) {
+        return function(changes) {
+          if (changes) {
+            return _this.services.documentManager.saveDraft(slug, filename, content, message, function() {
+              $("#history p:first").text(' ' + message).prepend('<img src="img/draft-dot.png">');
+              return releaseFct();
+            });
+          } else {
+            return releaseFct();
+          }
+        };
+      })(this));
+    }
+    return this.services.documentManager.getDocumentHistory(this.params.slug, (function(_this) {
+      return function(err, res) {
+        return console.log(release);
+      };
+    })(this));
+  };
+
+  DocumentCtrl.prototype["do"] = function() {
+    var resize, selector;
+    $('#document-panel').css('overflow', 'auto');
+    selector = $('#epiceditor, #document-panel');
+    resize = function() {
+      return selector.height($(window).height() - 20);
+    };
+    resize();
+    $(window).resize(function() {
+      resize();
+      return this.editor.reflow();
+    });
+    this.editor = new EpicEditor({
+      localStorageName: this.params.slug,
+      focusOnLoad: true,
+      basePath: '/lib/epiceditor',
+      file: {
+        name: this.params.slug
+      }
+    }).load((function(_this) {
+      return function() {
+        var _ref;
+        if (((_ref = _this.viewParams.history[0]) != null ? _ref.imgType : void 0) === 'img/release-dot.png' && $('#history > p:first img').attr('src') !== 'img/local-dot.png' || !_this.editor || _this.editor.exportFile().trim() === '') {
+          $('#save-draft').removeAttr('disabled');
+        }
+        $("#save-draft").click(function() {
+          _this.saveDraft();
+          return false;
+        });
+        $("#release").click(function() {
+          _this.release();
+          return false;
+        });
+        $("#draft-message-go").click(function() {
+          if (_this.releaseMessage) {
+            _this.release();
+          } else {
+            _this.saveDraft();
+          }
+          return false;
+        });
+        return $("#draft-message-cancel").click(function() {
+          _this.draftMessageOpen = false;
+          $("#draft-add-message").slideUp('fast');
+          $('#save-draft,#release').removeAttr('disabled');
+          return false;
+        });
+      };
+    })(this));
+    return this.editor.on('update', (function(_this) {
+      return function() {
+        return _this.checkLocalChanges(function(localChanges, localContent) {
+          if (localChanges && $('#history > p:first img').attr('src') !== 'img/local-dot.png') {
+            $('#history').prepend('<p><img src="img/local-dot.png"> Local changes</p>');
+            $('#save-draft,#release').removeAttr('disabled');
+          } else if (!localChanges && $('#history > p:first img').attr('src') === 'img/local-dot.png') {
+            $('#history p:first').remove();
+            $('#save-draft').attr('disabled', 'disabled');
+          }
+          if (!localChanges && (!_this.editor || _this.editor.exportFile().trim() === '')) {
+            return $('#save-draft').removeAttr('disabled');
+          }
+        });
+      };
+    })(this));
+  };
+
+  return DocumentCtrl;
+
+})(Ctrl);
+
+},{"../framework/Ctrl":8,"../services/DocumentManagerService":19}],5:[function(require,module,exports){
 var Ctrl, ErrorCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -125,7 +349,7 @@ module.exports = ErrorCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":9}],6:[function(require,module,exports){
+},{"../framework/Ctrl":8}],6:[function(require,module,exports){
 var Ctrl, IndexCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -147,11 +371,12 @@ module.exports = IndexCtrl = (function(_super) {
           if (err) {
             return console.log(err);
           }
-          _this.app.env.set('github', new Github({
+          _this.app.env.set('access_token', res.access_token);
+          _this.app.github = new Github({
             token: res.access_token,
             auth: 'oauth'
-          }));
-          _this.app.router.change('/documents');
+          });
+          _this.app.redirect('/documents');
           return _this.app.event.emit("signin");
         });
       };
@@ -162,35 +387,7 @@ module.exports = IndexCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":9}],7:[function(require,module,exports){
-var Ctrl, NewDocumentCtrl, config,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-Ctrl = require('../framework/Ctrl');
-
-config = require('../config');
-
-module.exports = NewDocumentCtrl = (function(_super) {
-  __extends(NewDocumentCtrl, _super);
-
-  function NewDocumentCtrl() {
-    return NewDocumentCtrl.__super__.constructor.apply(this, arguments);
-  }
-
-  NewDocumentCtrl.prototype.initialize = function(callback) {
-    if (callback) {
-      return callback();
-    }
-  };
-
-  NewDocumentCtrl.prototype["do"] = function() {};
-
-  return NewDocumentCtrl;
-
-})(Ctrl);
-
-},{"../config":2,"../framework/Ctrl":9}],8:[function(require,module,exports){
+},{"../framework/Ctrl":8}],7:[function(require,module,exports){
 var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager;
 
 Router = require('./Router');
@@ -224,6 +421,7 @@ module.exports = App = (function() {
     this.ready = false;
     this.layoutManager.set(layout, (function(_this) {
       return function() {
+        _this.router.setDefaultPlacement('#content');
         _this.ready = true;
         if (_this.started) {
           return _this.start();
@@ -238,18 +436,24 @@ module.exports = App = (function() {
     this.started = true;
     if (this.ready) {
       hash = window.location.hash;
-      if (hash && (hash !== '#' || hash !== '#/')) {
-        return this.router.change(hash);
+      console.log('router start', hash, this.router._state);
+      if (hash && hash !== '#') {
+        return this.redirect(hash.substr(1));
       } else if (!this.router._state) {
-        return this.router.change('/');
+        return this.redirect('/');
       } else {
-        return this.router.change(this.router._state);
+        return this.redirect(this.router._state);
       }
     }
   };
 
   App.prototype.include = function(ctrl, placement) {
     return this.ctrlManager.addPartial(ctrl, placement);
+  };
+
+  App.prototype.redirect = function(path) {
+    console.log('redirect', path);
+    return this.router.stopPropagate(path).change(path);
   };
 
   App.prototype.setTitle = function(title) {};
@@ -260,7 +464,7 @@ module.exports = App = (function() {
 
 })();
 
-},{"./CtrlManager":11,"./Env":12,"./GlobalEvent":13,"./LayoutManager":14,"./Router":15,"./TemplateManager":16}],9:[function(require,module,exports){
+},{"./CtrlManager":10,"./Env":11,"./GlobalEvent":12,"./LayoutManager":13,"./Router":14,"./TemplateManager":16}],8:[function(require,module,exports){
 var Ctrl, CtrlEvent, View;
 
 CtrlEvent = require('./CtrlEvent');
@@ -268,9 +472,10 @@ CtrlEvent = require('./CtrlEvent');
 View = require('./View');
 
 module.exports = Ctrl = (function() {
-  function Ctrl(app) {
+  function Ctrl(app, params) {
     var ctrlname;
     this.app = app;
+    this.params = params;
     ctrlname = this.constructor.name;
     ctrlname = ctrlname.substr(0, ctrlname.length - 4);
     ctrlname = ctrlname.replace(/([A-Z])/g, "-$1");
@@ -279,6 +484,7 @@ module.exports = Ctrl = (function() {
     this.scope = {};
     this.event = new CtrlEvent();
     this.view = new View();
+    this.services = {};
   }
 
   Ctrl.prototype.use = function(callback) {
@@ -313,7 +519,7 @@ module.exports = Ctrl = (function() {
 
 })();
 
-},{"./CtrlEvent":10,"./View":17}],10:[function(require,module,exports){
+},{"./CtrlEvent":9,"./View":17}],9:[function(require,module,exports){
 var CtrlEvent;
 
 module.exports = CtrlEvent = (function() {
@@ -347,7 +553,7 @@ module.exports = CtrlEvent = (function() {
 
 })();
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var CtrlManager;
 
 module.exports = CtrlManager = (function() {
@@ -356,8 +562,12 @@ module.exports = CtrlManager = (function() {
     this.partials = [];
   }
 
-  CtrlManager.prototype.setMaster = function(ctrl, callback) {
-    this.master = new ctrl(this.app);
+  CtrlManager.prototype.setMaster = function(ctrl, params, callback) {
+    this.master = new ctrl(this.app, params);
+    console.log(this.app.router.stop, params.path);
+    if (this.app.router.stop && this.app.router.stop !== params.path) {
+      return (this.app.router.stop = false);
+    }
     return this.master.use(callback);
   };
 
@@ -384,30 +594,46 @@ module.exports = CtrlManager = (function() {
 
 })();
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var Env;
 
 module.exports = Env = (function() {
-  function Env(data) {
-    this.data = [];
-    if ((data != null ? data.length : void 0) > 0) {
-      this.data = data;
+  var data;
+
+  data = {};
+
+  function Env() {
+    if (localStorage) {
+      console.log('has local storage');
+      try {
+        data = JSON.parse(localStorage.getItem('env'));
+      } catch (_error) {}
+      if (!data) {
+        data = {};
+      }
     }
+    console.log(data);
   }
 
   Env.prototype.set = function(key, value) {
-    return this.data[key] = value;
+    console.log('env set', key, value);
+    data[key] = value;
+    console.log(data);
+    if (localStorage) {
+      console.log('set localstorage to', data);
+      return localStorage.setItem('env', JSON.stringify(data));
+    }
   };
 
   Env.prototype.get = function(key) {
-    return this.data[key];
+    return data[key];
   };
 
   return Env;
 
 })();
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var GlobalEvent;
 
 module.exports = GlobalEvent = (function() {
@@ -441,7 +667,7 @@ module.exports = GlobalEvent = (function() {
 
 })();
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var LayoutManager;
 
 module.exports = LayoutManager = (function() {
@@ -502,7 +728,7 @@ module.exports = LayoutManager = (function() {
 
 })();
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var Router, View;
 
 View = require('./View');
@@ -513,13 +739,9 @@ module.exports = Router = (function() {
     this._routes = setup;
     this.changingHash = false;
     this.defaultPlacement = 'body';
-    $(window).on('hashchange', (function(_this) {
+    $(window).hashchange((function(_this) {
       return function() {
-        if (!_this.changingHash) {
-          return _this.change(window.location.hash.substr(1));
-        } else {
-          return _this.changingHash = false;
-        }
+        return _this.app.redirect(window.location.hash.substr(1));
       };
     })(this));
   }
@@ -535,10 +757,35 @@ module.exports = Router = (function() {
     return window.location.hash = this._state;
   };
 
-  Router.prototype.change = function(path) {
-    var masterCtrl, partial, partialObj, route, routePartial, _i, _len, _ref;
+  Router.prototype._checkPath = function(path) {
+    var masterCtrl, masterParams, param, params, regexpStr, res, route;
+    masterParams = new Array();
     for (route in this._routes) {
-      if (route === path) {
+      if (route.indexOf('/:') !== -1) {
+        res = route.match(/\/:([a-zA-Z0-9]+)/);
+        res.shift();
+        params = res;
+        console.log(res, res.length);
+        regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_-]+)').replace(/\//g, '\\/');
+        res = path.match(new RegExp(regexpStr));
+        if (!res) {
+          continue;
+        }
+        res.shift();
+        for (param in params) {
+          if (param === 'index' || param === 'input') {
+            continue;
+          }
+          console.log('for', param);
+          masterParams[params[param]] = res[param];
+        }
+        console.log(masterParams);
+        if (this._routes[route].ctrl) {
+          masterCtrl = this._routes[route].ctrl;
+        } else {
+          masterCtrl = this._routes[route];
+        }
+      } else if (route === path) {
         if (this._routes[route].ctrl) {
           masterCtrl = this._routes[route].ctrl;
         } else {
@@ -546,27 +793,32 @@ module.exports = Router = (function() {
         }
         break;
       }
-      if (route === path.substr(0, route.length && path.substr(route.length, 1 === '/' && this._routes[route].ctrl && this._routes[route].partials))) {
-        partial = path.substr(route.length);
-        masterCtrl = this._routes[route].ctrl;
-        _ref = this.routes[route].partials;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          routePartial = _ref[_i];
-          if (routePartial === partial) {
-            partialObj = routePartial;
-            break;
-          }
-        }
-      }
     }
-    if (!masterCtrl) {
-      this.change('/404');
+    masterParams['path'] = path;
+    console.log('params', masterParams);
+    return {
+      master: masterCtrl,
+      masterParams: masterParams,
+      partial: null
+    };
+  };
+
+  Router.prototype.stopPropagate = function(path) {
+    this.stop = path;
+    return this;
+  };
+
+  Router.prototype.change = function(path) {
+    var res;
+    res = this._checkPath(path);
+    if (!res.master) {
+      return this.change('/404');
     }
     this.changeHash(path);
-    this.app.ctrlManager.setMaster(masterCtrl, (function(_this) {
+    this.app.ctrlManager.setMaster(res.master, res.masterParams, (function(_this) {
       return function() {
-        if (partialObj) {
-          return _this.app.ctrlManager.addPartial(partialObj.ctrl, partialObj.container);
+        if (_this.stop) {
+          return _this.stop = false;
         }
       };
     })(this));
@@ -577,7 +829,17 @@ module.exports = Router = (function() {
 
 })();
 
-},{"./View":17}],16:[function(require,module,exports){
+},{"./View":17}],15:[function(require,module,exports){
+var Service;
+
+module.exports = Service = (function() {
+  function Service() {}
+
+  return Service;
+
+})();
+
+},{}],16:[function(require,module,exports){
 var TemplateManager;
 
 module.exports = TemplateManager = (function() {
@@ -672,7 +934,7 @@ documentManager =
 repo =
 	construct: ->
  */
-var AlwaysCtrl, App, DashboardCtrl, ErrorCtrl, IndexCtrl, ModalComponent, NewDocumentCtrl;
+var AlwaysCtrl, App, DashboardCtrl, DocumentCtrl, ErrorCtrl, IndexCtrl;
 
 App = require('./framework/App');
 
@@ -684,30 +946,187 @@ IndexCtrl = require('./controllers/IndexCtrl');
 
 DashboardCtrl = require('./controllers/DashboardCtrl');
 
-NewDocumentCtrl = require('./controllers/NewDocumentCtrl');
-
-ModalComponent = require('./components/containers/ModalComponent');
+DocumentCtrl = require('./controllers/DocumentCtrl');
 
 $('document').ready(function() {
-  var app;
+  var accessToken, app;
   app = new App();
   app.initializeRouter({
-    'always': AlwaysCtrl,
+    '/document/:slug': DocumentCtrl,
     '/': IndexCtrl,
     '/404': ErrorCtrl,
-    '/documents': {
-      ctrl: DashboardCtrl,
-      partials: [
-        {
-          '/new': {
-            ctrl: NewDocumentCtrl,
-            container: ModalComponent
-          }
-        }
-      ]
-    }
+    '/documents': DashboardCtrl
   });
+  accessToken = app.env.get('access_token');
+  console.log(accessToken);
+  if (accessToken) {
+    app.github = new Github({
+      token: accessToken,
+      auth: 'oauth'
+    });
+  }
   return app.setLayout('index').start();
 });
 
-},{"./components/containers/ModalComponent":1,"./controllers/AlwaysCtrl":3,"./controllers/DashboardCtrl":4,"./controllers/ErrorCtrl":5,"./controllers/IndexCtrl":6,"./controllers/NewDocumentCtrl":7,"./framework/App":8}]},{},[18])
+},{"./controllers/AlwaysCtrl":2,"./controllers/DashboardCtrl":3,"./controllers/DocumentCtrl":4,"./controllers/ErrorCtrl":5,"./controllers/IndexCtrl":6,"./framework/App":7}],19:[function(require,module,exports){
+var DocumentManagerService, Service, config,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Service = require('../framework/Service');
+
+config = require('../config');
+
+module.exports = DocumentManagerService = (function(_super) {
+  __extends(DocumentManagerService, _super);
+
+  function DocumentManagerService(github) {
+    this.github = github;
+    this.documents = {};
+    this.repo = this.github.getRepo(config.username, config.repository);
+  }
+
+  DocumentManagerService.prototype.create = function(params, callback) {
+    this.documents[params.slug] = {
+      name: params.name,
+      extension: params.extension,
+      created: Date.now(),
+      path: '',
+      filename: params.slug + '.' + params.extension
+    };
+    return this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + params.slug + ' in documents.json', (function(_this) {
+      return function(err) {
+        if (err) {
+          return callback(err);
+        }
+        return _this.repo.branch(params.slug, function(err) {
+          if (err) {
+            return callback(err);
+          }
+          return callback();
+        });
+      };
+    })(this));
+  };
+
+  DocumentManagerService.prototype.release = function(slug, filename, content, message, callback) {
+    console.log('release', slug, filename, content, message);
+    this.documents[slug].updated = Date.now();
+    return this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {
+      return function(err) {
+        if (err) {
+          return callback(err);
+        }
+        console.log('documents.json updated', filename, content, message);
+        return _this.repo.write('master', filename, content, message, callback);
+      };
+    })(this));
+  };
+
+  DocumentManagerService.prototype.saveDraft = function(slug, filename, content, message, callback) {
+    console.log('saveDraft', slug, filename, content, message);
+    this.documents[slug].updated = Date.now();
+    return this.repo.write(slug, 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {
+      return function(err) {
+        if (err) {
+          return callback(err);
+        }
+        console.log('documents.json updated', filename, content, message);
+        return _this.repo.write(slug, filename, content, message, callback);
+      };
+    })(this));
+  };
+
+  DocumentManagerService.prototype.getDocument = function(slug, callback) {
+    console.log('getDocument', slug, this.documents);
+    if (Object.equal(this.documents, {})) {
+      return this.repo.read('master', 'documents.json', (function(_this) {
+        return function(err, data) {
+          var doc;
+          _this.documents = JSON.parse(data);
+          doc = _this.documents[slug];
+          return _this.repo.read(slug, doc.filename, function(err, content) {
+            doc.lastVersion = content;
+            return callback(doc);
+          });
+        };
+      })(this));
+    } else {
+      return callback(this.documents[slug]);
+    }
+  };
+
+  DocumentManagerService.prototype.getReleaseHistory = function(slug, callback) {
+    if (!this.documents[slug]) {
+      callback('not found', null);
+    }
+    return this.repo.getCommits({
+      path: this.documents[slug].filename,
+      sha: 'master'
+    }, callback);
+  };
+
+  DocumentManagerService.prototype.getDocumentHistory = function(slug, callback) {
+    if (!this.documents[slug]) {
+      callback('not found', null);
+    }
+    return this.repo.getCommits({
+      path: this.documents[slug].filename,
+      sha: slug
+    }, callback);
+  };
+
+  DocumentManagerService.prototype.mergeHistory = function(releaseHistory, documentHistory) {
+    var history, v, _i, _j, _len, _len1;
+    console.log(releaseHistory, documentHistory);
+    history = new Array();
+    for (_i = 0, _len = releaseHistory.length; _i < _len; _i++) {
+      v = releaseHistory[_i];
+      v.imgType = 'img/release-dot.png';
+    }
+    for (_j = 0, _len1 = documentHistory.length; _j < _len1; _j++) {
+      v = documentHistory[_j];
+      v.imgType = 'img/draft-dot.png';
+    }
+    history = releaseHistory.add(documentHistory);
+    console.log(history);
+    history = history.sortBy((function(elem) {
+      return new Date(elem.commit.author.date);
+    }), true);
+    console.log(history);
+    return history;
+  };
+
+  DocumentManagerService.prototype.diffToRelease = function(slug, callback) {
+    return this.repo.compare('master', slug, callback);
+  };
+
+  DocumentManagerService.prototype.diff = function(slug, v1, v2) {};
+
+  DocumentManagerService.prototype.list = function(callback) {
+    return this.repo.read('master', 'documents.json', (function(_this) {
+      return function(err, data) {
+        var list, slug;
+        if (!err) {
+          _this.documents = JSON.parse(data);
+        } else {
+          _this.documents = {};
+        }
+        list = new Array();
+        for (slug in _this.documents) {
+          list.push($.extend({
+            slug: slug
+          }, _this.documents[slug]));
+        }
+        if (callback) {
+          return callback(err, list);
+        }
+      };
+    })(this));
+  };
+
+  return DocumentManagerService;
+
+})(Service);
+
+},{"../config":1,"../framework/Service":15}]},{},[18])

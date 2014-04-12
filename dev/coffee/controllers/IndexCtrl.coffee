@@ -6,6 +6,7 @@ module.exports = class IndexCtrl extends Ctrl
 		$('button').click =>
 			OAuth.popup 'github', (err, res) =>
 				return console.log err if err
-				@app.env.set 'github', new Github token: res.access_token, auth: 'oauth'
-				@app.router.change '/documents'
+				@app.env.set 'access_token', res.access_token
+				@app.github = new Github token: res.access_token, auth: 'oauth'
+				@app.redirect '/documents'
 				@app.event.emit "signin"

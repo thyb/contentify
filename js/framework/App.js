@@ -31,6 +31,7 @@ module.exports = App = (function() {
     this.ready = false;
     this.layoutManager.set(layout, (function(_this) {
       return function() {
+        _this.router.setDefaultPlacement('#content');
         _this.ready = true;
         if (_this.started) {
           return _this.start();
@@ -45,18 +46,24 @@ module.exports = App = (function() {
     this.started = true;
     if (this.ready) {
       hash = window.location.hash;
-      if (hash && (hash !== '#' || hash !== '#/')) {
-        return this.router.change(hash);
+      console.log('router start', hash, this.router._state);
+      if (hash && hash !== '#') {
+        return this.redirect(hash.substr(1));
       } else if (!this.router._state) {
-        return this.router.change('/');
+        return this.redirect('/');
       } else {
-        return this.router.change(this.router._state);
+        return this.redirect(this.router._state);
       }
     }
   };
 
   App.prototype.include = function(ctrl, placement) {
     return this.ctrlManager.addPartial(ctrl, placement);
+  };
+
+  App.prototype.redirect = function(path) {
+    console.log('redirect', path);
+    return this.router.stopPropagate(path).change(path);
   };
 
   App.prototype.setTitle = function(title) {};

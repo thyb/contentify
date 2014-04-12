@@ -1,27 +1,53 @@
-<div class="container">
-	<h1>Documents</h1>
-	{{#if documents}}
-	<pre>{{documents}}</pre>
-	{{else}}
-	<p class="alert alert-info">You haven't document yet. Let's create one</p>
-	{{/if}}
+<button class="pull-right btn btn-primary" id="create-document">Create a document</button>
+<h1>Documents</h1>
+{{#if documents}}
+  <div class="list-group">
+  {{#each documents}}
+    <a href="#/document/{{slug}}" class="list-group-item">
+      <h4 class="list-group-item-heading">{{name}}</h4>
+      <p class="list-group-item-text">{{slug}}.{{extension}}</p>
+    </a>
+  {{/each}}
+  </div>
+{{else}}
+<p class="alert alert-info">You haven't document yet. Let's create one</p>
+{{/if}}
 
-	<button class="btn btn-primary" id="create-document">Create a document</button>
-</div>
 
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="new-document-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+        <h4 class="modal-title" id="myModalLabel">New document</h4>
       </div>
       <div class="modal-body">
-        ...
+        <form role="form">
+				  <div class="form-group">
+				    <label for="name-input">Name</label>
+				    <input type="text" id="name-input" class="form-control" placeholder="New Document 1">
+				  </div>
+					<div class="form-group">
+				    <label for="slug-input">Slug</label>
+				    <input type="text" id="slug-input" class="form-control" placeholder="new-document-1">
+				  </div>
+          <div class="form-group">
+
+            <div><label for="type-radio">Document</label></div>
+            <div class="btn-group" data-toggle="buttons">
+              <label class="btn btn-primary">
+                <input type="radio" name="type-radio" id="html-option"> HTML
+              </label>
+              <label class="btn btn-primary">
+                <input type="radio" name="type-radio" id="markdown-option"> Markdown
+              </label>
+            </div>
+          </div>
+				</form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" id="create-button" class="btn btn-primary">Create document</button>
       </div>
     </div>
   </div>

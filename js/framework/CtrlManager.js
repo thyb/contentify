@@ -6,8 +6,12 @@ module.exports = CtrlManager = (function() {
     this.partials = [];
   }
 
-  CtrlManager.prototype.setMaster = function(ctrl, callback) {
-    this.master = new ctrl(this.app);
+  CtrlManager.prototype.setMaster = function(ctrl, params, callback) {
+    this.master = new ctrl(this.app, params);
+    console.log(this.app.router.stop, params.path);
+    if (this.app.router.stop && this.app.router.stop !== params.path) {
+      return (this.app.router.stop = false);
+    }
     return this.master.use(callback);
   };
 

@@ -1,0 +1,39 @@
+<style>
+#history {color: #999; margin-left: 15px; border-left: 5px solid #333}
+#history > p {position: relative; left: -19px}
+#history > p:first-child { top: -4px }
+#history > p:last-child { top: 4px }
+</style>
+<div class="row" style="margin-top:10px">
+  <div class="col-xs-9">
+    <div id="epiceditor"></div>
+  </div>
+  <div class="col-xs-3" id="document-panel">
+    <h4>{{doc.name}}</h4>
+    <p class="text-muted">{{slug}}.{{doc.extension}}<p>
+    <button id="save-draft" class="btn btn-primary" {{#if localChanges}}{{else}}disabled{{/if}}>Save draft</button>
+    <button id="release" class="btn btn-success">Release</button>
+    <hr />
+    <div id="draft-add-message" style="display: none">
+      <form role="form">
+        <div class="form-group">
+          <label for="draft-message">Message <em>(optional)</em></label>
+          <input type="text" class="form-control" name="draft-message" id="draft-message" value="" placeholder="What have you changed?">
+        </div>
+        <div class="form-group">
+          <button id="draft-message-go" class="btn btn-primary">Push</button>
+          <button id="draft-message-cancel" class="btn btn-default">Cancel</button>
+        </div>
+      </form>
+      <hr />
+    </div>
+    <div id="history">
+      {{#if localChanges}}
+      <p><img src="img/local-dot.png"> Local changes</p>
+      {{/if}}
+      {{#each history}}
+      <p><img src="{{imgType}}"> {{commit.message}}</p>
+      {{/each}}
+    <div>
+  </div>
+</div>

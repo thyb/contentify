@@ -27,23 +27,20 @@ AlwaysCtrl = require('./controllers/AlwaysCtrl')
 ErrorCtrl = require('./controllers/ErrorCtrl')
 IndexCtrl = require('./controllers/IndexCtrl')
 DashboardCtrl = require('./controllers/DashboardCtrl')
-NewDocumentCtrl = require('./controllers/NewDocumentCtrl')
-ModalComponent = require('./components/containers/ModalComponent')
+DocumentCtrl = require('./controllers/DocumentCtrl')
 
 $('document').ready ->
 	app = new App()
 
-	app.initializeRouter(
-		'always': AlwaysCtrl
+	app.initializeRouter
+		'/document/:slug': DocumentCtrl
 		'/': IndexCtrl
 		'/404': ErrorCtrl
-		'/documents':
-			ctrl: DashboardCtrl
-			partials: [
-				'/new':
-					ctrl: NewDocumentCtrl
-					container: ModalComponent
-			]
-	)
+		'/documents': DashboardCtrl
+
+	accessToken = app.env.get 'access_token'
+	console.log accessToken
+	if accessToken
+		app.github = new Github(token: accessToken, auth: 'oauth')
 
 	app.setLayout('index').start()

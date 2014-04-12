@@ -8,13 +8,9 @@ module.exports = Router = (function() {
     this._routes = setup;
     this.changingHash = false;
     this.defaultPlacement = 'body';
-    $(window).on('hashchange', (function(_this) {
+    $(window).hashchange((function(_this) {
       return function() {
-        if (!_this.changingHash) {
-          return _this.change(window.location.hash.substr(1));
-        } else {
-          return _this.changingHash = false;
-        }
+        return _this.app.redirect(window.location.hash.substr(1));
       };
     })(this));
   }
@@ -30,10 +26,35 @@ module.exports = Router = (function() {
     return window.location.hash = this._state;
   };
 
-  Router.prototype.change = function(path) {
-    var masterCtrl, partial, partialObj, route, routePartial, _i, _len, _ref;
+  Router.prototype._checkPath = function(path) {
+    var masterCtrl, masterParams, param, params, regexpStr, res, route;
+    masterParams = new Array();
     for (route in this._routes) {
-      if (route === path) {
+      if (route.indexOf('/:') !== -1) {
+        res = route.match(/\/:([a-zA-Z0-9]+)/);
+        res.shift();
+        params = res;
+        console.log(res, res.length);
+        regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_-]+)').replace(/\//g, '\\/');
+        res = path.match(new RegExp(regexpStr));
+        if (!res) {
+          continue;
+        }
+        res.shift();
+        for (param in params) {
+          if (param === 'index' || param === 'input') {
+            continue;
+          }
+          console.log('for', param);
+          masterParams[params[param]] = res[param];
+        }
+        console.log(masterParams);
+        if (this._routes[route].ctrl) {
+          masterCtrl = this._routes[route].ctrl;
+        } else {
+          masterCtrl = this._routes[route];
+        }
+      } else if (route === path) {
         if (this._routes[route].ctrl) {
           masterCtrl = this._routes[route].ctrl;
         } else {
@@ -41,27 +62,32 @@ module.exports = Router = (function() {
         }
         break;
       }
-      if (route === path.substr(0, route.length && path.substr(route.length, 1 === '/' && this._routes[route].ctrl && this._routes[route].partials))) {
-        partial = path.substr(route.length);
-        masterCtrl = this._routes[route].ctrl;
-        _ref = this.routes[route].partials;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          routePartial = _ref[_i];
-          if (routePartial === partial) {
-            partialObj = routePartial;
-            break;
-          }
-        }
-      }
     }
-    if (!masterCtrl) {
-      this.change('/404');
+    masterParams['path'] = path;
+    console.log('params', masterParams);
+    return {
+      master: masterCtrl,
+      masterParams: masterParams,
+      partial: null
+    };
+  };
+
+  Router.prototype.stopPropagate = function(path) {
+    this.stop = path;
+    return this;
+  };
+
+  Router.prototype.change = function(path) {
+    var res;
+    res = this._checkPath(path);
+    if (!res.master) {
+      return this.change('/404');
     }
     this.changeHash(path);
-    this.app.ctrlManager.setMaster(masterCtrl, (function(_this) {
+    this.app.ctrlManager.setMaster(res.master, res.masterParams, (function(_this) {
       return function() {
-        if (partialObj) {
-          return _this.app.ctrlManager.addPartial(partialObj.ctrl, partialObj.container);
+        if (_this.stop) {
+          return _this.stop = false;
         }
       };
     })(this));

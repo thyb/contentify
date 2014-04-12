@@ -14,6 +14,7 @@ module.exports = class App
 		@templateManager = TemplateManager
 		@layoutManager = LayoutManager
 		@ready = true
+
 	initializeRouter: (setting) ->
 		@router = new Router @, setting
 		return @router
@@ -21,6 +22,7 @@ module.exports = class App
 	setLayout: (layout) ->
 		@ready = false
 		@layoutManager.set layout, =>
+			@router.setDefaultPlacement '#content'
 			@ready = true
 			@start() if @started
 		return @
@@ -29,15 +31,20 @@ module.exports = class App
 		@started = true
 		if @ready
 			hash = window.location.hash
-			if hash and (hash != '#' or hash != '#/')
-				@router.change hash
+			console.log 'router start', hash, @router._state
+			if hash and hash != '#'
+				@redirect hash.substr(1)
 			else if not @router._state
-				@router.change '/'
+				@redirect '/'
 			else
-				@router.change @router._state
+				@redirect @router._state
 
 	include: (ctrl, placement) ->
 		@ctrlManager.addPartial ctrl, placement
+
+	redirect: (path) ->
+		console.log 'redirect', path
+		@router.stopPropagate(path).change path
 
 	setTitle: (title) ->
 

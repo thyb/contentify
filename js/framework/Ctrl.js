@@ -5,9 +5,10 @@ CtrlEvent = require('./CtrlEvent');
 View = require('./View');
 
 module.exports = Ctrl = (function() {
-  function Ctrl(app) {
+  function Ctrl(app, params) {
     var ctrlname;
     this.app = app;
+    this.params = params;
     ctrlname = this.constructor.name;
     ctrlname = ctrlname.substr(0, ctrlname.length - 4);
     ctrlname = ctrlname.replace(/([A-Z])/g, "-$1");
@@ -16,6 +17,7 @@ module.exports = Ctrl = (function() {
     this.scope = {};
     this.event = new CtrlEvent();
     this.view = new View();
+    this.services = {};
   }
 
   Ctrl.prototype.use = function(callback) {

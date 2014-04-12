@@ -1,4 +1,4 @@
-var Ctrl, DashboardCtrl, config,
+var Ctrl, DashboardCtrl, DocumentManagerService, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -6,37 +6,64 @@ Ctrl = require('../framework/Ctrl');
 
 config = require('../config');
 
+DocumentManagerService = require('../services/DocumentManagerService');
+
 module.exports = DashboardCtrl = (function(_super) {
   __extends(DashboardCtrl, _super);
 
-  function DashboardCtrl() {
-    return DashboardCtrl.__super__.constructor.apply(this, arguments);
+  function DashboardCtrl(app) {
+    DashboardCtrl.__super__.constructor.call(this, app);
+    console.log("construct dashboard");
+    if (!this.app.github) {
+      return this.app.redirect('/');
+    }
+    this.services.documentManager = new DocumentManagerService(this.app.github);
   }
 
   DashboardCtrl.prototype.initialize = function(callback) {
-    var repo;
-    repo = this.app.env.get('github').getRepo(config.username, config.repository);
-    console.log(repo);
-    return repo.read('master', 'documents.json', function(err, data) {
-      if (err === 'not found') {
+    return this.services.documentManager.list((function(_this) {
+      return function(err, data) {
+        if (err === 'not found') {
+          if (callback) {
+            return callback({
+              documents: null
+            });
+          }
+        }
+        console.log("list", data);
+        _this.app.documents = data;
         if (callback) {
           return callback({
-            documents: null
+            documents: data
           });
         }
-      }
-      if (callback) {
-        return callback({
-          documents: data
-        });
-      }
-    });
+      };
+    })(this));
   };
 
   DashboardCtrl.prototype["do"] = function() {
-    return $('#create-document').click((function(_this) {
+    $('#create-document').click(function() {
+      return $('#new-document-modal').modal('show');
+    });
+    $('#name-input').keyup(function() {
+      return $('#slug-input').val($(this).val().dasherize());
+    });
+    return $('#create-button').click((function(_this) {
       return function() {
-        return _this.app.router.change('/documents/new');
+        var formData, type;
+        type = $('#new-document-modal .btn-group label.active').text().trim().toLowerCase();
+        if (type === 'markdown') {
+          type = 'md';
+        }
+        formData = {
+          name: $('#name-input').val(),
+          slug: $('#slug-input').val(),
+          extension: type
+        };
+        return _this.services.documentManager.create(formData, function(err) {
+          $('.modal-backdrop').remove();
+          return _this.app.redirect('/document/' + formData.slug);
+        });
       };
     })(this));
   };

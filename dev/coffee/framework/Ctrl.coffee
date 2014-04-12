@@ -2,7 +2,7 @@ CtrlEvent = require('./CtrlEvent')
 View = require('./View')
 
 module.exports = class Ctrl
-	constructor: (@app) ->
+	constructor: (@app, @params) ->
 		ctrlname = @constructor.name
 		ctrlname = ctrlname.substr(0, ctrlname.length - 4)
 		ctrlname = ctrlname.replace(/([A-Z])/g, "-$1")
@@ -12,6 +12,7 @@ module.exports = class Ctrl
 		@scope = {}
 		@event = new CtrlEvent()
 		@view = new View()
+		@services = {}
 
 	use: (callback) ->
 		@render =>
