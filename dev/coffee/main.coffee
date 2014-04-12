@@ -28,8 +28,12 @@ ErrorCtrl = require('./controllers/ErrorCtrl')
 IndexCtrl = require('./controllers/IndexCtrl')
 DocumentsCtrl = require('./controllers/DocumentsCtrl')
 DocumentCtrl = require('./controllers/DocumentCtrl')
+MediasCtrl = require('./controllers/MediasCtrl')
 LogoutCtrl = require('./controllers/LogoutCtrl')
+
 $('document').ready ->
+	OAuth.initialize 'poZr5pdrx7yFDfoE-gICayo2cBc'
+
 	app = new App()
 
 	app.initializeRouter
@@ -37,11 +41,7 @@ $('document').ready ->
 		'/': IndexCtrl
 		'/404': ErrorCtrl
 		'/documents': DocumentsCtrl
+		'/medias': MediasCtrl
 		'/logout': LogoutCtrl
-
-	accessToken = app.env.get 'access_token'
-	console.log accessToken
-	if accessToken
-		app.login accessToken, 'github'
 
 	app.setMenu('#menu').setLayout('index').start()

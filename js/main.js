@@ -23,7 +23,7 @@ documentManager =
 repo =
 	construct: ->
  */
-var AlwaysCtrl, App, DocumentCtrl, DocumentsCtrl, ErrorCtrl, IndexCtrl, LogoutCtrl;
+var AlwaysCtrl, App, DocumentCtrl, DocumentsCtrl, ErrorCtrl, IndexCtrl, LogoutCtrl, MediasCtrl;
 
 App = require('./framework/App');
 
@@ -37,22 +37,21 @@ DocumentsCtrl = require('./controllers/DocumentsCtrl');
 
 DocumentCtrl = require('./controllers/DocumentCtrl');
 
+MediasCtrl = require('./controllers/MediasCtrl');
+
 LogoutCtrl = require('./controllers/LogoutCtrl');
 
 $('document').ready(function() {
-  var accessToken, app;
+  var app;
+  OAuth.initialize('poZr5pdrx7yFDfoE-gICayo2cBc');
   app = new App();
   app.initializeRouter({
     '/document/:slug': DocumentCtrl,
     '/': IndexCtrl,
     '/404': ErrorCtrl,
     '/documents': DocumentsCtrl,
+    '/medias': MediasCtrl,
     '/logout': LogoutCtrl
   });
-  accessToken = app.env.get('access_token');
-  console.log(accessToken);
-  if (accessToken) {
-    app.login(accessToken, 'github');
-  }
   return app.setMenu('#menu').setLayout('index').start();
 });

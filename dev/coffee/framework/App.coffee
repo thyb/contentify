@@ -4,6 +4,7 @@ GlobalEvent = require('./GlobalEvent')
 CtrlManager = require('./CtrlManager')
 TemplateManager = require('./TemplateManager')
 LayoutManager = require('./LayoutManager')
+User = require('./User')
 
 module.exports = class App
 	constructor: () ->
@@ -14,7 +15,7 @@ module.exports = class App
 		@templateManager = TemplateManager
 		@layoutManager = LayoutManager
 		@ready = true
-		@auth = false
+		@user = new User(@)
 
 	initializeRouter: (setting) ->
 		@router = new Router @, setting
@@ -45,31 +46,13 @@ module.exports = class App
 		@router.stopPropagate(path).change path
 
 
-	login: (access_token, provider) ->
-		@access_token = access_token
-		@auth = true
-		@env.set 'access_token', access_token
-		@event.emit "login"
-
-		if provider
-			@github = new Github(token: access_token, auth: 'oauth') if provider == 'github'
-
-	logout: (provider) ->
-		@auth = false
-		@access_token = null
-		@env.set 'access_token', null
-		@event.emit 'logout'
-
-		if provider
-			@github = null of provider == 'github'
-
 	refreshMenu: (path) ->
 		console.log "refreshing menu", path, @menu
 		return false if not @menu
 		$('li.active', @menu).removeClass 'active'
 		$('li a[href="#' + path + '"]').parent().addClass 'active'
-		$('li.need-auth').hide() if not @auth
-		$('li.need-auth').show() if @auth
+		$('li.need-auth').hide() if not @user.isAuth()
+		$('li.need-auth').show() if @user.isAuth()
 
 	setMenu: (selector) ->
 		console.log "set menu selector", selector

@@ -6,10 +6,12 @@ module.exports = class DocumentsCtrl extends Ctrl
 	constructor: (app) ->
 		super(app)
 
-		console.log "construct dashboard"
-		return @app.redirect '/' if not @app.auth
+		console.log "construct dashboard", @app.user.isAuth()
 
-		@services.documentManager = new DocumentManagerService(@app.github)
+		return @app.redirect '/' if not @app.user.isAuth()
+
+		console.log @app.user
+		@services.documentManager = new DocumentManagerService(@app.user.github)
 
 	initialize: (callback) ->
 		@services.documentManager.list (err, data) =>

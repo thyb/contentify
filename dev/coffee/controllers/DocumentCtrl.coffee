@@ -5,9 +5,9 @@ module.exports = class DocumentCtrl extends Ctrl
 	constructor: (app, params) ->
 		super(app, params)
 
-		return @app.redirect '/' if not @app.auth
+		return @app.redirect '/' if not @app.user.isAuth()
 
-		@services.documentManager = new DocumentManagerService(@app.github)
+		@services.documentManager = new DocumentManagerService(@app.user.github)
 
 		Handlebars.registerHelper 'releaseDotImg', (passedString) ->
 			if passedString.substr(0, 6) == 'Delete'

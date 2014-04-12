@@ -35,7 +35,7 @@ module.exports = AlwaysCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":9}],3:[function(require,module,exports){
+},{"../framework/Ctrl":10}],3:[function(require,module,exports){
 var Ctrl, DocumentCtrl, DocumentManagerService,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -49,10 +49,10 @@ module.exports = DocumentCtrl = (function(_super) {
 
   function DocumentCtrl(app, params) {
     DocumentCtrl.__super__.constructor.call(this, app, params);
-    if (!this.app.auth) {
+    if (!this.app.user.isAuth()) {
       return this.app.redirect('/');
     }
-    this.services.documentManager = new DocumentManagerService(this.app.github);
+    this.services.documentManager = new DocumentManagerService(this.app.user.github);
     Handlebars.registerHelper('releaseDotImg', function(passedString) {
       if (passedString.substr(0, 6) === 'Delete') {
         return 'img/delete-dot.png';
@@ -253,7 +253,7 @@ module.exports = DocumentCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":9,"../services/DocumentManagerService":20}],4:[function(require,module,exports){
+},{"../framework/Ctrl":10,"../services/DocumentManagerService":22}],4:[function(require,module,exports){
 var Ctrl, DocumentManagerService, DocumentsCtrl, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -269,11 +269,12 @@ module.exports = DocumentsCtrl = (function(_super) {
 
   function DocumentsCtrl(app) {
     DocumentsCtrl.__super__.constructor.call(this, app);
-    console.log("construct dashboard");
-    if (!this.app.auth) {
+    console.log("construct dashboard", this.app.user.isAuth());
+    if (!this.app.user.isAuth()) {
       return this.app.redirect('/');
     }
-    this.services.documentManager = new DocumentManagerService(this.app.github);
+    console.log(this.app.user);
+    this.services.documentManager = new DocumentManagerService(this.app.user.github);
   }
 
   DocumentsCtrl.prototype.initialize = function(callback) {
@@ -328,7 +329,7 @@ module.exports = DocumentsCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../config":1,"../framework/Ctrl":9,"../services/DocumentManagerService":20}],5:[function(require,module,exports){
+},{"../config":1,"../framework/Ctrl":10,"../services/DocumentManagerService":22}],5:[function(require,module,exports){
 var Ctrl, ErrorCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -348,7 +349,7 @@ module.exports = ErrorCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":9}],6:[function(require,module,exports){
+},{"../framework/Ctrl":10}],6:[function(require,module,exports){
 var Ctrl, IndexCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -360,21 +361,26 @@ module.exports = IndexCtrl = (function(_super) {
 
   function IndexCtrl(app) {
     IndexCtrl.__super__.constructor.call(this, app);
-    if (this.app.auth) {
+    if (this.app.user.isAuth()) {
       this.app.redirect('/documents');
     }
   }
 
   IndexCtrl.prototype["do"] = function() {
-    OAuth.initialize('poZr5pdrx7yFDfoE-gICayo2cBc');
     return $('button').click((function(_this) {
       return function() {
         return OAuth.popup('github', function(err, res) {
           if (err) {
             return console.log(err);
           }
-          _this.app.login(res.access_token, 'github');
-          return _this.app.redirect('/documents');
+          return res.get('/user').done(function(data) {
+            console.log('login', res, data);
+            _this.app.user.login(data.login, {
+              access_token: res.access_token,
+              provider: 'github'
+            });
+            return _this.app.redirect('/documents');
+          });
         });
       };
     })(this));
@@ -384,7 +390,7 @@ module.exports = IndexCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":9}],7:[function(require,module,exports){
+},{"../framework/Ctrl":10}],7:[function(require,module,exports){
 var Ctrl, LogoutCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -396,7 +402,7 @@ module.exports = LogoutCtrl = (function(_super) {
 
   function LogoutCtrl(app) {
     LogoutCtrl.__super__.constructor.call(this, app);
-    this.app.logout();
+    this.app.user.logout();
     this.app.redirect('/');
   }
 
@@ -404,8 +410,34 @@ module.exports = LogoutCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":9}],8:[function(require,module,exports){
-var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager;
+},{"../framework/Ctrl":10}],8:[function(require,module,exports){
+var Ctrl, MediasCtrl,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Ctrl = require('../framework/Ctrl');
+
+module.exports = MediasCtrl = (function(_super) {
+  __extends(MediasCtrl, _super);
+
+  function MediasCtrl(app) {
+    MediasCtrl.__super__.constructor.call(this, app);
+  }
+
+  MediasCtrl.prototype.initialize = function(callback) {
+    if (callback) {
+      return callback();
+    }
+  };
+
+  MediasCtrl.prototype["do"] = function() {};
+
+  return MediasCtrl;
+
+})(Ctrl);
+
+},{"../framework/Ctrl":10}],9:[function(require,module,exports){
+var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User;
 
 Router = require('./Router');
 
@@ -419,6 +451,8 @@ TemplateManager = require('./TemplateManager');
 
 LayoutManager = require('./LayoutManager');
 
+User = require('./User');
+
 module.exports = App = (function() {
   function App() {
     this.env = new Env();
@@ -427,7 +461,7 @@ module.exports = App = (function() {
     this.templateManager = TemplateManager;
     this.layoutManager = LayoutManager;
     this.ready = true;
-    this.auth = false;
+    this.user = new User(this);
   }
 
   App.prototype.initializeRouter = function(setting) {
@@ -470,31 +504,6 @@ module.exports = App = (function() {
     return this.router.stopPropagate(path).change(path);
   };
 
-  App.prototype.login = function(access_token, provider) {
-    this.access_token = access_token;
-    this.auth = true;
-    this.env.set('access_token', access_token);
-    this.event.emit("login");
-    if (provider) {
-      if (provider === 'github') {
-        return this.github = new Github({
-          token: access_token,
-          auth: 'oauth'
-        });
-      }
-    }
-  };
-
-  App.prototype.logout = function(provider) {
-    this.auth = false;
-    this.access_token = null;
-    this.env.set('access_token', null);
-    this.event.emit('logout');
-    if (provider) {
-      return this.github = null in provider === 'github';
-    }
-  };
-
   App.prototype.refreshMenu = function(path) {
     console.log("refreshing menu", path, this.menu);
     if (!this.menu) {
@@ -502,10 +511,10 @@ module.exports = App = (function() {
     }
     $('li.active', this.menu).removeClass('active');
     $('li a[href="#' + path + '"]').parent().addClass('active');
-    if (!this.auth) {
+    if (!this.user.isAuth()) {
       $('li.need-auth').hide();
     }
-    if (this.auth) {
+    if (this.user.isAuth()) {
       return $('li.need-auth').show();
     }
   };
@@ -524,7 +533,7 @@ module.exports = App = (function() {
 
 })();
 
-},{"./CtrlManager":11,"./Env":12,"./GlobalEvent":13,"./LayoutManager":14,"./Router":15,"./TemplateManager":17}],9:[function(require,module,exports){
+},{"./CtrlManager":12,"./Env":13,"./GlobalEvent":14,"./LayoutManager":15,"./Router":16,"./TemplateManager":18,"./User":19}],10:[function(require,module,exports){
 var Ctrl, CtrlEvent, View;
 
 CtrlEvent = require('./CtrlEvent');
@@ -580,7 +589,7 @@ module.exports = Ctrl = (function() {
 
 })();
 
-},{"./CtrlEvent":10,"./View":18}],10:[function(require,module,exports){
+},{"./CtrlEvent":11,"./View":20}],11:[function(require,module,exports){
 var CtrlEvent;
 
 module.exports = CtrlEvent = (function() {
@@ -614,7 +623,7 @@ module.exports = CtrlEvent = (function() {
 
 })();
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var CtrlManager;
 
 module.exports = CtrlManager = (function() {
@@ -655,7 +664,7 @@ module.exports = CtrlManager = (function() {
 
 })();
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var Env;
 
 module.exports = Env = (function() {
@@ -694,7 +703,7 @@ module.exports = Env = (function() {
 
 })();
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var GlobalEvent;
 
 module.exports = GlobalEvent = (function() {
@@ -728,7 +737,7 @@ module.exports = GlobalEvent = (function() {
 
 })();
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var LayoutManager;
 
 module.exports = LayoutManager = (function() {
@@ -789,7 +798,7 @@ module.exports = LayoutManager = (function() {
 
 })();
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var Router, View;
 
 View = require('./View');
@@ -893,7 +902,7 @@ module.exports = Router = (function() {
 
 })();
 
-},{"./View":18}],16:[function(require,module,exports){
+},{"./View":20}],17:[function(require,module,exports){
 var Service;
 
 module.exports = Service = (function() {
@@ -903,7 +912,7 @@ module.exports = Service = (function() {
 
 })();
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var TemplateManager;
 
 module.exports = TemplateManager = (function() {
@@ -949,7 +958,61 @@ module.exports = TemplateManager = (function() {
 
 })();
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
+var User;
+
+module.exports = User = (function() {
+  function User(app) {
+    this.app = app;
+    console.log('construct user', this.app.env.get('auth'), this.app.env.get('access_token'), this.app.env.get('provider'));
+    if (this.app.env.get('auth') && this.app.env.get('access_token') && this.app.env.get('provider')) {
+      if (this.app.env.get('provider') === 'github') {
+        this.github = new Github({
+          token: this.app.env.get('access_token'),
+          auth: 'oauth'
+        });
+      }
+    }
+  }
+
+  User.prototype.login = function(username, social) {
+    this.app.env.set('auth', true);
+    this.app.env.set('username', username);
+    if (social.provider && social.access_token) {
+      this.app.env.set('access_token', social.access_token);
+      this.app.env.set('provider', social.provider);
+      if (social.provider === 'github') {
+        this.github = new Github({
+          token: social.access_token,
+          auth: 'oauth'
+        });
+      }
+    }
+    return this.app.event.emit("login");
+  };
+
+  User.prototype.setRight = function(right) {
+    this.right = right;
+  };
+
+  User.prototype.isAuth = function() {
+    return this.app.env.get('auth');
+  };
+
+  User.prototype.logout = function() {
+    this.github = null;
+    this.app.env.set('auth', false);
+    this.app.env.set('username', '');
+    this.app.env.set('access_token', '');
+    this.app.env.set('provider', '');
+    return this.app.event.emit('logout');
+  };
+
+  return User;
+
+})();
+
+},{}],20:[function(require,module,exports){
 var TemplateManager, View;
 
 TemplateManager = require('./TemplateManager');
@@ -972,7 +1035,7 @@ module.exports = View = (function() {
 
 })();
 
-},{"./TemplateManager":17}],19:[function(require,module,exports){
+},{"./TemplateManager":18}],21:[function(require,module,exports){
 
 /*
 class GDraft
@@ -998,7 +1061,7 @@ documentManager =
 repo =
 	construct: ->
  */
-var AlwaysCtrl, App, DocumentCtrl, DocumentsCtrl, ErrorCtrl, IndexCtrl, LogoutCtrl;
+var AlwaysCtrl, App, DocumentCtrl, DocumentsCtrl, ErrorCtrl, IndexCtrl, LogoutCtrl, MediasCtrl;
 
 App = require('./framework/App');
 
@@ -1012,27 +1075,26 @@ DocumentsCtrl = require('./controllers/DocumentsCtrl');
 
 DocumentCtrl = require('./controllers/DocumentCtrl');
 
+MediasCtrl = require('./controllers/MediasCtrl');
+
 LogoutCtrl = require('./controllers/LogoutCtrl');
 
 $('document').ready(function() {
-  var accessToken, app;
+  var app;
+  OAuth.initialize('poZr5pdrx7yFDfoE-gICayo2cBc');
   app = new App();
   app.initializeRouter({
     '/document/:slug': DocumentCtrl,
     '/': IndexCtrl,
     '/404': ErrorCtrl,
     '/documents': DocumentsCtrl,
+    '/medias': MediasCtrl,
     '/logout': LogoutCtrl
   });
-  accessToken = app.env.get('access_token');
-  console.log(accessToken);
-  if (accessToken) {
-    app.login(accessToken, 'github');
-  }
   return app.setMenu('#menu').setLayout('index').start();
 });
 
-},{"./controllers/AlwaysCtrl":2,"./controllers/DocumentCtrl":3,"./controllers/DocumentsCtrl":4,"./controllers/ErrorCtrl":5,"./controllers/IndexCtrl":6,"./controllers/LogoutCtrl":7,"./framework/App":8}],20:[function(require,module,exports){
+},{"./controllers/AlwaysCtrl":2,"./controllers/DocumentCtrl":3,"./controllers/DocumentsCtrl":4,"./controllers/ErrorCtrl":5,"./controllers/IndexCtrl":6,"./controllers/LogoutCtrl":7,"./controllers/MediasCtrl":8,"./framework/App":9}],22:[function(require,module,exports){
 var DocumentManagerService, Service, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1193,4 +1255,4 @@ module.exports = DocumentManagerService = (function(_super) {
 
 })(Service);
 
-},{"../config":1,"../framework/Service":16}]},{},[19])
+},{"../config":1,"../framework/Service":17}]},{},[21])

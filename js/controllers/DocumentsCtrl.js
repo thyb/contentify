@@ -13,11 +13,12 @@ module.exports = DocumentsCtrl = (function(_super) {
 
   function DocumentsCtrl(app) {
     DocumentsCtrl.__super__.constructor.call(this, app);
-    console.log("construct dashboard");
-    if (!this.app.auth) {
+    console.log("construct dashboard", this.app.user.isAuth());
+    if (!this.app.user.isAuth()) {
       return this.app.redirect('/');
     }
-    this.services.documentManager = new DocumentManagerService(this.app.github);
+    console.log(this.app.user);
+    this.services.documentManager = new DocumentManagerService(this.app.user.github);
   }
 
   DocumentsCtrl.prototype.initialize = function(callback) {

@@ -11,10 +11,10 @@ module.exports = DocumentCtrl = (function(_super) {
 
   function DocumentCtrl(app, params) {
     DocumentCtrl.__super__.constructor.call(this, app, params);
-    if (!this.app.auth) {
+    if (!this.app.user.isAuth()) {
       return this.app.redirect('/');
     }
-    this.services.documentManager = new DocumentManagerService(this.app.github);
+    this.services.documentManager = new DocumentManagerService(this.app.user.github);
     Handlebars.registerHelper('releaseDotImg', function(passedString) {
       if (passedString.substr(0, 6) === 'Delete') {
         return 'img/delete-dot.png';
