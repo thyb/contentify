@@ -84,11 +84,14 @@ module.exports = Router = (function() {
       return this.change('/404');
     }
     this.changeHash(path);
+    console.log("set Master Ctrl");
     this.app.ctrlManager.setMaster(res.master, res.masterParams, (function(_this) {
       return function() {
+        console.log("master set > try to refresh menu");
         if (_this.stop) {
-          return _this.stop = false;
+          _this.stop = false;
         }
+        return _this.app.refreshMenu(path);
       };
     })(this));
     return this;

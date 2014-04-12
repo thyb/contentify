@@ -2,12 +2,12 @@ Ctrl = require('../framework/Ctrl')
 config = require('../config')
 DocumentManagerService = require('../services/DocumentManagerService')
 
-module.exports = class DashboardCtrl extends Ctrl
+module.exports = class DocumentsCtrl extends Ctrl
 	constructor: (app) ->
 		super(app)
 
 		console.log "construct dashboard"
-		return @app.redirect '/' if not @app.github
+		return @app.redirect '/' if not @app.auth
 
 		@services.documentManager = new DocumentManagerService(@app.github)
 

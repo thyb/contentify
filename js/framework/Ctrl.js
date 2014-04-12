@@ -23,7 +23,10 @@ module.exports = Ctrl = (function() {
   Ctrl.prototype.use = function(callback) {
     return this.render((function(_this) {
       return function() {
-        return _this["do"](callback);
+        _this["do"]();
+        if (callback()) {
+          return callback;
+        }
       };
     })(this));
   };
@@ -34,11 +37,7 @@ module.exports = Ctrl = (function() {
     }
   };
 
-  Ctrl.prototype["do"] = function(callback) {
-    if (callback) {
-      return callback();
-    }
-  };
+  Ctrl.prototype["do"] = function() {};
 
   Ctrl.prototype.render = function(callback) {
     return this.initialize((function(_this) {
@@ -47,6 +46,8 @@ module.exports = Ctrl = (function() {
       };
     })(this));
   };
+
+  Ctrl.prototype.include = function(ctrl, placement, callback) {};
 
   return Ctrl;
 

@@ -5,7 +5,7 @@ module.exports = class DocumentCtrl extends Ctrl
 	constructor: (app, params) ->
 		super(app, params)
 
-		return @app.redirect '/' if not @app.github
+		return @app.redirect '/' if not @app.auth
 
 		@services.documentManager = new DocumentManagerService(@app.github)
 
@@ -17,7 +17,6 @@ module.exports = class DocumentCtrl extends Ctrl
 
 	initialize: (callback) ->
 		@services.documentManager.getDocument @params.slug, (doc) =>
-			console.log 'getDocument', doc
 			@app.redirect '/documents' if not doc
 			@services.documentManager.getDocumentHistory @params.slug, (err, documentHistory) =>
 				@services.documentManager.getReleaseHistory @params.slug, (err, releaseHistory) =>
@@ -102,7 +101,7 @@ module.exports = class DocumentCtrl extends Ctrl
 		$('#document-panel').css('overflow', 'auto')
 		selector = $('#epiceditor, #document-panel')
 		resize = ->
-			selector.height $(window).height() - 20
+			selector.height $(window).height() - 75
 
 		resize()
 		$(window).resize ->

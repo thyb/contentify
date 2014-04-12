@@ -20,6 +20,7 @@ module.exports = App = (function() {
     this.templateManager = TemplateManager;
     this.layoutManager = LayoutManager;
     this.ready = true;
+    this.auth = false;
   }
 
   App.prototype.initializeRouter = function(setting) {
@@ -57,13 +58,55 @@ module.exports = App = (function() {
     }
   };
 
-  App.prototype.include = function(ctrl, placement) {
-    return this.ctrlManager.addPartial(ctrl, placement);
-  };
-
   App.prototype.redirect = function(path) {
     console.log('redirect', path);
     return this.router.stopPropagate(path).change(path);
+  };
+
+  App.prototype.login = function(access_token, provider) {
+    this.access_token = access_token;
+    this.auth = true;
+    this.env.set('access_token', access_token);
+    this.event.emit("login");
+    if (provider) {
+      if (provider === 'github') {
+        return this.github = new Github({
+          token: access_token,
+          auth: 'oauth'
+        });
+      }
+    }
+  };
+
+  App.prototype.logout = function(provider) {
+    this.auth = false;
+    this.access_token = null;
+    this.env.set('access_token', null);
+    this.event.emit('logout');
+    if (provider) {
+      return this.github = null in provider === 'github';
+    }
+  };
+
+  App.prototype.refreshMenu = function(path) {
+    console.log("refreshing menu", path, this.menu);
+    if (!this.menu) {
+      return false;
+    }
+    $('li.active', this.menu).removeClass('active');
+    $('li a[href="#' + path + '"]').parent().addClass('active');
+    if (!this.auth) {
+      $('li.need-auth').hide();
+    }
+    if (this.auth) {
+      return $('li.need-auth').show();
+    }
+  };
+
+  App.prototype.setMenu = function(selector) {
+    console.log("set menu selector", selector);
+    this.menu = selector;
+    return this;
   };
 
   App.prototype.setTitle = function(title) {};

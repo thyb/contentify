@@ -77,8 +77,11 @@ module.exports = class Router
 
 		@changeHash path
 
+		console.log "set Master Ctrl"
 		@app.ctrlManager.setMaster res.master, res.masterParams, =>
+			console.log "master set > try to refresh menu"
 			@stop = false if @stop
+			@app.refreshMenu path
 			# if res.partial
 			#	@app.ctrlManager.addPartial res.partial.ctrl, res.partial.container
 

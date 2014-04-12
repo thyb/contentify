@@ -7,8 +7,11 @@ Ctrl = require('../framework/Ctrl');
 module.exports = IndexCtrl = (function(_super) {
   __extends(IndexCtrl, _super);
 
-  function IndexCtrl() {
-    return IndexCtrl.__super__.constructor.apply(this, arguments);
+  function IndexCtrl(app) {
+    IndexCtrl.__super__.constructor.call(this, app);
+    if (this.app.auth) {
+      this.app.redirect('/documents');
+    }
   }
 
   IndexCtrl.prototype["do"] = function() {
@@ -19,13 +22,8 @@ module.exports = IndexCtrl = (function(_super) {
           if (err) {
             return console.log(err);
           }
-          _this.app.env.set('access_token', res.access_token);
-          _this.app.github = new Github({
-            token: res.access_token,
-            auth: 'oauth'
-          });
-          _this.app.redirect('/documents');
-          return _this.app.event.emit("signin");
+          _this.app.login(res.access_token, 'github');
+          return _this.app.redirect('/documents');
         });
       };
     })(this));

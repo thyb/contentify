@@ -11,7 +11,7 @@ module.exports = DocumentCtrl = (function(_super) {
 
   function DocumentCtrl(app, params) {
     DocumentCtrl.__super__.constructor.call(this, app, params);
-    if (!this.app.github) {
+    if (!this.app.auth) {
       return this.app.redirect('/');
     }
     this.services.documentManager = new DocumentManagerService(this.app.github);
@@ -27,7 +27,6 @@ module.exports = DocumentCtrl = (function(_super) {
   DocumentCtrl.prototype.initialize = function(callback) {
     return this.services.documentManager.getDocument(this.params.slug, (function(_this) {
       return function(doc) {
-        console.log('getDocument', doc);
         if (!doc) {
           _this.app.redirect('/documents');
         }
@@ -150,7 +149,7 @@ module.exports = DocumentCtrl = (function(_super) {
     $('#document-panel').css('overflow', 'auto');
     selector = $('#epiceditor, #document-panel');
     resize = function() {
-      return selector.height($(window).height() - 20);
+      return selector.height($(window).height() - 75);
     };
     resize();
     $(window).resize(function() {

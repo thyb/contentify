@@ -26,9 +26,9 @@ App = require('./framework/App')
 AlwaysCtrl = require('./controllers/AlwaysCtrl')
 ErrorCtrl = require('./controllers/ErrorCtrl')
 IndexCtrl = require('./controllers/IndexCtrl')
-DashboardCtrl = require('./controllers/DashboardCtrl')
+DocumentsCtrl = require('./controllers/DocumentsCtrl')
 DocumentCtrl = require('./controllers/DocumentCtrl')
-
+LogoutCtrl = require('./controllers/LogoutCtrl')
 $('document').ready ->
 	app = new App()
 
@@ -36,11 +36,12 @@ $('document').ready ->
 		'/document/:slug': DocumentCtrl
 		'/': IndexCtrl
 		'/404': ErrorCtrl
-		'/documents': DashboardCtrl
+		'/documents': DocumentsCtrl
+		'/logout': LogoutCtrl
 
 	accessToken = app.env.get 'access_token'
 	console.log accessToken
 	if accessToken
-		app.github = new Github(token: accessToken, auth: 'oauth')
+		app.login accessToken, 'github'
 
-	app.setLayout('index').start()
+	app.setMenu('#menu').setLayout('index').start()

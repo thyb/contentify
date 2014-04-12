@@ -16,10 +16,13 @@ module.exports = class Ctrl
 
 	use: (callback) ->
 		@render =>
-			@do callback
+			@do()
+			callback if callback()
 
 	initialize: (callback) -> callback() if callback
-	do: (callback) -> callback() if callback
+	do: ->
 	render: (callback) ->
 		@initialize (params) =>
 			@view.render @templateUrl, params, @app.router.defaultPlacement, callback
+
+	include: (ctrl, placement, callback) ->
