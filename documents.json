@@ -1,7 +1,12 @@
 {
   "my-super-document": {
     "name": "My super document",
-    "extension": "md"
+    "extension": "md",
+    "create": 1397153982210,
+    "path": "",
+    "filename": "my-super-document.md",
+    "lastVersion": null,
+    "updated": 1397263765455
   },
   "readme": {
     "name": "README",
@@ -10,7 +15,7 @@
     "path": "",
     "filename": "readme.md",
     "lastVersion": "Github Content Manager\n======================\n\nInstallation Javascript\n-----------------------\n\nDownload the [Javascript SDK](sdk/gcm.js)\n\n    <script type=\"text/javascript\" src=\"/path/to/gcm.js\"></script>\n\nInstallation Node.js\n--------------------\n\nInstall `gcm` package using `npm`\n\n    npm install gcm\n\nLicense\n-------\n\nAPACHE2 LICENSE",
-    "updated": 1397259852758
+    "updated": 1397322740462
   },
   "test-document": {
     "name": "Test document",
@@ -18,7 +23,14 @@
     "created": 1397236623498,
     "path": "",
     "filename": "test-document.md",
-    "lastVersion": "Youpi\n=====\n\nThis is a new `document`.\ndvsavdsa\nAnd this is a **test**",
-    "updated": 1397258745300
+    "lastVersion": "Youpi 42\n========\n\nThis is a new `document`.\n\nAnd this is a **test**",
+    "updated": 1397260076225
+  },
+  "getting-started": {
+    "name": "Getting started",
+    "extension": "md",
+    "created": 1397259955069,
+    "path": "",
+    "filename": "getting-started.md"
   }
 }
