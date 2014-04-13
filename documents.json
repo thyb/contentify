@@ -14,8 +14,8 @@
     "create": 1397153982210,
     "path": "",
     "filename": "readme.md",
-    "lastVersion": "Github Content Manager\n======================\n\nInstallation Javascript\n-----------------------\n\nDownload the [Javascript SDK](sdk/gcm.js)\n\n    <script type=\"text/javascript\" src=\"/path/to/gcm.js\"></script>\n\nInstallation Node.js\n--------------------\n\nInstall `gcm` package using `npm`\n\n    npm install gcm\n\nLicense\n-------\n\nAPACHE2 LICENSE",
-    "updated": 1397322771169
+    "lastVersion": "Github Content Manager\n======================\n\ntototo\n------\n\nInstallation Javascript\n-----------------------\n\nDownload the [Javascript SDK](sdk/gcm.js)\n\n    <script type=\"text/javascript\" src=\"/path/to/gcm.js\"></script>\n\nInstallation Node.js\n--------------------\n\nInstall `gcm` package using `npm`\n\n    npm install gcm\n\nLicense\n-------\n\nAPACHE2 LICENSE",
+    "updated": 1397376931467
   },
   "test-document": {
     "name": "Test document",
@@ -32,5 +32,12 @@
     "created": 1397259955069,
     "path": "",
     "filename": "getting-started.md"
+  },
+  "mon-doc-antoine": {
+    "name": "Mon Doc Antoine",
+    "extension": "md",
+    "created": 1397323236009,
+    "path": "",
+    "filename": "mon-doc-antoine.md"
   }
 }
