@@ -1,6 +1,6 @@
 module.exports = class TemplateManager
 	instances = {}
-	baseUrl = '/tmpl/main/'
+	baseUrl = './tmpl/main/'
 
 	class Template
 		constructor: (@template) ->
