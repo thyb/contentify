@@ -1211,10 +1211,12 @@ module.exports = DocumentManagerService = (function(_super) {
   __extends(DocumentManagerService, _super);
 
   function DocumentManagerService(github) {
-    var res;
+    var href, res;
     this.github = github;
     this.documents = {};
-    res = window.location.href.match(/^http:\/\/([a-zA-Z0-9_-]+).github.io\/([a-zA-Z0-9_-]+)\/.*$/g);
+    href = 'http://thyb.github.io/dochub/#/documents';
+    res = href.match(/^http:\/\/([a-zA-Z0-9_-]+).github.io\/([a-zA-Z0-9_-]+)\/.*$/i);
+    console.log('Regexp url', res);
     if (!res) {
       this.repo = this.github.getRepo(config.username, config.repository);
     } else {
