@@ -6,7 +6,7 @@ DocHub allow your non technical team to update static document and release them 
 Installation
 ------------
 
-Fork [this repository](https://github.com/thyb/hubdoc) on your account.
+Fork [this repository](https://github.com/thyb/dochub) on your account.
 
 You can update `config.json` to configure the runtime of DocHub.
 
