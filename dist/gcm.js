@@ -1214,7 +1214,7 @@ module.exports = DocumentManagerService = (function(_super) {
     var href, res;
     this.github = github;
     this.documents = {};
-    href = 'http://thyb.github.io/dochub/#/documents';
+    href = window.location.href;
     res = href.match(/^http:\/\/([a-zA-Z0-9_-]+).github.io\/([a-zA-Z0-9_-]+)\/.*$/i);
     console.log('Regexp url', res);
     if (!res) {
@@ -1363,7 +1363,7 @@ module.exports = DocumentManagerService = (function(_super) {
         }
       };
     })(this));
-    return this.repo.remove('master', filename, (function(_this) {
+    return this.repo["delete"]('master', filename, (function(_this) {
       return function(err) {
         if (err) {
           console.log('error removing ' + filename, err);

@@ -98,7 +98,7 @@ module.exports = class DocumentManagerService extends Service
 		@repo.write 'master', 'documents.json', JSON.stringify(@documents, null, 2), 'Remove ' + slug, (err) =>
 			console.log 'error updating documents.json', err if err
 			callback(null, true) if callback and ++i == 3
-		@repo.remove 'master', filename, (err) =>
+		@repo.delete 'master', filename, (err) =>
 			console.log 'error removing ' + filename , err if err
 			callback(null, true) if callback and ++i == 3
 
