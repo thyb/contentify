@@ -1,22 +1,34 @@
-Github Content Manager
-======================
+DocHub
+======
 
-tototo
-------
+DocHub allow your non technical team to update static document and release them without to restart your server.
 
-Installation Javascript
------------------------
+Installation
+------------
 
-Download the [Javascript SDK](sdk/gcm.js)
+Fork [this repository](https://github.com/thyb/hubdoc) on your account.
 
-    <script type="text/javascript" src="/path/to/gcm.js"></script>
+You can update `config.json` to configure the runtime of DocHub.
 
-Installation Node.js
---------------------
+Enable Realtime
+---------------
 
-Install `gcm` package using `npm`
+To enable realtime to GibHub, just create an account on Firebase and copy paste you keys in `config.json` in the `firebase` key. Once down, you'll see in realtime when a collaborator update a document or push a new one.
 
-    npm install gcm
+    {
+        ...
+        firebase: 'YOUR-KEY.firebaseio.com'
+    }
+
+Enable Search
+-------------
+
+You can also add a fast search bar using Algolia API. As for realtime with Firebase, to enable search, you just have to create an account on algolia.com and copy paste you keys in `config.json` in the `algolia` key. Once down, you'll be able to search in realtime in your document set.
+
+    {
+        ...
+        algolia: "YOUR-API-KEY"
+    }
 
 License
 -------
