@@ -77,6 +77,24 @@ module.exports = class DocumentManagerService extends Service
 		console.log history
 		return history
 
+	remove: (slug, callback) ->
+		if not @documents[slug]
+			callback 'not found', null
+
+		filename = @documents[slug].filename
+		delete @documents[slug]
+		i = 0
+		console.log 'remove document', slug, filename, @documents
+		@repo.deleteRef 'heads/' + slug, (err) =>
+			console.log 'error updaing documents.json', err if err
+			callback(null, true) if callback and ++i == 3
+		@repo.write 'master', 'documents.json', JSON.stringify(@documents, null, 2), 'Remove ' + slug, (err) =>
+			console.log 'error updating documents.json', err if err
+			callback(null, true) if callback and ++i == 3
+		@repo.remove 'master', filename, (err) =>
+			console.log 'error removing ' + filename , err if err
+			callback(null, true) if callback and ++i == 3
+
 	diffToRelease: (slug, callback) ->
 		@repo.compare 'master', slug, callback
 

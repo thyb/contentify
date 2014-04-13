@@ -10,10 +10,13 @@
     <textarea class="hide" id="editor-content">{{lastContent}}</textarea>
   </div>
   <div class="col-xs-3" id="document-panel">
+
     <h4>{{doc.name}}</h4>
     <p class="text-muted">{{slug}}.{{doc.extension}}<p>
-    <button id="save-draft" class="btn btn-primary" {{#if localChanges}}{{else}}disabled{{/if}}>Save draft</button>
-    <button id="release" class="btn btn-success">Release</button>
+    <div class="btn-group">
+      <button id="save-draft" class="btn btn-primary" {{#if localChanges}}{{else}}disabled{{/if}}>Save draft</button>
+      <button id="release" class="btn btn-success">Release</button>
+    </div>
     <hr />
     <div id="draft-add-message" style="display: none">
       <form role="form">
@@ -32,6 +35,15 @@
       {{#each history}}
       <p><img src="{{imgType}}"> {{commit.message}}</p>
       {{/each}}
-    <div>
+    </div>
+    <div class="btn-group dropup" style="margin-top:10px">
+      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"> More options
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li><a id="rename-doc-link" href="#"><i class="glyphicon glyphicon-pencil"></i> Rename</a></li>
+        <li><a id="remove-doc-link" href="#"><i class="glyphicon glyphicon-fire"></i> Remove</a></li>
+      </ul>
+    </div>
   </div>
 </div>

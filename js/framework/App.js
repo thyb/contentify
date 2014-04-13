@@ -63,9 +63,30 @@ module.exports = App = (function() {
     }
   };
 
+  App.prototype.askForRedirect = function(msg, answer) {
+    this._askedForRedirect = true;
+    this._askedForRedirectFct = answer;
+    return $(window).bind('beforeunload', function() {
+      return 'Your local changes might be lost';
+    });
+  };
+
   App.prototype.redirect = function(path) {
-    console.log('redirect', path);
-    return this.router.stopPropagate(path).change(path);
+    var answer;
+    console.log(this._askedForRedirect);
+    if (this._askedForRedirect) {
+      answer = this._askedForRedirectFct();
+      console.log(answer);
+      if (!answer || (answer && confirm('Are you sure you want to quit this page? all local changes will be lost.'))) {
+        this.router.stopPropagate(path).change(path);
+      } else {
+        this.router.changeHash(this.router._state);
+      }
+      this._askedForRedirect = false;
+      return this._askedForRedirectFct = null;
+    } else if (!this._askedForRedirect) {
+      return this.router.stopPropagate(path).change(path);
+    }
   };
 
   App.prototype.refreshMenu = function(path) {

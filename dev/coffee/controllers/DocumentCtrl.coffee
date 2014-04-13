@@ -46,6 +46,7 @@ module.exports = class DocumentCtrl extends Ctrl
 		localContentHash = MD5 localContent
 		localChanges = false
 		hashToCompare = @viewParams.lastContentHash if not hashToCompare
+		return false if not hashToCompare
 
 		if localContentHash != hashToCompare
 			localChanges = true
@@ -108,8 +109,13 @@ module.exports = class DocumentCtrl extends Ctrl
 		@services.documentManager.getDocumentHistory @params.slug, (err, res) =>
 			console.log release
 
+	remove: (callback) ->
+		slug = @viewParams.slug
+		@services.documentManager.remove slug, =>
+			@app.redirect '/documents'
+
 	autoResizeEditor: () ->
-		$('#document-panel').css('overflow', 'auto')
+		$('#document-panel').css('overflow-y', 'auto')
 		selector = $('#epiceditor, #document-panel')
 
 		resize = =>
@@ -121,13 +127,12 @@ module.exports = class DocumentCtrl extends Ctrl
 			@editor.reflow()
 
 	do: ->
-		@askForRedirect 'Your local changes might be lost', =>
+		@app.askForRedirect 'Your local changes might be lost', =>
 			return @checkLocalChanges()
 
 		@autoResizeEditor()
 
 		@editor = new EpicEditor(
-			localStorageName: @params.slug
 			textarea: 'editor-content'
 			focusOnLoad: true
 			basePath: './lib/epiceditor',
@@ -156,6 +161,13 @@ module.exports = class DocumentCtrl extends Ctrl
 				@draftMessageOpen = false
 				$("#draft-add-message").slideUp('fast')
 				$('#save-draft,#release').removeAttr('disabled')
+				return false
+
+			$('#remove-doc-link').click =>
+				if confirm "Are you sure you want to remove this document?"
+					@remove()
+				return false
+			$('#rename-doc-link').click =>
 				return false
 
 		@editor.on 'update', (local) =>

@@ -125,6 +125,47 @@ module.exports = DocumentManagerService = (function(_super) {
     return history;
   };
 
+  DocumentManagerService.prototype.remove = function(slug, callback) {
+    var filename, i;
+    if (!this.documents[slug]) {
+      callback('not found', null);
+    }
+    filename = this.documents[slug].filename;
+    delete this.documents[slug];
+    i = 0;
+    console.log('remove document', slug, filename, this.documents);
+    this.repo.deleteRef('heads/' + slug, (function(_this) {
+      return function(err) {
+        if (err) {
+          console.log('error updaing documents.json', err);
+        }
+        if (callback && ++i === 3) {
+          return callback(null, true);
+        }
+      };
+    })(this));
+    this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {
+      return function(err) {
+        if (err) {
+          console.log('error updating documents.json', err);
+        }
+        if (callback && ++i === 3) {
+          return callback(null, true);
+        }
+      };
+    })(this));
+    return this.repo.remove('master', filename, (function(_this) {
+      return function(err) {
+        if (err) {
+          console.log('error removing ' + filename, err);
+        }
+        if (callback && ++i === 3) {
+          return callback(null, true);
+        }
+      };
+    })(this));
+  };
+
   DocumentManagerService.prototype.diffToRelease = function(slug, callback) {
     return this.repo.compare('master', slug, callback);
   };

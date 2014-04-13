@@ -43,9 +43,26 @@ module.exports = class App
 			else
 				@redirect @router._state
 
+	askForRedirect: (msg, answer) ->
+		@_askedForRedirect = true
+		@_askedForRedirectFct = answer
+		$(window).bind 'beforeunload', ->
+			return 'Your local changes might be lost'
+
 	redirect: (path) ->
-		console.log 'redirect', path
-		@router.stopPropagate(path).change path
+		console.log @_askedForRedirect
+		if @_askedForRedirect
+			answer = @_askedForRedirectFct()
+			console.log answer
+			if not answer or (answer and confirm('Are you sure you want to quit this page? all local changes will be lost.'))
+				@router.stopPropagate(path).change path
+			else
+				@router.changeHash @router._state
+			@_askedForRedirect = false
+			@_askedForRedirectFct = null
+
+		else if not @_askedForRedirect
+			@router.stopPropagate(path).change path
 
 	refreshMenu: (path) ->
 		console.log "refreshing menu", path, @menu

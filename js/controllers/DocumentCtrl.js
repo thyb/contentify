@@ -69,6 +69,9 @@ module.exports = DocumentCtrl = (function(_super) {
     if (!hashToCompare) {
       hashToCompare = this.viewParams.lastContentHash;
     }
+    if (!hashToCompare) {
+      return false;
+    }
     if (localContentHash !== hashToCompare) {
       localChanges = true;
     }
@@ -154,9 +157,19 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
   };
 
+  DocumentCtrl.prototype.remove = function(callback) {
+    var slug;
+    slug = this.viewParams.slug;
+    return this.services.documentManager.remove(slug, (function(_this) {
+      return function() {
+        return _this.app.redirect('/documents');
+      };
+    })(this));
+  };
+
   DocumentCtrl.prototype.autoResizeEditor = function() {
     var resize, selector;
-    $('#document-panel').css('overflow', 'auto');
+    $('#document-panel').css('overflow-y', 'auto');
     selector = $('#epiceditor, #document-panel');
     resize = (function(_this) {
       return function() {
@@ -173,14 +186,13 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype["do"] = function() {
-    this.askForRedirect('Your local changes might be lost', (function(_this) {
+    this.app.askForRedirect('Your local changes might be lost', (function(_this) {
       return function() {
         return _this.checkLocalChanges();
       };
     })(this));
     this.autoResizeEditor();
     this.editor = new EpicEditor({
-      localStorageName: this.params.slug,
       textarea: 'editor-content',
       focusOnLoad: true,
       basePath: './lib/epiceditor',
@@ -209,10 +221,19 @@ module.exports = DocumentCtrl = (function(_super) {
           }
           return false;
         });
-        return $("#draft-message-cancel").click(function() {
+        $("#draft-message-cancel").click(function() {
           _this.draftMessageOpen = false;
           $("#draft-add-message").slideUp('fast');
           $('#save-draft,#release').removeAttr('disabled');
+          return false;
+        });
+        $('#remove-doc-link').click(function() {
+          if (confirm("Are you sure you want to remove this document?")) {
+            _this.remove();
+          }
+          return false;
+        });
+        return $('#rename-doc-link').click(function() {
           return false;
         });
       };

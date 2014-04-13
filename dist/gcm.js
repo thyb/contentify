@@ -109,6 +109,9 @@ module.exports = DocumentCtrl = (function(_super) {
     if (!hashToCompare) {
       hashToCompare = this.viewParams.lastContentHash;
     }
+    if (!hashToCompare) {
+      return false;
+    }
     if (localContentHash !== hashToCompare) {
       localChanges = true;
     }
@@ -194,9 +197,19 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
   };
 
+  DocumentCtrl.prototype.remove = function(callback) {
+    var slug;
+    slug = this.viewParams.slug;
+    return this.services.documentManager.remove(slug, (function(_this) {
+      return function() {
+        return _this.app.redirect('/documents');
+      };
+    })(this));
+  };
+
   DocumentCtrl.prototype.autoResizeEditor = function() {
     var resize, selector;
-    $('#document-panel').css('overflow', 'auto');
+    $('#document-panel').css('overflow-y', 'auto');
     selector = $('#epiceditor, #document-panel');
     resize = (function(_this) {
       return function() {
@@ -213,14 +226,13 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype["do"] = function() {
-    this.askForRedirect('Your local changes might be lost', (function(_this) {
+    this.app.askForRedirect('Your local changes might be lost', (function(_this) {
       return function() {
         return _this.checkLocalChanges();
       };
     })(this));
     this.autoResizeEditor();
     this.editor = new EpicEditor({
-      localStorageName: this.params.slug,
       textarea: 'editor-content',
       focusOnLoad: true,
       basePath: './lib/epiceditor',
@@ -249,10 +261,19 @@ module.exports = DocumentCtrl = (function(_super) {
           }
           return false;
         });
-        return $("#draft-message-cancel").click(function() {
+        $("#draft-message-cancel").click(function() {
           _this.draftMessageOpen = false;
           $("#draft-add-message").slideUp('fast');
           $('#save-draft,#release').removeAttr('disabled');
+          return false;
+        });
+        $('#remove-doc-link').click(function() {
+          if (confirm("Are you sure you want to remove this document?")) {
+            _this.remove();
+          }
+          return false;
+        });
+        return $('#rename-doc-link').click(function() {
           return false;
         });
       };
@@ -527,9 +548,30 @@ module.exports = App = (function() {
     }
   };
 
+  App.prototype.askForRedirect = function(msg, answer) {
+    this._askedForRedirect = true;
+    this._askedForRedirectFct = answer;
+    return $(window).bind('beforeunload', function() {
+      return 'Your local changes might be lost';
+    });
+  };
+
   App.prototype.redirect = function(path) {
-    console.log('redirect', path);
-    return this.router.stopPropagate(path).change(path);
+    var answer;
+    console.log(this._askedForRedirect);
+    if (this._askedForRedirect) {
+      answer = this._askedForRedirectFct();
+      console.log(answer);
+      if (!answer || (answer && confirm('Are you sure you want to quit this page? all local changes will be lost.'))) {
+        this.router.stopPropagate(path).change(path);
+      } else {
+        this.router.changeHash(this.router._state);
+      }
+      this._askedForRedirect = false;
+      return this._askedForRedirectFct = null;
+    } else if (!this._askedForRedirect) {
+      return this.router.stopPropagate(path).change(path);
+    }
   };
 
   App.prototype.refreshMenu = function(path) {
@@ -613,17 +655,6 @@ module.exports = Ctrl = (function() {
   };
 
   Ctrl.prototype.include = function(ctrl, placement, callback) {};
-
-  Ctrl.prototype.askForRedirect = function(msg, answer) {
-    this._askedForRedirect = true;
-    return $(window).bind('beforeunload', function() {
-      if (answer() === false) {
-        return true;
-      } else {
-        return 'Your local changes might be lost';
-      }
-    });
-  };
 
   Ctrl.prototype.unload = function() {
     if (this._askedForRedirect) {
@@ -1286,6 +1317,47 @@ module.exports = DocumentManagerService = (function(_super) {
     }), true);
     console.log(history);
     return history;
+  };
+
+  DocumentManagerService.prototype.remove = function(slug, callback) {
+    var filename, i;
+    if (!this.documents[slug]) {
+      callback('not found', null);
+    }
+    filename = this.documents[slug].filename;
+    delete this.documents[slug];
+    i = 0;
+    console.log('remove document', slug, filename, this.documents);
+    this.repo.deleteRef('heads/' + slug, (function(_this) {
+      return function(err) {
+        if (err) {
+          console.log('error updaing documents.json', err);
+        }
+        if (callback && ++i === 3) {
+          return callback(null, true);
+        }
+      };
+    })(this));
+    this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {
+      return function(err) {
+        if (err) {
+          console.log('error updating documents.json', err);
+        }
+        if (callback && ++i === 3) {
+          return callback(null, true);
+        }
+      };
+    })(this));
+    return this.repo.remove('master', filename, (function(_this) {
+      return function(err) {
+        if (err) {
+          console.log('error removing ' + filename, err);
+        }
+        if (callback && ++i === 3) {
+          return callback(null, true);
+        }
+      };
+    })(this));
   };
 
   DocumentManagerService.prototype.diffToRelease = function(slug, callback) {

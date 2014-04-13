@@ -28,13 +28,6 @@ module.exports = class Ctrl
 
 	include: (ctrl, placement, callback) ->
 
-	askForRedirect: (msg, answer) ->
-		@_askedForRedirect = true
-		$(window).bind 'beforeunload', ->
-			if answer() == false
-				return true
-			else
-				return 'Your local changes might be lost'
 
 	unload: ->
 		$(window).unbind 'beforeunload' if @_askedForRedirect

@@ -50,17 +50,6 @@ module.exports = Ctrl = (function() {
 
   Ctrl.prototype.include = function(ctrl, placement, callback) {};
 
-  Ctrl.prototype.askForRedirect = function(msg, answer) {
-    this._askedForRedirect = true;
-    return $(window).bind('beforeunload', function() {
-      if (answer() === false) {
-        return true;
-      } else {
-        return 'Your local changes might be lost';
-      }
-    });
-  };
-
   Ctrl.prototype.unload = function() {
     if (this._askedForRedirect) {
       return $(window).unbind('beforeunload');
