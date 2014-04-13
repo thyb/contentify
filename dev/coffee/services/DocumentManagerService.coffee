@@ -5,7 +5,7 @@ module.exports = class DocumentManagerService extends Service
 	constructor: (@github)->
 		@documents = {}
 
-		res = window.location.href.match(/^http:\/\/([a-zA-Z0-9_-]+).github.io\/([a-zA-Z0-9_-]+)\/.*$/g)
+		res = window.location.href.match /^http:\/\/([a-zA-Z0-9_-]+).github.io\/([a-zA-Z0-9_-]+)\/.*$/i
 		if not res
 			@repo = @github.getRepo config.username, config.repository
 		else
