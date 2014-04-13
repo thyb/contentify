@@ -1152,8 +1152,10 @@ $('document').ready(function() {
     '/logout': LogoutCtrl
   });
   app.event.on('login', function() {
-    console.log('Receive login event', $('#user-menu'));
-    return $('#user-menu').prepend('<li class="auth-needed"><a href="https://github.com/' + app.user.get('login') + '"><img style="margin-top: -15px; position: relative; top: 6px" width="32" src="' + app.user.get('avatar_url') + '" class="img-circle"></a></li>');
+    return $('#user-menu').prepend('<li id="user-avatar" class="auth-needed"><a href="https://github.com/' + app.user.get('login') + '"><img style="margin-top: -15px; position: relative; top: 6px" width="32" src="' + app.user.get('avatar_url') + '" class="img-circle"></a></li>');
+  });
+  app.event.on('logout', function() {
+    return $('#user-avatar').remove();
   });
   return app.setMenu('#menu').setLayout('index').start();
 });

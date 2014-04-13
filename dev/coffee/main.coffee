@@ -45,7 +45,9 @@ $('document').ready ->
 		'/logout': LogoutCtrl
 
 	app.event.on 'login', ->
-		console.log 'Receive login event', $('#user-menu')
-		$('#user-menu').prepend '<li class="auth-needed"><a href="https://github.com/' + app.user.get('login') + '"><img style="margin-top: -15px; position: relative; top: 6px" width="32" src="' + app.user.get('avatar_url') + '" class="img-circle"></a></li>'
+		$('#user-menu').prepend '<li id="user-avatar" class="auth-needed"><a href="https://github.com/' + app.user.get('login') + '"><img style="margin-top: -15px; position: relative; top: 6px" width="32" src="' + app.user.get('avatar_url') + '" class="img-circle"></a></li>'
+
+	app.event.on 'logout', ->
+		$('#user-avatar').remove()
 
 	app.setMenu('#menu').setLayout('index').start()
