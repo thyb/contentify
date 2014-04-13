@@ -18,6 +18,7 @@ module.exports = class DocumentCtrl extends Ctrl
 	unload: () ->
 		super()
 		$(window).unbind 'resize'
+		@editor.unload()
 
 	initialize: (callback) ->
 		@services.documentManager.getDocument @params.slug, (doc, lastContent) =>
