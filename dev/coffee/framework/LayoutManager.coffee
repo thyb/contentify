@@ -1,7 +1,7 @@
 module.exports = class LayoutManager
 	layouts = {}
 	layout = null
-	baseUrl = '/tmpl/layout/'
+	baseUrl = 'tmpl/layout/'
 
 	class Layout
 		constructor: (@template) ->
