@@ -55,6 +55,9 @@ module.exports = class App
 			answer = @_askedForRedirectFct()
 			console.log answer
 			if not answer or (answer and confirm('Are you sure you want to quit this page? all local changes will be lost.'))
+				@_askedForRedirect = false
+				@_askedForRedirectFct = null
+				$(window).unbind 'beforeunload'
 				@router.stopPropagate(path).change path
 			else
 				@router.nextNoRedirect = true

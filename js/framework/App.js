@@ -78,6 +78,9 @@ module.exports = App = (function() {
       answer = this._askedForRedirectFct();
       console.log(answer);
       if (!answer || (answer && confirm('Are you sure you want to quit this page? all local changes will be lost.'))) {
+        this._askedForRedirect = false;
+        this._askedForRedirectFct = null;
+        $(window).unbind('beforeunload');
         return this.router.stopPropagate(path).change(path);
       } else {
         this.router.nextNoRedirect = true;
