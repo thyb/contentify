@@ -45,8 +45,7 @@ module.exports = class DocumentManagerService extends Service
 				@documents = JSON.parse(data)
 				doc = @documents[slug]
 				@repo.read slug, doc.filename, (err, content) =>
-					doc.lastVersion = content
-					callback doc
+					callback doc, content
 		else
 			callback @documents[slug]
 

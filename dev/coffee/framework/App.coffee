@@ -5,6 +5,7 @@ CtrlManager = require('./CtrlManager')
 TemplateManager = require('./TemplateManager')
 LayoutManager = require('./LayoutManager')
 User = require('./User')
+config = require('../config')
 
 module.exports = class App
 	constructor: () ->
@@ -32,6 +33,7 @@ module.exports = class App
 	start: ->
 		@started = true
 		if @ready
+			@user.initialize()
 			hash = window.location.hash
 			console.log 'router start', hash, @router._state
 			if hash and hash != '#'
@@ -44,7 +46,6 @@ module.exports = class App
 	redirect: (path) ->
 		console.log 'redirect', path
 		@router.stopPropagate(path).change path
-
 
 	refreshMenu: (path) ->
 		console.log "refreshing menu", path, @menu

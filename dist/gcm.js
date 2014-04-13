@@ -1,7 +1,9 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 module.exports = {
   repository: 'gcm',
-  username: 'thyb'
+  username: 'thyb',
+  firebase_key: "fiery-fire-8126",
+  algolia_key: ""
 };
 
 },{}],2:[function(require,module,exports){
@@ -62,27 +64,32 @@ module.exports = DocumentCtrl = (function(_super) {
     });
   }
 
+  DocumentCtrl.prototype.unload = function() {
+    DocumentCtrl.__super__.unload.call(this);
+    return $(window).unbind('resize');
+  };
+
   DocumentCtrl.prototype.initialize = function(callback) {
     return this.services.documentManager.getDocument(this.params.slug, (function(_this) {
-      return function(doc) {
+      return function(doc, lastContent) {
         if (!doc) {
           _this.app.redirect('/documents');
         }
         return _this.services.documentManager.getDocumentHistory(_this.params.slug, function(err, documentHistory) {
           return _this.services.documentManager.getReleaseHistory(_this.params.slug, function(err, releaseHistory) {
-            var localChanges, localContent, merge, _ref, _ref1;
-            localContent = JSON.parse(localStorage.getItem(_this.params.slug));
+            var lastContentHash, localChanges, localContent, merge;
+            localContent = lastContent;
+            lastContentHash = MD5(lastContent);
             localChanges = false;
-            if ((localContent != null ? (_ref = localContent[_this.params.slug]) != null ? _ref.content.length : void 0 : void 0) > 0 && (localContent != null ? (_ref1 = localContent[_this.params.slug]) != null ? _ref1.content.trim() : void 0 : void 0) !== doc.lastVersion) {
-              localChanges = true;
-            }
             merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
             _this.viewParams = {
               doc: doc,
               slug: _this.params.slug,
               diff: documentHistory,
               history: merge,
-              localChanges: localChanges
+              localChanges: localChanges,
+              lastContent: lastContent,
+              lastContentHash: lastContentHash
             };
             if (callback) {
               return callback(_this.viewParams);
@@ -93,14 +100,20 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
   };
 
-  DocumentCtrl.prototype.checkLocalChanges = function(callback) {
-    var localChanges, localContent, _ref;
-    localContent = JSON.parse(localStorage.getItem(this.params.slug));
+  DocumentCtrl.prototype.checkLocalChanges = function(hashToCompare) {
+    var localChanges, localContent, localContentHash;
+    localContent = $('#editor-content').val();
+    console.log('localContent', localContent);
+    localContentHash = MD5(localContent);
     localChanges = false;
-    if ((localContent != null ? (_ref = localContent[this.params.slug]) != null ? _ref.content.length : void 0 : void 0) > 0 && localContent[this.params.slug].content.trim() !== this.viewParams.doc.lastVersion) {
+    if (!hashToCompare) {
+      hashToCompare = this.viewParams.lastContentHash;
+    }
+    if (localContentHash !== hashToCompare) {
       localChanges = true;
     }
-    return callback(localChanges, localContent);
+    console.log('Check local changes', localChanges, hashToCompare, localContentHash);
+    return localChanges;
   };
 
   DocumentCtrl.prototype.saveDraft = function(callback) {
@@ -134,7 +147,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.release = function(callback) {
-    var content, filename, message, releaseFct, slug;
+    var changes, content, filename, message, releaseFct, slug;
     if (!this.draftMessageOpen) {
       $('#draft-add-message').slideDown('fast');
       $('#save-draft').attr('disabled', 'disabled');
@@ -162,18 +175,17 @@ module.exports = DocumentCtrl = (function(_super) {
           });
         };
       })(this);
-      this.checkLocalChanges((function(_this) {
-        return function(changes) {
-          if (changes) {
-            return _this.services.documentManager.saveDraft(slug, filename, content, message, function() {
-              $("#history p:first").text(' ' + message).prepend('<img src="img/draft-dot.png">');
-              return releaseFct();
-            });
-          } else {
+      changes = this.checkLocalChanges();
+      if (changes) {
+        this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
+          return function() {
+            $("#history p:first").text(' ' + message).prepend('<img src="img/draft-dot.png">');
             return releaseFct();
-          }
-        };
-      })(this));
+          };
+        })(this));
+      } else {
+        releaseFct();
+      }
     }
     return this.services.documentManager.getDocumentHistory(this.params.slug, (function(_this) {
       return function(err, res) {
@@ -182,20 +194,34 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
   };
 
-  DocumentCtrl.prototype["do"] = function() {
+  DocumentCtrl.prototype.autoResizeEditor = function() {
     var resize, selector;
     $('#document-panel').css('overflow', 'auto');
     selector = $('#epiceditor, #document-panel');
-    resize = function() {
-      return selector.height($(window).height() - 75);
-    };
+    resize = (function(_this) {
+      return function() {
+        return selector.height($(window).height() - 75);
+      };
+    })(this);
     resize();
-    $(window).resize(function() {
-      resize();
-      return this.editor.reflow();
-    });
+    return $(window).bind('resize', (function(_this) {
+      return function() {
+        resize();
+        return _this.editor.reflow();
+      };
+    })(this));
+  };
+
+  DocumentCtrl.prototype["do"] = function() {
+    this.askForRedirect('Your local changes might be lost', (function(_this) {
+      return function() {
+        return _this.checkLocalChanges();
+      };
+    })(this));
+    this.autoResizeEditor();
     this.editor = new EpicEditor({
       localStorageName: this.params.slug,
+      textarea: 'editor-content',
       focusOnLoad: true,
       basePath: '/lib/epiceditor',
       file: {
@@ -232,19 +258,22 @@ module.exports = DocumentCtrl = (function(_super) {
       };
     })(this));
     return this.editor.on('update', (function(_this) {
-      return function() {
-        return _this.checkLocalChanges(function(localChanges, localContent) {
-          if (localChanges && $('#history > p:first img').attr('src') !== 'img/local-dot.png') {
-            $('#history').prepend('<p><img src="img/local-dot.png"> Local changes</p>');
-            $('#save-draft,#release').removeAttr('disabled');
-          } else if (!localChanges && $('#history > p:first img').attr('src') === 'img/local-dot.png') {
-            $('#history p:first').remove();
-            $('#save-draft').attr('disabled', 'disabled');
-          }
-          if (!localChanges && (!_this.editor || _this.editor.exportFile().trim() === '')) {
-            return $('#save-draft').removeAttr('disabled');
-          }
-        });
+      return function(local) {
+        var hashToCompare, localChanges, localHash;
+        console.log('Editor update', arguments);
+        hashToCompare = _this.viewParams.lastContentHash;
+        localHash = MD5(local.content);
+        localChanges = localHash !== hashToCompare;
+        if (localChanges && $('#history > p:first img').attr('src') !== 'img/local-dot.png') {
+          $('#history').prepend('<p><img src="img/local-dot.png"> Local changes</p>');
+          $('#save-draft,#release').removeAttr('disabled');
+        } else if (!localChanges && $('#history > p:first img').attr('src') === 'img/local-dot.png') {
+          $('#history p:first').remove();
+          $('#save-draft').attr('disabled', 'disabled');
+        }
+        if (!localChanges && (!_this.editor || local.content.trim() === '')) {
+          return $('#save-draft').removeAttr('disabled');
+        }
       };
     })(this));
   };
@@ -308,10 +337,7 @@ module.exports = DocumentsCtrl = (function(_super) {
     return $('#create-button').click((function(_this) {
       return function() {
         var formData, type;
-        type = $('#new-document-modal .btn-group label.active').text().trim().toLowerCase();
-        if (type === 'markdown') {
-          type = 'md';
-        }
+        type = 'md';
         formData = {
           name: $('#name-input').val(),
           slug: $('#slug-input').val(),
@@ -374,8 +400,7 @@ module.exports = IndexCtrl = (function(_super) {
             return console.log(err);
           }
           return res.get('/user').done(function(data) {
-            console.log('login', res, data);
-            _this.app.user.login(data.login, {
+            _this.app.user.login(data, {
               access_token: res.access_token,
               provider: 'github'
             });
@@ -437,7 +462,7 @@ module.exports = MediasCtrl = (function(_super) {
 })(Ctrl);
 
 },{"../framework/Ctrl":10}],9:[function(require,module,exports){
-var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User;
+var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User, config;
 
 Router = require('./Router');
 
@@ -452,6 +477,8 @@ TemplateManager = require('./TemplateManager');
 LayoutManager = require('./LayoutManager');
 
 User = require('./User');
+
+config = require('../config');
 
 module.exports = App = (function() {
   function App() {
@@ -487,6 +514,7 @@ module.exports = App = (function() {
     var hash;
     this.started = true;
     if (this.ready) {
+      this.user.initialize();
       hash = window.location.hash;
       console.log('router start', hash, this.router._state);
       if (hash && hash !== '#') {
@@ -533,7 +561,7 @@ module.exports = App = (function() {
 
 })();
 
-},{"./CtrlManager":12,"./Env":13,"./GlobalEvent":14,"./LayoutManager":15,"./Router":16,"./TemplateManager":18,"./User":19}],10:[function(require,module,exports){
+},{"../config":1,"./CtrlManager":12,"./Env":13,"./GlobalEvent":14,"./LayoutManager":15,"./Router":16,"./TemplateManager":18,"./User":19}],10:[function(require,module,exports){
 var Ctrl, CtrlEvent, View;
 
 CtrlEvent = require('./CtrlEvent');
@@ -554,6 +582,7 @@ module.exports = Ctrl = (function() {
     this.event = new CtrlEvent();
     this.view = new View();
     this.services = {};
+    this._askedForRedirect = false;
   }
 
   Ctrl.prototype.use = function(callback) {
@@ -584,6 +613,23 @@ module.exports = Ctrl = (function() {
   };
 
   Ctrl.prototype.include = function(ctrl, placement, callback) {};
+
+  Ctrl.prototype.askForRedirect = function(msg, answer) {
+    this._askedForRedirect = true;
+    return $(window).bind('beforeunload', function() {
+      if (answer() === false) {
+        return true;
+      } else {
+        return 'Your local changes might be lost';
+      }
+    });
+  };
+
+  Ctrl.prototype.unload = function() {
+    if (this._askedForRedirect) {
+      return $(window).unbind('beforeunload');
+    }
+  };
 
   return Ctrl;
 
@@ -633,6 +679,9 @@ module.exports = CtrlManager = (function() {
   }
 
   CtrlManager.prototype.setMaster = function(ctrl, params, callback) {
+    if (this.master) {
+      this.master.unload();
+    }
     this.master = new ctrl(this.app, params);
     console.log(this.app.router.stop, params.path);
     if (this.app.router.stop && this.app.router.stop !== params.path) {
@@ -726,7 +775,7 @@ module.exports = GlobalEvent = (function() {
     return _results;
   };
 
-  GlobalEvent.prototype.receive = function(name, callback) {
+  GlobalEvent.prototype.on = function(name, callback) {
     return this.listeners.push({
       name: name,
       callback: callback
@@ -964,20 +1013,27 @@ var User;
 module.exports = User = (function() {
   function User(app) {
     this.app = app;
-    console.log('construct user', this.app.env.get('auth'), this.app.env.get('access_token'), this.app.env.get('provider'));
-    if (this.app.env.get('auth') && this.app.env.get('access_token') && this.app.env.get('provider')) {
-      if (this.app.env.get('provider') === 'github') {
-        this.github = new Github({
-          token: this.app.env.get('access_token'),
-          auth: 'oauth'
-        });
+    if (this.app.env.get('auth')) {
+      if (this.app.env.get('access_token') && this.app.env.get('provider')) {
+        if (this.app.env.get('provider') === 'github') {
+          this.github = new Github({
+            token: this.app.env.get('access_token'),
+            auth: 'oauth'
+          });
+        }
       }
     }
   }
 
-  User.prototype.login = function(username, social) {
+  User.prototype.initialize = function() {
+    if (this.app.env.get('auth')) {
+      return this.app.event.emit("login");
+    }
+  };
+
+  User.prototype.login = function(userinfo, social) {
     this.app.env.set('auth', true);
-    this.app.env.set('username', username);
+    this.app.env.set('userinfo', userinfo);
     if (social.provider && social.access_token) {
       this.app.env.set('access_token', social.access_token);
       this.app.env.set('provider', social.provider);
@@ -997,6 +1053,10 @@ module.exports = User = (function() {
 
   User.prototype.isAuth = function() {
     return this.app.env.get('auth');
+  };
+
+  User.prototype.get = function(key) {
+    return this.app.env.get('userinfo')[key];
   };
 
   User.prototype.logout = function() {
@@ -1091,6 +1151,10 @@ $('document').ready(function() {
     '/medias': MediasCtrl,
     '/logout': LogoutCtrl
   });
+  app.event.on('login', function() {
+    console.log('Receive login event', $('#user-menu'));
+    return $('#user-menu').prepend('<li class="auth-needed"><a href="https://github.com/' + app.user.get('login') + '"><img style="margin-top: -15px; position: relative; top: 6px" width="32" src="' + app.user.get('avatar_url') + '" class="img-circle"></a></li>');
+  });
   return app.setMenu('#menu').setLayout('index').start();
 });
 
@@ -1172,8 +1236,7 @@ module.exports = DocumentManagerService = (function(_super) {
           _this.documents = JSON.parse(data);
           doc = _this.documents[slug];
           return _this.repo.read(slug, doc.filename, function(err, content) {
-            doc.lastVersion = content;
-            return callback(doc);
+            return callback(doc, content);
           });
         };
       })(this));

@@ -20,7 +20,7 @@ module.exports = GlobalEvent = (function() {
     return _results;
   };
 
-  GlobalEvent.prototype.receive = function(name, callback) {
+  GlobalEvent.prototype.on = function(name, callback) {
     return this.listeners.push({
       name: name,
       callback: callback

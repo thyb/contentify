@@ -1,4 +1,4 @@
-var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User;
+var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User, config;
 
 Router = require('./Router');
 
@@ -13,6 +13,8 @@ TemplateManager = require('./TemplateManager');
 LayoutManager = require('./LayoutManager');
 
 User = require('./User');
+
+config = require('../config');
 
 module.exports = App = (function() {
   function App() {
@@ -48,6 +50,7 @@ module.exports = App = (function() {
     var hash;
     this.started = true;
     if (this.ready) {
+      this.user.initialize();
       hash = window.location.hash;
       console.log('router start', hash, this.router._state);
       if (hash && hash !== '#') {

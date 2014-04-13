@@ -2,6 +2,8 @@ module.exports = class CtrlManager
 	constructor: (@app) ->
 		@partials = []
 	setMaster: (ctrl, params, callback) ->
+		@master.unload() if @master
+
 		@master = new ctrl @app, params
 		console.log @app.router.stop, params.path
 		return (@app.router.stop = false) if @app.router.stop and @app.router.stop isnt params.path

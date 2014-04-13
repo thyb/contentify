@@ -7,6 +7,7 @@
 <div class="row" style="margin-top:10px">
   <div class="col-xs-9">
     <div id="epiceditor"></div>
+    <textarea class="hide" id="editor-content">{{lastContent}}</textarea>
   </div>
   <div class="col-xs-3" id="document-panel">
     <h4>{{doc.name}}</h4>
@@ -28,9 +29,6 @@
       <hr />
     </div>
     <div id="history">
-      {{#if localChanges}}
-      <p><img src="img/local-dot.png"> Local changes</p>
-      {{/if}}
       {{#each history}}
       <p><img src="{{imgType}}"> {{commit.message}}</p>
       {{/each}}

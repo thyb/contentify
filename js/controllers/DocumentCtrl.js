@@ -24,27 +24,32 @@ module.exports = DocumentCtrl = (function(_super) {
     });
   }
 
+  DocumentCtrl.prototype.unload = function() {
+    DocumentCtrl.__super__.unload.call(this);
+    return $(window).unbind('resize');
+  };
+
   DocumentCtrl.prototype.initialize = function(callback) {
     return this.services.documentManager.getDocument(this.params.slug, (function(_this) {
-      return function(doc) {
+      return function(doc, lastContent) {
         if (!doc) {
           _this.app.redirect('/documents');
         }
         return _this.services.documentManager.getDocumentHistory(_this.params.slug, function(err, documentHistory) {
           return _this.services.documentManager.getReleaseHistory(_this.params.slug, function(err, releaseHistory) {
-            var localChanges, localContent, merge, _ref, _ref1;
-            localContent = JSON.parse(localStorage.getItem(_this.params.slug));
+            var lastContentHash, localChanges, localContent, merge;
+            localContent = lastContent;
+            lastContentHash = MD5(lastContent);
             localChanges = false;
-            if ((localContent != null ? (_ref = localContent[_this.params.slug]) != null ? _ref.content.length : void 0 : void 0) > 0 && (localContent != null ? (_ref1 = localContent[_this.params.slug]) != null ? _ref1.content.trim() : void 0 : void 0) !== doc.lastVersion) {
-              localChanges = true;
-            }
             merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
             _this.viewParams = {
               doc: doc,
               slug: _this.params.slug,
               diff: documentHistory,
               history: merge,
-              localChanges: localChanges
+              localChanges: localChanges,
+              lastContent: lastContent,
+              lastContentHash: lastContentHash
             };
             if (callback) {
               return callback(_this.viewParams);
@@ -55,14 +60,20 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
   };
 
-  DocumentCtrl.prototype.checkLocalChanges = function(callback) {
-    var localChanges, localContent, _ref;
-    localContent = JSON.parse(localStorage.getItem(this.params.slug));
+  DocumentCtrl.prototype.checkLocalChanges = function(hashToCompare) {
+    var localChanges, localContent, localContentHash;
+    localContent = $('#editor-content').val();
+    console.log('localContent', localContent);
+    localContentHash = MD5(localContent);
     localChanges = false;
-    if ((localContent != null ? (_ref = localContent[this.params.slug]) != null ? _ref.content.length : void 0 : void 0) > 0 && localContent[this.params.slug].content.trim() !== this.viewParams.doc.lastVersion) {
+    if (!hashToCompare) {
+      hashToCompare = this.viewParams.lastContentHash;
+    }
+    if (localContentHash !== hashToCompare) {
       localChanges = true;
     }
-    return callback(localChanges, localContent);
+    console.log('Check local changes', localChanges, hashToCompare, localContentHash);
+    return localChanges;
   };
 
   DocumentCtrl.prototype.saveDraft = function(callback) {
@@ -96,7 +107,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.release = function(callback) {
-    var content, filename, message, releaseFct, slug;
+    var changes, content, filename, message, releaseFct, slug;
     if (!this.draftMessageOpen) {
       $('#draft-add-message').slideDown('fast');
       $('#save-draft').attr('disabled', 'disabled');
@@ -124,18 +135,17 @@ module.exports = DocumentCtrl = (function(_super) {
           });
         };
       })(this);
-      this.checkLocalChanges((function(_this) {
-        return function(changes) {
-          if (changes) {
-            return _this.services.documentManager.saveDraft(slug, filename, content, message, function() {
-              $("#history p:first").text(' ' + message).prepend('<img src="img/draft-dot.png">');
-              return releaseFct();
-            });
-          } else {
+      changes = this.checkLocalChanges();
+      if (changes) {
+        this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
+          return function() {
+            $("#history p:first").text(' ' + message).prepend('<img src="img/draft-dot.png">');
             return releaseFct();
-          }
-        };
-      })(this));
+          };
+        })(this));
+      } else {
+        releaseFct();
+      }
     }
     return this.services.documentManager.getDocumentHistory(this.params.slug, (function(_this) {
       return function(err, res) {
@@ -144,20 +154,34 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
   };
 
-  DocumentCtrl.prototype["do"] = function() {
+  DocumentCtrl.prototype.autoResizeEditor = function() {
     var resize, selector;
     $('#document-panel').css('overflow', 'auto');
     selector = $('#epiceditor, #document-panel');
-    resize = function() {
-      return selector.height($(window).height() - 75);
-    };
+    resize = (function(_this) {
+      return function() {
+        return selector.height($(window).height() - 75);
+      };
+    })(this);
     resize();
-    $(window).resize(function() {
-      resize();
-      return this.editor.reflow();
-    });
+    return $(window).bind('resize', (function(_this) {
+      return function() {
+        resize();
+        return _this.editor.reflow();
+      };
+    })(this));
+  };
+
+  DocumentCtrl.prototype["do"] = function() {
+    this.askForRedirect('Your local changes might be lost', (function(_this) {
+      return function() {
+        return _this.checkLocalChanges();
+      };
+    })(this));
+    this.autoResizeEditor();
     this.editor = new EpicEditor({
       localStorageName: this.params.slug,
+      textarea: 'editor-content',
       focusOnLoad: true,
       basePath: '/lib/epiceditor',
       file: {
@@ -194,19 +218,22 @@ module.exports = DocumentCtrl = (function(_super) {
       };
     })(this));
     return this.editor.on('update', (function(_this) {
-      return function() {
-        return _this.checkLocalChanges(function(localChanges, localContent) {
-          if (localChanges && $('#history > p:first img').attr('src') !== 'img/local-dot.png') {
-            $('#history').prepend('<p><img src="img/local-dot.png"> Local changes</p>');
-            $('#save-draft,#release').removeAttr('disabled');
-          } else if (!localChanges && $('#history > p:first img').attr('src') === 'img/local-dot.png') {
-            $('#history p:first').remove();
-            $('#save-draft').attr('disabled', 'disabled');
-          }
-          if (!localChanges && (!_this.editor || _this.editor.exportFile().trim() === '')) {
-            return $('#save-draft').removeAttr('disabled');
-          }
-        });
+      return function(local) {
+        var hashToCompare, localChanges, localHash;
+        console.log('Editor update', arguments);
+        hashToCompare = _this.viewParams.lastContentHash;
+        localHash = MD5(local.content);
+        localChanges = localHash !== hashToCompare;
+        if (localChanges && $('#history > p:first img').attr('src') !== 'img/local-dot.png') {
+          $('#history').prepend('<p><img src="img/local-dot.png"> Local changes</p>');
+          $('#save-draft,#release').removeAttr('disabled');
+        } else if (!localChanges && $('#history > p:first img').attr('src') === 'img/local-dot.png') {
+          $('#history p:first').remove();
+          $('#save-draft').attr('disabled', 'disabled');
+        }
+        if (!localChanges && (!_this.editor || local.content.trim() === '')) {
+          return $('#save-draft').removeAttr('disabled');
+        }
       };
     })(this));
   };

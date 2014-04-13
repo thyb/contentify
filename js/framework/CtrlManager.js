@@ -7,6 +7,9 @@ module.exports = CtrlManager = (function() {
   }
 
   CtrlManager.prototype.setMaster = function(ctrl, params, callback) {
+    if (this.master) {
+      this.master.unload();
+    }
     this.master = new ctrl(this.app, params);
     console.log(this.app.router.stop, params.path);
     if (this.app.router.stop && this.app.router.stop !== params.path) {

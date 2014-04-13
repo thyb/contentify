@@ -15,33 +15,44 @@ module.exports = class DocumentCtrl extends Ctrl
 			else
 				return 'img/release-dot.png'
 
+	unload: () ->
+		super()
+		$(window).unbind 'resize'
+
 	initialize: (callback) ->
-		@services.documentManager.getDocument @params.slug, (doc) =>
+		@services.documentManager.getDocument @params.slug, (doc, lastContent) =>
 			@app.redirect '/documents' if not doc
 			@services.documentManager.getDocumentHistory @params.slug, (err, documentHistory) =>
 				@services.documentManager.getReleaseHistory @params.slug, (err, releaseHistory) =>
-					localContent = JSON.parse(localStorage.getItem(@params.slug))
+					localContent = lastContent
+					lastContentHash = MD5 lastContent
 					localChanges = false
-					if localContent?[@params.slug]?.content.length > 0 and localContent?[@params.slug]?.content.trim() != doc.lastVersion
-						localChanges = true
 
 					merge = @services.documentManager.mergeHistory(releaseHistory, documentHistory)
+
 					@viewParams =
 						doc: doc
 						slug: @params.slug
 						diff: documentHistory
 						history: merge
 						localChanges: localChanges
+						lastContent: lastContent
+						lastContentHash: lastContentHash
 					callback @viewParams if callback
 
-	checkLocalChanges: (callback) ->
-		localContent = JSON.parse(localStorage.getItem(@params.slug))
+	checkLocalChanges: (hashToCompare) ->
+		localContent = $('#editor-content').val()
+		console.log 'localContent', localContent
+		localContentHash = MD5 localContent
 		localChanges = false
-		if localContent?[@params.slug]?.content.length > 0 and localContent[@params.slug].content.trim() != @viewParams.doc.lastVersion
-			localChanges = true
-		# fdconsole.log localChanges, $('#history > p:first img').attr('src')
+		hashToCompare = @viewParams.lastContentHash if not hashToCompare
 
-		callback localChanges, localContent
+		if localContentHash != hashToCompare
+			localChanges = true
+
+		console.log 'Check local changes', localChanges, hashToCompare, localContentHash
+
+		return localChanges
 
 	saveDraft: (callback) ->
 		if not @draftMessageOpen
@@ -86,37 +97,46 @@ module.exports = class DocumentCtrl extends Ctrl
 					@releaseMessage = false
 					callback true if callback
 
-			@checkLocalChanges (changes) =>
-				if changes
-					@services.documentManager.saveDraft slug, filename, content, message, =>
-						$("#history p:first").text(' ' + message).prepend '<img src="img/draft-dot.png">'
-						releaseFct()
-				else
+			changes = @checkLocalChanges()
+			if changes
+				@services.documentManager.saveDraft slug, filename, content, message, =>
+					$("#history p:first").text(' ' + message).prepend '<img src="img/draft-dot.png">'
 					releaseFct()
+			else
+				releaseFct()
 
 		@services.documentManager.getDocumentHistory @params.slug, (err, res) =>
 			console.log release
 
-	do: ->
+	autoResizeEditor: () ->
 		$('#document-panel').css('overflow', 'auto')
 		selector = $('#epiceditor, #document-panel')
-		resize = ->
+
+		resize = =>
 			selector.height $(window).height() - 75
 
 		resize()
-		$(window).resize ->
+		$(window).bind 'resize', =>
 			resize()
 			@editor.reflow()
 
+	do: ->
+		@askForRedirect 'Your local changes might be lost', =>
+			return @checkLocalChanges()
+
+		@autoResizeEditor()
+
 		@editor = new EpicEditor(
 			localStorageName: @params.slug
+			textarea: 'editor-content'
 			focusOnLoad: true
-			basePath: '/lib/epiceditor'
+			basePath: '/lib/epiceditor',
 			file:
 				name: @params.slug
 		).load =>
 			if @viewParams.history[0]?.imgType == 'img/release-dot.png' and $('#history > p:first img').attr('src') != 'img/local-dot.png' or not @editor or @editor.exportFile().trim() == ''
 				$('#save-draft').removeAttr('disabled')
+
 			$("#save-draft").click =>
 				@saveDraft()
 				return false
@@ -130,7 +150,6 @@ module.exports = class DocumentCtrl extends Ctrl
 					@release()
 				else
 					@saveDraft()
-
 				return false
 
 			$("#draft-message-cancel").click =>
@@ -139,14 +158,18 @@ module.exports = class DocumentCtrl extends Ctrl
 				$('#save-draft,#release').removeAttr('disabled')
 				return false
 
-		@editor.on 'update', =>
-			@checkLocalChanges (localChanges, localContent) =>
-				if localChanges and $('#history > p:first img').attr('src') != 'img/local-dot.png'
-					$('#history').prepend '<p><img src="img/local-dot.png"> Local changes</p>'
-					$('#save-draft,#release').removeAttr('disabled')
+		@editor.on 'update', (local) =>
+			console.log 'Editor update', arguments
+			hashToCompare = @viewParams.lastContentHash
+			localHash = MD5 local.content
+			localChanges = localHash != hashToCompare
 
-				else if not localChanges and $('#history > p:first img').attr('src') == 'img/local-dot.png'
-					$('#history p:first').remove()
-					$('#save-draft').attr('disabled', 'disabled')
-				if not localChanges and (not @editor or @editor.exportFile().trim() == '')
-					$('#save-draft').removeAttr('disabled')
+			if localChanges and $('#history > p:first img').attr('src') != 'img/local-dot.png'
+				$('#history').prepend '<p><img src="img/local-dot.png"> Local changes</p>'
+				$('#save-draft,#release').removeAttr('disabled')
+
+			else if not localChanges and $('#history > p:first img').attr('src') == 'img/local-dot.png'
+				$('#history p:first').remove()
+				$('#save-draft').attr('disabled', 'disabled')
+			if not localChanges and (not @editor or local.content.trim() == '')
+				$('#save-draft').removeAttr('disabled')

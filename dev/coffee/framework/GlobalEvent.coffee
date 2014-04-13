@@ -6,5 +6,5 @@ module.exports = class GlobalEvent
 		for listener in @listeners
 			if listener.name == name
 				listener.callback value
-	receive: (name, callback) ->
+	on: (name, callback) ->
 		@listeners.push name: name, callback: callback

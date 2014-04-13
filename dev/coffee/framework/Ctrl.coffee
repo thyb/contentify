@@ -13,6 +13,7 @@ module.exports = class Ctrl
 		@event = new CtrlEvent()
 		@view = new View()
 		@services = {}
+		@_askedForRedirect = false
 
 	use: (callback) ->
 		@render =>
@@ -26,3 +27,14 @@ module.exports = class Ctrl
 			@view.render @templateUrl, params, @app.router.defaultPlacement, callback
 
 	include: (ctrl, placement, callback) ->
+
+	askForRedirect: (msg, answer) ->
+		@_askedForRedirect = true
+		$(window).bind 'beforeunload', ->
+			if answer() == false
+				return true
+			else
+				return 'Your local changes might be lost'
+
+	unload: ->
+		$(window).unbind 'beforeunload' if @_askedForRedirect

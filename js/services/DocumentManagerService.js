@@ -75,8 +75,7 @@ module.exports = DocumentManagerService = (function(_super) {
           _this.documents = JSON.parse(data);
           doc = _this.documents[slug];
           return _this.repo.read(slug, doc.filename, function(err, content) {
-            doc.lastVersion = content;
-            return callback(doc);
+            return callback(doc, content);
           });
         };
       })(this));

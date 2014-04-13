@@ -1,12 +1,16 @@
 module.exports = class User
 	constructor: (@app) ->
-		console.log 'construct user', @app.env.get('auth'), @app.env.get('access_token'), @app.env.get('provider')
-		if @app.env.get('auth') and @app.env.get('access_token') and @app.env.get('provider')
-			@github = new Github(token: @app.env.get('access_token'), auth: 'oauth') if @app.env.get('provider') == 'github'
+		if @app.env.get('auth')
+			if @app.env.get('access_token') and @app.env.get('provider')
+				@github = new Github(token: @app.env.get('access_token'), auth: 'oauth') if @app.env.get('provider') == 'github'
 
-	login: (username, social) ->
+	initialize: () ->
+		if @app.env.get('auth')
+			@app.event.emit "login"
+
+	login: (userinfo, social) ->
 		@app.env.set 'auth', true
-		@app.env.set 'username', username
+		@app.env.set 'userinfo', userinfo
 		if social.provider and social.access_token
 			@app.env.set 'access_token', social.access_token
 			@app.env.set 'provider', social.provider
@@ -18,6 +22,9 @@ module.exports = class User
 
 	isAuth: () ->
 		return @app.env.get 'auth'
+
+	get: (key) ->
+		return @app.env.get('userinfo')[key]
 
 	logout: () ->
 		@github = null

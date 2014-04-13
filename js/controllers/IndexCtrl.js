@@ -22,8 +22,7 @@ module.exports = IndexCtrl = (function(_super) {
             return console.log(err);
           }
           return res.get('/user').done(function(data) {
-            console.log('login', res, data);
-            _this.app.user.login(data.login, {
+            _this.app.user.login(data, {
               access_token: res.access_token,
               provider: 'github'
             });

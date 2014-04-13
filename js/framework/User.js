@@ -3,20 +3,27 @@ var User;
 module.exports = User = (function() {
   function User(app) {
     this.app = app;
-    console.log('construct user', this.app.env.get('auth'), this.app.env.get('access_token'), this.app.env.get('provider'));
-    if (this.app.env.get('auth') && this.app.env.get('access_token') && this.app.env.get('provider')) {
-      if (this.app.env.get('provider') === 'github') {
-        this.github = new Github({
-          token: this.app.env.get('access_token'),
-          auth: 'oauth'
-        });
+    if (this.app.env.get('auth')) {
+      if (this.app.env.get('access_token') && this.app.env.get('provider')) {
+        if (this.app.env.get('provider') === 'github') {
+          this.github = new Github({
+            token: this.app.env.get('access_token'),
+            auth: 'oauth'
+          });
+        }
       }
     }
   }
 
-  User.prototype.login = function(username, social) {
+  User.prototype.initialize = function() {
+    if (this.app.env.get('auth')) {
+      return this.app.event.emit("login");
+    }
+  };
+
+  User.prototype.login = function(userinfo, social) {
     this.app.env.set('auth', true);
-    this.app.env.set('username', username);
+    this.app.env.set('userinfo', userinfo);
     if (social.provider && social.access_token) {
       this.app.env.set('access_token', social.access_token);
       this.app.env.set('provider', social.provider);
@@ -36,6 +43,10 @@ module.exports = User = (function() {
 
   User.prototype.isAuth = function() {
     return this.app.env.get('auth');
+  };
+
+  User.prototype.get = function(key) {
+    return this.app.env.get('userinfo')[key];
   };
 
   User.prototype.logout = function() {
