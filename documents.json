@@ -40,11 +40,11 @@
     "path": "",
     "filename": "mon-doc-antoine.md"
   },
-  "vincent-et-ses-lapins": {
-    "name": "Vincent et ses lapins",
+  "test-document-2": {
+    "name": "Test document 2",
     "extension": "md",
-    "created": 1397398158185,
+    "created": 1397399623543,
     "path": "",
-    "filename": "vincent-et-ses-lapins.md"
+    "filename": "test-document-2.md"
   }
 }
