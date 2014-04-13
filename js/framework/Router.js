@@ -10,7 +10,11 @@ module.exports = Router = (function() {
     this.defaultPlacement = 'body';
     $(window).hashchange((function(_this) {
       return function() {
-        return _this.app.redirect(window.location.hash.substr(1));
+        if (_this.nextNoRedirect) {
+          return _this.nextNoRedirect = false;
+        } else {
+          return _this.app.redirect(window.location.hash.substr(1));
+        }
       };
     })(this));
   }

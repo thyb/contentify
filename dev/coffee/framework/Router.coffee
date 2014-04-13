@@ -6,7 +6,10 @@ module.exports = class Router
 		@changingHash = false
 		@defaultPlacement = 'body'
 		$(window).hashchange =>
-			@app.redirect window.location.hash.substr(1)
+			if @nextNoRedirect
+				@nextNoRedirect = false
+			else
+				@app.redirect window.location.hash.substr(1)
 
 	setDefaultPlacement: (@defaultPlacement) ->	return @
 

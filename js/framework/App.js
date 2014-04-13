@@ -78,12 +78,11 @@ module.exports = App = (function() {
       answer = this._askedForRedirectFct();
       console.log(answer);
       if (!answer || (answer && confirm('Are you sure you want to quit this page? all local changes will be lost.'))) {
-        this.router.stopPropagate(path).change(path);
+        return this.router.stopPropagate(path).change(path);
       } else {
-        this.router.changeHash(this.router._state);
+        this.router.nextNoRedirect = true;
+        return this.router.changeHash(this.router._state);
       }
-      this._askedForRedirect = false;
-      return this._askedForRedirectFct = null;
     } else if (!this._askedForRedirect) {
       return this.router.stopPropagate(path).change(path);
     }
