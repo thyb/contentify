@@ -130,7 +130,7 @@ module.exports = class DocumentCtrl extends Ctrl
 			localStorageName: @params.slug
 			textarea: 'editor-content'
 			focusOnLoad: true
-			basePath: '/lib/epiceditor',
+			basePath: './lib/epiceditor',
 			file:
 				name: @params.slug
 		).load =>

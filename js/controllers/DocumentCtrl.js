@@ -183,7 +183,7 @@ module.exports = DocumentCtrl = (function(_super) {
       localStorageName: this.params.slug,
       textarea: 'editor-content',
       focusOnLoad: true,
-      basePath: '/lib/epiceditor',
+      basePath: './lib/epiceditor',
       file: {
         name: this.params.slug
       }
