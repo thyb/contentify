@@ -20,16 +20,6 @@ To enable realtime to GibHub, just create an account on Firebase and copy paste 
         firebase: 'YOUR-KEY.firebaseio.com'
     }
 
-Enable Search
--------------
-
-You can also add a fast search bar using Algolia API. As for realtime with Firebase, to enable search, you just have to create an account on algolia.com and copy paste you keys in `config.json` in the `algolia` key. Once down, you'll be able to search in realtime in your document set.
-
-    {
-        ...
-        algolia: "YOUR-API-KEY"
-    }
-
 License
 -------
 
