@@ -9,7 +9,7 @@ module.exports = LayoutManager = (function() {
 
   layout = null;
 
-  baseUrl = '/tmpl/layout/';
+  baseUrl = './tmpl/layout/';
 
   Layout = (function() {
     function Layout(template) {

@@ -798,7 +798,7 @@ module.exports = LayoutManager = (function() {
 
   layout = null;
 
-  baseUrl = '/tmpl/layout/';
+  baseUrl = './tmpl/layout/';
 
   Layout = (function() {
     function Layout(template) {
@@ -971,7 +971,7 @@ module.exports = TemplateManager = (function() {
 
   instances = {};
 
-  baseUrl = '/tmpl/main/';
+  baseUrl = './tmpl/main/';
 
   Template = (function() {
     function Template(template) {

@@ -7,7 +7,7 @@ module.exports = TemplateManager = (function() {
 
   instances = {};
 
-  baseUrl = '/tmpl/main/';
+  baseUrl = './tmpl/main/';
 
   Template = (function() {
     function Template(template) {
