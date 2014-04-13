@@ -10,9 +10,15 @@ module.exports = DocumentManagerService = (function(_super) {
   __extends(DocumentManagerService, _super);
 
   function DocumentManagerService(github) {
+    var res;
     this.github = github;
     this.documents = {};
-    this.repo = this.github.getRepo(config.username, config.repository);
+    res = window.location.href.match(/^http:\/\/([a-zA-Z0-9_-]+).github.io\/([a-zA-Z0-9_-]+)\/.*$/g);
+    if (!res) {
+      this.repo = this.github.getRepo(config.username, config.repository);
+    } else {
+      this.repo = this.github.getRepo(res[1], res[2]);
+    }
   }
 
   DocumentManagerService.prototype.create = function(params, callback) {

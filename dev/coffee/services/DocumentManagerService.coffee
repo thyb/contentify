@@ -4,7 +4,12 @@ config = require('../config')
 module.exports = class DocumentManagerService extends Service
 	constructor: (@github)->
 		@documents = {}
-		@repo = @github.getRepo config.username, config.repository
+
+		res = window.location.href.match(/^http:\/\/([a-zA-Z0-9_-]+).github.io\/([a-zA-Z0-9_-]+)\/.*$/g)
+		if not res
+			@repo = @github.getRepo config.username, config.repository
+		else
+			@repo = @github.getRepo res[1], res[2]
 
 	create: (params, callback) ->
 
