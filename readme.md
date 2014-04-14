@@ -15,6 +15,11 @@ You can update `config.json` to configure the runtime of DocHub if you're hostin
        repository: 'dochub'
     }
 
+Usage
+-----
+
+**[TODO]**
+
 License
 -------
 
