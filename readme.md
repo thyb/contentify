@@ -18,7 +18,7 @@ You can update `config.json` to configure the runtime of DocHub if you're hostin
 Usage
 -----
 
-**[TODO]**
+Go on http://[your-github-username].github.io/[your-github-repository] and start managing your content.
 
 License
 -------
