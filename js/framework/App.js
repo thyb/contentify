@@ -52,7 +52,6 @@ module.exports = App = (function() {
     if (this.ready) {
       this.user.initialize();
       hash = window.location.hash;
-      console.log('router start', hash, this.router._state);
       if (hash && hash !== '#') {
         return this.redirect(hash.substr(1));
       } else if (!this.router._state) {
@@ -64,19 +63,22 @@ module.exports = App = (function() {
   };
 
   App.prototype.askForRedirect = function(msg, answer) {
-    this._askedForRedirect = true;
-    this._askedForRedirectFct = answer;
-    return $(window).bind('beforeunload', function() {
-      return 'Your local changes might be lost';
-    });
+    if (!msg) {
+      this._askedForRedirect = false;
+      return this._askedForRedirectFct = null;
+    } else {
+      this._askedForRedirect = true;
+      this._askedForRedirectFct = answer;
+      return $(window).bind('beforeunload', function() {
+        return 'Your local changes might be lost';
+      });
+    }
   };
 
   App.prototype.redirect = function(path) {
     var answer;
-    console.log(this._askedForRedirect);
     if (this._askedForRedirect) {
       answer = this._askedForRedirectFct();
-      console.log(answer);
       if (!answer || (answer && confirm('Are you sure you want to quit this page? all local changes will be lost.'))) {
         this._askedForRedirect = false;
         this._askedForRedirectFct = null;
@@ -86,13 +88,12 @@ module.exports = App = (function() {
         this.router.nextNoRedirect = true;
         return this.router.changeHash(this.router._state);
       }
-    } else if (!this._askedForRedirect) {
+    } else {
       return this.router.stopPropagate(path).change(path);
     }
   };
 
   App.prototype.refreshMenu = function(path) {
-    console.log("refreshing menu", path, this.menu);
     if (!this.menu) {
       return false;
     }
@@ -107,7 +108,6 @@ module.exports = App = (function() {
   };
 
   App.prototype.setMenu = function(selector) {
-    console.log("set menu selector", selector);
     this.menu = selector;
     return this;
   };

@@ -11,7 +11,6 @@ module.exports = CtrlManager = (function() {
       this.master.unload();
     }
     this.master = new ctrl(this.app, params);
-    console.log(this.app.router.stop, params.path);
     if (this.app.router.stop && this.app.router.stop !== params.path) {
       return (this.app.router.stop = false);
     }

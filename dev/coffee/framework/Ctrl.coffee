@@ -7,7 +7,6 @@ module.exports = class Ctrl
 		ctrlname = ctrlname.substr(0, ctrlname.length - 4)
 		ctrlname = ctrlname.replace(/([A-Z])/g, "-$1")
 		@templateUrl = ctrlname.substr(1).toLowerCase() + '.html'
-		console.log @templateUrl
 		# @templateUrl = @constructor.name.substr(0, @constructor.name.length - 4).toLowerCase() + '.html'
 		@scope = {}
 		@event = new CtrlEvent()

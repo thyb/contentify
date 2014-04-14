@@ -7,7 +7,6 @@ module.exports = class DocumentManagerService extends Service
 
 		href = window.location.href
 		res = href.match /^http:\/\/([a-zA-Z0-9_-]+).github.io\/([a-zA-Z0-9_-]+)\/.*$/i
-		console.log 'Regexp url', res
 		if not res
 			@repo = @github.getRepo config.username, config.repository
 		else
@@ -30,28 +29,24 @@ module.exports = class DocumentManagerService extends Service
 				callback()
 
 	release: (slug, filename, content, message, callback) ->
-		console.log 'release', slug, filename, content, message
 		@documents[slug].updated = Date.now()
 		@repo.write 'master', 'documents.json', JSON.stringify(@documents, null, 2), 'Update draft ' + slug, (err) =>
 			return callback err if err
-			console.log 'documents.json updated', filename, content, message
 			@repo.write 'master', filename, content, message, callback
 
 	saveDraft: (slug, filename, content, message, callback) ->
-		console.log 'saveDraft', slug, filename, content, message
 		@documents[slug].updated = Date.now()
 		@repo.write slug, 'documents.json', JSON.stringify(@documents, null, 2), 'Update draft ' + slug, (err) =>
 			return callback err if err
-			console.log 'documents.json updated', filename, content, message
 			@repo.write slug, filename, content, message, callback
 
 	getDocument: (slug, callback) ->
-		console.log 'getDocument', slug, @documents
 		if Object.equal @documents, {}
 			@repo.read 'master', 'documents.json', (err, data) =>
 				@documents = JSON.parse(data)
 				doc = @documents[slug]
 				@repo.read slug, doc.filename, (err, content) =>
+					content = '' if not content
 					callback doc, content
 		else
 			callback @documents[slug]
@@ -71,17 +66,14 @@ module.exports = class DocumentManagerService extends Service
 		@repo.getCommits path: @documents[slug].filename, sha: slug, callback
 
 	mergeHistory: (releaseHistory, documentHistory) ->
-		console.log releaseHistory, documentHistory
 		history = new Array()
-		v.imgType = 'img/release-dot.png' for v in releaseHistory
-		v.imgType = 'img/draft-dot.png' for v in documentHistory
+		v.commit_type = 'release' for v in releaseHistory
+		v.commit_type = 'draft' for v in documentHistory
 		history = releaseHistory.add documentHistory
-		console.log history
 		history = history.sortBy ((elem) ->
 			return new Date(elem.commit.author.date)
 		), true
 
-		console.log history
 		return history
 
 	remove: (slug, callback) ->
@@ -91,21 +83,15 @@ module.exports = class DocumentManagerService extends Service
 		filename = @documents[slug].filename
 		delete @documents[slug]
 		i = 0
-		console.log 'remove document', slug, filename, @documents
 		@repo.deleteRef 'heads/' + slug, (err) =>
-			console.log 'error updaing documents.json', err if err
 			callback(null, true) if callback and ++i == 3
 		@repo.write 'master', 'documents.json', JSON.stringify(@documents, null, 2), 'Remove ' + slug, (err) =>
-			console.log 'error updating documents.json', err if err
 			callback(null, true) if callback and ++i == 3
 		@repo.delete 'master', filename, (err) =>
-			console.log 'error removing ' + filename , err if err
 			callback(null, true) if callback and ++i == 3
 
-	diffToRelease: (slug, callback) ->
-		@repo.compare 'master', slug, callback
-
-	diff: (slug, v1, v2) ->
+	getCommit: (sha, cb) ->
+		@repo.getCommit sha, cb if sha
 
 	list: (callback) ->
 		@repo.read 'master', 'documents.json', (err, data) =>

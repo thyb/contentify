@@ -27,7 +27,6 @@ module.exports = class Router
 				res = route.match(/\/:([a-zA-Z0-9]+)/)
 				res.shift()
 				params = res
-				console.log res, res.length
 
 				regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_-]+)').replace(/\//g, '\\/')
 				res = path.match(new RegExp(regexpStr))
@@ -35,10 +34,7 @@ module.exports = class Router
 				res.shift()
 				for param of params
 					continue if param == 'index' or param == 'input'
-					console.log 'for', param
 					masterParams[params[param]] = res[param]
-
-				console.log masterParams
 
 				if @_routes[route].ctrl
 					masterCtrl = @_routes[route].ctrl
@@ -60,7 +56,6 @@ module.exports = class Router
 
 
 		masterParams['path'] = path
-		console.log 'params', masterParams
 		return {
 			master: masterCtrl
 			masterParams: masterParams
@@ -80,9 +75,7 @@ module.exports = class Router
 
 		@changeHash path
 
-		console.log "set Master Ctrl"
 		@app.ctrlManager.setMaster res.master, res.masterParams, =>
-			console.log "master set > try to refresh menu"
 			@stop = false if @stop
 			@app.refreshMenu path
 			# if res.partial

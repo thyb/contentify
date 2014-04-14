@@ -5,7 +5,6 @@ module.exports = class CtrlManager
 		@master.unload() if @master
 
 		@master = new ctrl @app, params
-		console.log @app.router.stop, params.path
 		return (@app.router.stop = false) if @app.router.stop and @app.router.stop isnt params.path
 		@master.use callback
 	addPartial: (ctrl, placement, callback) ->

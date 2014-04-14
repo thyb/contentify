@@ -35,7 +35,6 @@ module.exports = class App
 		if @ready
 			@user.initialize()
 			hash = window.location.hash
-			console.log 'router start', hash, @router._state
 			if hash and hash != '#'
 				@redirect hash.substr(1)
 			else if not @router._state
@@ -44,16 +43,18 @@ module.exports = class App
 				@redirect @router._state
 
 	askForRedirect: (msg, answer) ->
-		@_askedForRedirect = true
-		@_askedForRedirectFct = answer
-		$(window).bind 'beforeunload', ->
-			return 'Your local changes might be lost'
+		if not msg
+			@_askedForRedirect = false
+			@_askedForRedirectFct = null
+		else
+			@_askedForRedirect = true
+			@_askedForRedirectFct = answer
+			$(window).bind 'beforeunload', ->
+				return 'Your local changes might be lost'
 
 	redirect: (path) ->
-		console.log @_askedForRedirect
 		if @_askedForRedirect
 			answer = @_askedForRedirectFct()
-			console.log answer
 			if not answer or (answer and confirm('Are you sure you want to quit this page? all local changes will be lost.'))
 				@_askedForRedirect = false
 				@_askedForRedirectFct = null
@@ -63,11 +64,10 @@ module.exports = class App
 				@router.nextNoRedirect = true
 				@router.changeHash @router._state
 
-		else if not @_askedForRedirect
+		else
 			@router.stopPropagate(path).change path
 
 	refreshMenu: (path) ->
-		console.log "refreshing menu", path, @menu
 		return false if not @menu
 		$('li.active', @menu).removeClass 'active'
 		$('li a[href="#' + path + '"]').parent().addClass 'active'
@@ -75,7 +75,6 @@ module.exports = class App
 		$('li.need-auth').show() if @user.isAuth()
 
 	setMenu: (selector) ->
-		console.log "set menu selector", selector
 		@menu = selector
 		return @
 

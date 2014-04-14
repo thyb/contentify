@@ -1,4 +1,102 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var DocumentHistory;
+
+module.exports = DocumentHistory = (function() {
+  function DocumentHistory(initialHistory, me) {
+    var hist, _i, _len;
+    this.me = me;
+    this.current = 0;
+    this.history = [];
+    for (_i = 0, _len = initialHistory.length; _i < _len; _i++) {
+      hist = initialHistory[_i];
+      this.history.unshift({
+        sha: hist.sha,
+        version_type: hist.commit_type,
+        message: hist.commit.message,
+        login: hist.author.login,
+        avatar_url: hist.author.avatar_url
+      });
+    }
+    this.generateTemplate();
+  }
+
+  DocumentHistory.prototype.add = function(hist) {
+    this.history.unshift({
+      sha: hist.sha,
+      version_type: hist.commit_type,
+      message: hist.commit.message,
+      login: hist.author.login,
+      avatar_url: hist.author.avatar_url
+    });
+    if (this.current !== 0) {
+      this.current++;
+    }
+    return this.renderElement(0);
+  };
+
+  DocumentHistory.prototype.setLocalChanges = function(state) {
+    var _ref, _ref1;
+    if (state) {
+      if (((_ref = this.history[0]) != null ? _ref.version_type : void 0) === 'local') {
+        return false;
+      }
+      this.history.unshift({
+        version_type: 'local',
+        message: 'Local changes',
+        login: this.me.get('login'),
+        avatar_url: this.me.get('avatar_url')
+      });
+      if (this.current !== 0) {
+        this.current++;
+      }
+      return this.renderElement(0);
+    } else {
+      if (!this.history[0] || ((_ref1 = this.history[0]) != null ? _ref1.version_type : void 0) !== 'local') {
+        return false;
+      }
+      this.history.shift();
+      return this.container.find('p:first').remove();
+    }
+  };
+
+  DocumentHistory.prototype.on = function(event, callback) {
+    if (event === 'select') {
+      return callback();
+    }
+  };
+
+  DocumentHistory.prototype.renderElement = function(index) {
+    var elem;
+    elem = this.history[index];
+    this.container.prepend(this.template(elem));
+    if (index === this.current) {
+      this.container.find('p.active').removeClass('active');
+      return this.container.find('p:eq(' + index + ')').addClass('active');
+    }
+  };
+
+  DocumentHistory.prototype.render = function(container) {
+    var i, _results;
+    this.container = container;
+    this.container.html('');
+    _results = [];
+    for (i in this.history) {
+      _results.push(this.renderElement(i));
+    }
+    return _results;
+  };
+
+  DocumentHistory.prototype.generateTemplate = function() {
+    var content;
+    content = '<p><img width="42" height="42" title="{{login}}" class="img-circle {{version_type}}" src="{{avatar_url}}"><span>{{message}}</span></p>';
+    return this.template = Handlebars.compile(content);
+  };
+
+  return DocumentHistory;
+
+})();
+
+},{}],2:[function(require,module,exports){
 module.exports = {
   repository: 'dochub',
   username: 'thyb',
@@ -6,7 +104,7 @@ module.exports = {
   algolia_key: ""
 };
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 var AlwaysCtrl, Ctrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -37,14 +135,16 @@ module.exports = AlwaysCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10}],3:[function(require,module,exports){
-var Ctrl, DocumentCtrl, DocumentManagerService,
+},{"../framework/Ctrl":11}],4:[function(require,module,exports){
+var Ctrl, DocumentCtrl, DocumentHistory, DocumentManagerService,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Ctrl = require('../framework/Ctrl');
 
 DocumentManagerService = require('../services/DocumentManagerService');
+
+DocumentHistory = require('../components/DocumentHistory');
 
 module.exports = DocumentCtrl = (function(_super) {
   __extends(DocumentCtrl, _super);
@@ -83,6 +183,7 @@ module.exports = DocumentCtrl = (function(_super) {
             lastContentHash = MD5(lastContent);
             localChanges = false;
             merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
+            _this.history = new DocumentHistory(merge, _this.app.user);
             _this.viewParams = {
               doc: doc,
               slug: _this.params.slug,
@@ -104,7 +205,6 @@ module.exports = DocumentCtrl = (function(_super) {
   DocumentCtrl.prototype.checkLocalChanges = function(hashToCompare) {
     var localChanges, localContent, localContentHash;
     localContent = $('#editor-content').val();
-    console.log('localContent', localContent);
     localContentHash = MD5(localContent);
     localChanges = false;
     if (!hashToCompare) {
@@ -116,7 +216,6 @@ module.exports = DocumentCtrl = (function(_super) {
     if (localContentHash !== hashToCompare) {
       localChanges = true;
     }
-    console.log('Check local changes', localChanges, hashToCompare, localContentHash);
     return localChanges;
   };
 
@@ -125,22 +224,23 @@ module.exports = DocumentCtrl = (function(_super) {
     if (!this.draftMessageOpen) {
       $('#draft-add-message').slideDown('fast');
       this.draftMessageOpen = true;
-      $('#release').attr('disabled', 'disabled');
       if (callback) {
         callback(false);
       }
     } else {
-      $('#release,#save-draft').attr('disabled', 'disabled');
       message = $("#draft-message").val();
       content = this.editor.exportFile().trim();
       filename = this.viewParams.doc.filename;
       slug = this.viewParams.slug;
       this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
-        return function() {
-          $("#history p:first").text(' ' + message).prepend('<img src="img/draft-dot.png">');
+        return function(err, res) {
+          _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
+            _this.history.setLocalChanges(false);
+            lastCommit.commit_type = 'draft';
+            return _this.history.add(lastCommit);
+          });
           $('#draft-add-message').slideUp('fast');
           _this.draftMessageOpen = false;
-          $('#release').removeAttr('disabled');
           if (callback) {
             return callback(true);
           }
@@ -154,22 +254,24 @@ module.exports = DocumentCtrl = (function(_super) {
     var changes, content, filename, message, releaseFct, slug;
     if (!this.draftMessageOpen) {
       $('#draft-add-message').slideDown('fast');
-      $('#save-draft').attr('disabled', 'disabled');
       this.releaseMessage = true;
       this.draftMessageOpen = true;
       if (callback) {
-        callback(false);
+        return callback(false);
       }
     } else {
-      $('#release,#save-draft').attr('disabled', 'disabled');
       message = $("#draft-message").val();
       content = this.editor.exportFile().trim();
       filename = this.viewParams.doc.filename;
       slug = this.viewParams.slug;
       releaseFct = (function(_this) {
         return function() {
-          return _this.services.documentManager.release(slug, filename, content, message, function() {
-            $("#history").prepend('<p></p>').find('p:first').text(' ' + message).prepend('<img src="img/release-dot.png">');
+          return _this.services.documentManager.release(slug, filename, content, message, function(err, res) {
+            _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
+              _this.history.setLocalChanges(false);
+              lastCommit.commit_type = 'release';
+              return _this.history.add(lastCommit);
+            });
             $('#draft-add-message').slideUp('fast');
             _this.draftMessageOpen = false;
             _this.releaseMessage = false;
@@ -181,21 +283,20 @@ module.exports = DocumentCtrl = (function(_super) {
       })(this);
       changes = this.checkLocalChanges();
       if (changes) {
-        this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
-          return function() {
-            $("#history p:first").text(' ' + message).prepend('<img src="img/draft-dot.png">');
+        return this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
+          return function(err, res) {
+            _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
+              _this.history.setLocalChanges(false);
+              lastCommit.commit_type = 'draft';
+              return _this.history.add(lastCommit);
+            });
             return releaseFct();
           };
         })(this));
       } else {
-        releaseFct();
+        return releaseFct();
       }
     }
-    return this.services.documentManager.getDocumentHistory(this.params.slug, (function(_this) {
-      return function(err, res) {
-        return console.log(release);
-      };
-    })(this));
   };
 
   DocumentCtrl.prototype.remove = function(callback) {
@@ -203,6 +304,7 @@ module.exports = DocumentCtrl = (function(_super) {
     slug = this.viewParams.slug;
     return this.services.documentManager.remove(slug, (function(_this) {
       return function() {
+        _this.app.askForRedirect(false);
         return _this.app.redirect('/documents');
       };
     })(this));
@@ -227,6 +329,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype["do"] = function() {
+    this.history.render($('#history'));
     this.app.askForRedirect('Your local changes might be lost', (function(_this) {
       return function() {
         return _this.checkLocalChanges();
@@ -235,6 +338,7 @@ module.exports = DocumentCtrl = (function(_super) {
     this.autoResizeEditor();
     this.editor = new EpicEditor({
       textarea: 'editor-content',
+      clientSideStorage: true,
       focusOnLoad: true,
       basePath: './lib/epiceditor',
       file: {
@@ -279,23 +383,13 @@ module.exports = DocumentCtrl = (function(_super) {
         });
       };
     })(this));
+    this.editor.remove(this.params.slug);
+    this.editor.importFile(this.params.slug, this.viewParams.lastContent);
     return this.editor.on('update', (function(_this) {
       return function(local) {
-        var hashToCompare, localChanges, localHash;
-        console.log('Editor update', arguments);
-        hashToCompare = _this.viewParams.lastContentHash;
-        localHash = MD5(local.content);
-        localChanges = localHash !== hashToCompare;
-        if (localChanges && $('#history > p:first img').attr('src') !== 'img/local-dot.png') {
-          $('#history').prepend('<p><img src="img/local-dot.png"> Local changes</p>');
-          $('#save-draft,#release').removeAttr('disabled');
-        } else if (!localChanges && $('#history > p:first img').attr('src') === 'img/local-dot.png') {
-          $('#history p:first').remove();
-          $('#save-draft').attr('disabled', 'disabled');
-        }
-        if (!localChanges && (!_this.editor || local.content.trim() === '')) {
-          return $('#save-draft').removeAttr('disabled');
-        }
+        var localChanges;
+        localChanges = _this.viewParams.lastContentHash !== MD5(local.content);
+        return _this.history.setLocalChanges(localChanges);
       };
     })(this));
   };
@@ -304,7 +398,7 @@ module.exports = DocumentCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10,"../services/DocumentManagerService":22}],4:[function(require,module,exports){
+},{"../components/DocumentHistory":1,"../framework/Ctrl":11,"../services/DocumentManagerService":23}],5:[function(require,module,exports){
 var Ctrl, DocumentManagerService, DocumentsCtrl, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -320,11 +414,9 @@ module.exports = DocumentsCtrl = (function(_super) {
 
   function DocumentsCtrl(app) {
     DocumentsCtrl.__super__.constructor.call(this, app);
-    console.log("construct dashboard", this.app.user.isAuth());
     if (!this.app.user.isAuth()) {
       return this.app.redirect('/');
     }
-    console.log(this.app.user);
     this.services.documentManager = new DocumentManagerService(this.app.user.github);
   }
 
@@ -338,7 +430,6 @@ module.exports = DocumentsCtrl = (function(_super) {
             });
           }
         }
-        console.log("list", data);
         _this.app.documents = data;
         if (callback) {
           return callback({
@@ -377,7 +468,7 @@ module.exports = DocumentsCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../config":1,"../framework/Ctrl":10,"../services/DocumentManagerService":22}],5:[function(require,module,exports){
+},{"../config":2,"../framework/Ctrl":11,"../services/DocumentManagerService":23}],6:[function(require,module,exports){
 var Ctrl, ErrorCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -397,7 +488,7 @@ module.exports = ErrorCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10}],6:[function(require,module,exports){
+},{"../framework/Ctrl":11}],7:[function(require,module,exports){
 var Ctrl, IndexCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -437,7 +528,7 @@ module.exports = IndexCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10}],7:[function(require,module,exports){
+},{"../framework/Ctrl":11}],8:[function(require,module,exports){
 var Ctrl, LogoutCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -457,7 +548,7 @@ module.exports = LogoutCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10}],8:[function(require,module,exports){
+},{"../framework/Ctrl":11}],9:[function(require,module,exports){
 var Ctrl, MediasCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -483,7 +574,7 @@ module.exports = MediasCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10}],9:[function(require,module,exports){
+},{"../framework/Ctrl":11}],10:[function(require,module,exports){
 var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User, config;
 
 Router = require('./Router');
@@ -538,7 +629,6 @@ module.exports = App = (function() {
     if (this.ready) {
       this.user.initialize();
       hash = window.location.hash;
-      console.log('router start', hash, this.router._state);
       if (hash && hash !== '#') {
         return this.redirect(hash.substr(1));
       } else if (!this.router._state) {
@@ -550,19 +640,22 @@ module.exports = App = (function() {
   };
 
   App.prototype.askForRedirect = function(msg, answer) {
-    this._askedForRedirect = true;
-    this._askedForRedirectFct = answer;
-    return $(window).bind('beforeunload', function() {
-      return 'Your local changes might be lost';
-    });
+    if (!msg) {
+      this._askedForRedirect = false;
+      return this._askedForRedirectFct = null;
+    } else {
+      this._askedForRedirect = true;
+      this._askedForRedirectFct = answer;
+      return $(window).bind('beforeunload', function() {
+        return 'Your local changes might be lost';
+      });
+    }
   };
 
   App.prototype.redirect = function(path) {
     var answer;
-    console.log(this._askedForRedirect);
     if (this._askedForRedirect) {
       answer = this._askedForRedirectFct();
-      console.log(answer);
       if (!answer || (answer && confirm('Are you sure you want to quit this page? all local changes will be lost.'))) {
         this._askedForRedirect = false;
         this._askedForRedirectFct = null;
@@ -572,13 +665,12 @@ module.exports = App = (function() {
         this.router.nextNoRedirect = true;
         return this.router.changeHash(this.router._state);
       }
-    } else if (!this._askedForRedirect) {
+    } else {
       return this.router.stopPropagate(path).change(path);
     }
   };
 
   App.prototype.refreshMenu = function(path) {
-    console.log("refreshing menu", path, this.menu);
     if (!this.menu) {
       return false;
     }
@@ -593,7 +685,6 @@ module.exports = App = (function() {
   };
 
   App.prototype.setMenu = function(selector) {
-    console.log("set menu selector", selector);
     this.menu = selector;
     return this;
   };
@@ -606,7 +697,7 @@ module.exports = App = (function() {
 
 })();
 
-},{"../config":1,"./CtrlManager":12,"./Env":13,"./GlobalEvent":14,"./LayoutManager":15,"./Router":16,"./TemplateManager":18,"./User":19}],10:[function(require,module,exports){
+},{"../config":2,"./CtrlManager":13,"./Env":14,"./GlobalEvent":15,"./LayoutManager":16,"./Router":17,"./TemplateManager":19,"./User":20}],11:[function(require,module,exports){
 var Ctrl, CtrlEvent, View;
 
 CtrlEvent = require('./CtrlEvent');
@@ -622,7 +713,6 @@ module.exports = Ctrl = (function() {
     ctrlname = ctrlname.substr(0, ctrlname.length - 4);
     ctrlname = ctrlname.replace(/([A-Z])/g, "-$1");
     this.templateUrl = ctrlname.substr(1).toLowerCase() + '.html';
-    console.log(this.templateUrl);
     this.scope = {};
     this.event = new CtrlEvent();
     this.view = new View();
@@ -669,7 +759,7 @@ module.exports = Ctrl = (function() {
 
 })();
 
-},{"./CtrlEvent":11,"./View":20}],11:[function(require,module,exports){
+},{"./CtrlEvent":12,"./View":21}],12:[function(require,module,exports){
 var CtrlEvent;
 
 module.exports = CtrlEvent = (function() {
@@ -703,7 +793,7 @@ module.exports = CtrlEvent = (function() {
 
 })();
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var CtrlManager;
 
 module.exports = CtrlManager = (function() {
@@ -717,7 +807,6 @@ module.exports = CtrlManager = (function() {
       this.master.unload();
     }
     this.master = new ctrl(this.app, params);
-    console.log(this.app.router.stop, params.path);
     if (this.app.router.stop && this.app.router.stop !== params.path) {
       return (this.app.router.stop = false);
     }
@@ -747,7 +836,7 @@ module.exports = CtrlManager = (function() {
 
 })();
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var Env;
 
 module.exports = Env = (function() {
@@ -757,7 +846,6 @@ module.exports = Env = (function() {
 
   function Env() {
     if (localStorage) {
-      console.log('has local storage');
       try {
         data = JSON.parse(localStorage.getItem('env'));
       } catch (_error) {}
@@ -769,11 +857,8 @@ module.exports = Env = (function() {
   }
 
   Env.prototype.set = function(key, value) {
-    console.log('env set', key, value);
     data[key] = value;
-    console.log(data);
     if (localStorage) {
-      console.log('set localstorage to', data);
       return localStorage.setItem('env', JSON.stringify(data));
     }
   };
@@ -786,7 +871,7 @@ module.exports = Env = (function() {
 
 })();
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var GlobalEvent;
 
 module.exports = GlobalEvent = (function() {
@@ -820,7 +905,7 @@ module.exports = GlobalEvent = (function() {
 
 })();
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var LayoutManager;
 
 module.exports = LayoutManager = (function() {
@@ -881,7 +966,7 @@ module.exports = LayoutManager = (function() {
 
 })();
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var Router, View;
 
 View = require('./View');
@@ -922,7 +1007,6 @@ module.exports = Router = (function() {
         res = route.match(/\/:([a-zA-Z0-9]+)/);
         res.shift();
         params = res;
-        console.log(res, res.length);
         regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_-]+)').replace(/\//g, '\\/');
         res = path.match(new RegExp(regexpStr));
         if (!res) {
@@ -933,10 +1017,8 @@ module.exports = Router = (function() {
           if (param === 'index' || param === 'input') {
             continue;
           }
-          console.log('for', param);
           masterParams[params[param]] = res[param];
         }
-        console.log(masterParams);
         if (this._routes[route].ctrl) {
           masterCtrl = this._routes[route].ctrl;
         } else {
@@ -952,7 +1034,6 @@ module.exports = Router = (function() {
       }
     }
     masterParams['path'] = path;
-    console.log('params', masterParams);
     return {
       master: masterCtrl,
       masterParams: masterParams,
@@ -972,10 +1053,8 @@ module.exports = Router = (function() {
       return this.change('/404');
     }
     this.changeHash(path);
-    console.log("set Master Ctrl");
     this.app.ctrlManager.setMaster(res.master, res.masterParams, (function(_this) {
       return function() {
-        console.log("master set > try to refresh menu");
         if (_this.stop) {
           _this.stop = false;
         }
@@ -989,7 +1068,7 @@ module.exports = Router = (function() {
 
 })();
 
-},{"./View":20}],17:[function(require,module,exports){
+},{"./View":21}],18:[function(require,module,exports){
 var Service;
 
 module.exports = Service = (function() {
@@ -999,7 +1078,7 @@ module.exports = Service = (function() {
 
 })();
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var TemplateManager;
 
 module.exports = TemplateManager = (function() {
@@ -1045,7 +1124,7 @@ module.exports = TemplateManager = (function() {
 
 })();
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var User;
 
 module.exports = User = (function() {
@@ -1110,7 +1189,7 @@ module.exports = User = (function() {
 
 })();
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var TemplateManager, View;
 
 TemplateManager = require('./TemplateManager');
@@ -1133,7 +1212,7 @@ module.exports = View = (function() {
 
 })();
 
-},{"./TemplateManager":18}],21:[function(require,module,exports){
+},{"./TemplateManager":19}],22:[function(require,module,exports){
 
 /*
 class GDraft
@@ -1198,7 +1277,7 @@ $('document').ready(function() {
   return app.setMenu('#menu').setLayout('index').start();
 });
 
-},{"./controllers/AlwaysCtrl":2,"./controllers/DocumentCtrl":3,"./controllers/DocumentsCtrl":4,"./controllers/ErrorCtrl":5,"./controllers/IndexCtrl":6,"./controllers/LogoutCtrl":7,"./controllers/MediasCtrl":8,"./framework/App":9}],22:[function(require,module,exports){
+},{"./controllers/AlwaysCtrl":3,"./controllers/DocumentCtrl":4,"./controllers/DocumentsCtrl":5,"./controllers/ErrorCtrl":6,"./controllers/IndexCtrl":7,"./controllers/LogoutCtrl":8,"./controllers/MediasCtrl":9,"./framework/App":10}],23:[function(require,module,exports){
 var DocumentManagerService, Service, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1216,7 +1295,6 @@ module.exports = DocumentManagerService = (function(_super) {
     this.documents = {};
     href = window.location.href;
     res = href.match(/^http:\/\/([a-zA-Z0-9_-]+).github.io\/([a-zA-Z0-9_-]+)\/.*$/i);
-    console.log('Regexp url', res);
     if (!res) {
       this.repo = this.github.getRepo(config.username, config.repository);
     } else {
@@ -1248,35 +1326,30 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.release = function(slug, filename, content, message, callback) {
-    console.log('release', slug, filename, content, message);
     this.documents[slug].updated = Date.now();
     return this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
         }
-        console.log('documents.json updated', filename, content, message);
         return _this.repo.write('master', filename, content, message, callback);
       };
     })(this));
   };
 
   DocumentManagerService.prototype.saveDraft = function(slug, filename, content, message, callback) {
-    console.log('saveDraft', slug, filename, content, message);
     this.documents[slug].updated = Date.now();
     return this.repo.write(slug, 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
         }
-        console.log('documents.json updated', filename, content, message);
         return _this.repo.write(slug, filename, content, message, callback);
       };
     })(this));
   };
 
   DocumentManagerService.prototype.getDocument = function(slug, callback) {
-    console.log('getDocument', slug, this.documents);
     if (Object.equal(this.documents, {})) {
       return this.repo.read('master', 'documents.json', (function(_this) {
         return function(err, data) {
@@ -1284,6 +1357,9 @@ module.exports = DocumentManagerService = (function(_super) {
           _this.documents = JSON.parse(data);
           doc = _this.documents[slug];
           return _this.repo.read(slug, doc.filename, function(err, content) {
+            if (!content) {
+              content = '';
+            }
             return callback(doc, content);
           });
         };
@@ -1315,22 +1391,19 @@ module.exports = DocumentManagerService = (function(_super) {
 
   DocumentManagerService.prototype.mergeHistory = function(releaseHistory, documentHistory) {
     var history, v, _i, _j, _len, _len1;
-    console.log(releaseHistory, documentHistory);
     history = new Array();
     for (_i = 0, _len = releaseHistory.length; _i < _len; _i++) {
       v = releaseHistory[_i];
-      v.imgType = 'img/release-dot.png';
+      v.commit_type = 'release';
     }
     for (_j = 0, _len1 = documentHistory.length; _j < _len1; _j++) {
       v = documentHistory[_j];
-      v.imgType = 'img/draft-dot.png';
+      v.commit_type = 'draft';
     }
     history = releaseHistory.add(documentHistory);
-    console.log(history);
     history = history.sortBy((function(elem) {
       return new Date(elem.commit.author.date);
     }), true);
-    console.log(history);
     return history;
   };
 
@@ -1342,12 +1415,8 @@ module.exports = DocumentManagerService = (function(_super) {
     filename = this.documents[slug].filename;
     delete this.documents[slug];
     i = 0;
-    console.log('remove document', slug, filename, this.documents);
     this.repo.deleteRef('heads/' + slug, (function(_this) {
       return function(err) {
-        if (err) {
-          console.log('error updaing documents.json', err);
-        }
         if (callback && ++i === 3) {
           return callback(null, true);
         }
@@ -1355,9 +1424,6 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
     this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {
       return function(err) {
-        if (err) {
-          console.log('error updating documents.json', err);
-        }
         if (callback && ++i === 3) {
           return callback(null, true);
         }
@@ -1365,9 +1431,6 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
     return this.repo["delete"]('master', filename, (function(_this) {
       return function(err) {
-        if (err) {
-          console.log('error removing ' + filename, err);
-        }
         if (callback && ++i === 3) {
           return callback(null, true);
         }
@@ -1375,11 +1438,11 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
   };
 
-  DocumentManagerService.prototype.diffToRelease = function(slug, callback) {
-    return this.repo.compare('master', slug, callback);
+  DocumentManagerService.prototype.getCommit = function(sha, cb) {
+    if (sha) {
+      return this.repo.getCommit(sha, cb);
+    }
   };
-
-  DocumentManagerService.prototype.diff = function(slug, v1, v2) {};
 
   DocumentManagerService.prototype.list = function(callback) {
     return this.repo.read('master', 'documents.json', (function(_this) {
@@ -1407,4 +1470,4 @@ module.exports = DocumentManagerService = (function(_super) {
 
 })(Service);
 
-},{"../config":1,"../framework/Service":17}]},{},[21])
+},{"../config":2,"../framework/Service":18}]},{},[22])

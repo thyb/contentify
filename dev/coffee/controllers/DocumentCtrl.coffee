@@ -1,5 +1,6 @@
 Ctrl = require('../framework/Ctrl')
 DocumentManagerService = require('../services/DocumentManagerService')
+DocumentHistory = require('../components/DocumentHistory')
 
 module.exports = class DocumentCtrl extends Ctrl
 	constructor: (app, params) ->
@@ -30,7 +31,7 @@ module.exports = class DocumentCtrl extends Ctrl
 					localChanges = false
 
 					merge = @services.documentManager.mergeHistory(releaseHistory, documentHistory)
-
+					@history = new DocumentHistory(merge, @app.user)
 					@viewParams =
 						doc: doc
 						slug: @params.slug
@@ -39,11 +40,11 @@ module.exports = class DocumentCtrl extends Ctrl
 						localChanges: localChanges
 						lastContent: lastContent
 						lastContentHash: lastContentHash
+
 					callback @viewParams if callback
 
 	checkLocalChanges: (hashToCompare) ->
 		localContent = $('#editor-content').val()
-		console.log 'localContent', localContent
 		localContentHash = MD5 localContent
 		localChanges = false
 		hashToCompare = @viewParams.lastContentHash if not hashToCompare
@@ -52,7 +53,6 @@ module.exports = class DocumentCtrl extends Ctrl
 		if localContentHash != hashToCompare
 			localChanges = true
 
-		console.log 'Check local changes', localChanges, hashToCompare, localContentHash
 
 		return localChanges
 
@@ -60,40 +60,46 @@ module.exports = class DocumentCtrl extends Ctrl
 		if not @draftMessageOpen
 			$('#draft-add-message').slideDown('fast')
 			@draftMessageOpen = true
-			$('#release').attr 'disabled', 'disabled'
+			# $('#release').attr 'disabled', 'disabled'
 			callback false if callback
 		else
-			$('#release,#save-draft').attr 'disabled', 'disabled'
+			# $('#release,#save-draft').attr 'disabled', 'disabled'
 			message = $("#draft-message").val()
 			content = @editor.exportFile().trim()
 			filename = @viewParams.doc.filename
 			slug = @viewParams.slug
 
-			@services.documentManager.saveDraft slug, filename, content, message, =>
-				$("#history p:first").text(' ' + message).prepend '<img src="img/draft-dot.png">'
+			@services.documentManager.saveDraft slug, filename, content, message, (err, res) =>
+				@services.documentManager.getCommit res.commit.sha, (err, lastCommit) =>
+					@history.setLocalChanges false
+					lastCommit.commit_type = 'draft'
+					@history.add lastCommit
 				$('#draft-add-message').slideUp('fast')
 				@draftMessageOpen = false
-				$('#release').removeAttr 'disabled'
+				# $('#release').removeAttr 'disabled'
 				callback true if callback
 		return false
 
 	release: (callback) ->
 		if not @draftMessageOpen
 			$('#draft-add-message').slideDown('fast')
-			$('#save-draft').attr 'disabled', 'disabled'
+			# $('#save-draft').attr 'disabled', 'disabled'
 			@releaseMessage = true
 			@draftMessageOpen = true
 			callback false if callback
 		else
-			$('#release,#save-draft').attr 'disabled', 'disabled'
+			#$('#release,#save-draft').attr 'disabled', 'disabled'
 			message = $("#draft-message").val()
 			content = @editor.exportFile().trim()
 			filename = @viewParams.doc.filename
 			slug = @viewParams.slug
 
 			releaseFct = =>
-				@services.documentManager.release slug, filename, content, message, =>
-					$("#history").prepend('<p></p>').find('p:first').text(' ' + message).prepend '<img src="img/release-dot.png">'
+				@services.documentManager.release slug, filename, content, message, (err, res) =>
+					@services.documentManager.getCommit res.commit.sha, (err, lastCommit) =>
+						@history.setLocalChanges false
+						lastCommit.commit_type = 'release'
+						@history.add lastCommit
 					$('#draft-add-message').slideUp('fast')
 					@draftMessageOpen = false
 					@releaseMessage = false
@@ -101,18 +107,22 @@ module.exports = class DocumentCtrl extends Ctrl
 
 			changes = @checkLocalChanges()
 			if changes
-				@services.documentManager.saveDraft slug, filename, content, message, =>
-					$("#history p:first").text(' ' + message).prepend '<img src="img/draft-dot.png">'
+				@services.documentManager.saveDraft slug, filename, content, message, (err, res) =>
+					@services.documentManager.getCommit res.commit.sha, (err, lastCommit) =>
+						@history.setLocalChanges false
+						lastCommit.commit_type = 'draft'
+						@history.add lastCommit
 					releaseFct()
 			else
 				releaseFct()
 
-		@services.documentManager.getDocumentHistory @params.slug, (err, res) =>
-			console.log release
+		#@services.documentManager.getDocumentHistory @params.slug, (err, res) =>
+		#	console.log release
 
 	remove: (callback) ->
 		slug = @viewParams.slug
 		@services.documentManager.remove slug, =>
+			@app.askForRedirect false
 			@app.redirect '/documents'
 
 	autoResizeEditor: () ->
@@ -128,6 +138,7 @@ module.exports = class DocumentCtrl extends Ctrl
 			@editor.reflow()
 
 	do: ->
+		@history.render $('#history')
 		@app.askForRedirect 'Your local changes might be lost', =>
 			return @checkLocalChanges()
 
@@ -135,6 +146,7 @@ module.exports = class DocumentCtrl extends Ctrl
 
 		@editor = new EpicEditor(
 			textarea: 'editor-content'
+			clientSideStorage: true
 			focusOnLoad: true
 			basePath: './lib/epiceditor',
 			file:
@@ -171,18 +183,19 @@ module.exports = class DocumentCtrl extends Ctrl
 			$('#rename-doc-link').click =>
 				return false
 
+		@editor.remove @params.slug
+		@editor.importFile @params.slug, @viewParams.lastContent
+
 		@editor.on 'update', (local) =>
-			console.log 'Editor update', arguments
-			hashToCompare = @viewParams.lastContentHash
-			localHash = MD5 local.content
-			localChanges = localHash != hashToCompare
+			localChanges = @viewParams.lastContentHash != MD5 local.content
 
-			if localChanges and $('#history > p:first img').attr('src') != 'img/local-dot.png'
-				$('#history').prepend '<p><img src="img/local-dot.png"> Local changes</p>'
-				$('#save-draft,#release').removeAttr('disabled')
+			@history.setLocalChanges localChanges
+			#if localChanges and $('#history > p:first img').attr('src') != 'img/local-dot.png'
+			#	$('#history').prepend '<p><img src="img/local-dot.png"> Local changes</p>'
+			#	$('#save-draft,#release').removeAttr('disabled')
 
-			else if not localChanges and $('#history > p:first img').attr('src') == 'img/local-dot.png'
-				$('#history p:first').remove()
-				$('#save-draft').attr('disabled', 'disabled')
-			if not localChanges and (not @editor or local.content.trim() == '')
-				$('#save-draft').removeAttr('disabled')
+			#else if not localChanges and $('#history > p:first img').attr('src') == 'img/local-dot.png'
+			#	$('#history p:first').remove()
+			#	$('#save-draft').attr('disabled', 'disabled')
+			#if not localChanges and (not @editor or local.content.trim() == '')
+			#	$('#save-draft').removeAttr('disabled')

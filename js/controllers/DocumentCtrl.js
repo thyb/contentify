@@ -1,10 +1,12 @@
-var Ctrl, DocumentCtrl, DocumentManagerService,
+var Ctrl, DocumentCtrl, DocumentHistory, DocumentManagerService,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Ctrl = require('../framework/Ctrl');
 
 DocumentManagerService = require('../services/DocumentManagerService');
+
+DocumentHistory = require('../components/DocumentHistory');
 
 module.exports = DocumentCtrl = (function(_super) {
   __extends(DocumentCtrl, _super);
@@ -43,6 +45,7 @@ module.exports = DocumentCtrl = (function(_super) {
             lastContentHash = MD5(lastContent);
             localChanges = false;
             merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
+            _this.history = new DocumentHistory(merge, _this.app.user);
             _this.viewParams = {
               doc: doc,
               slug: _this.params.slug,
@@ -64,7 +67,6 @@ module.exports = DocumentCtrl = (function(_super) {
   DocumentCtrl.prototype.checkLocalChanges = function(hashToCompare) {
     var localChanges, localContent, localContentHash;
     localContent = $('#editor-content').val();
-    console.log('localContent', localContent);
     localContentHash = MD5(localContent);
     localChanges = false;
     if (!hashToCompare) {
@@ -76,7 +78,6 @@ module.exports = DocumentCtrl = (function(_super) {
     if (localContentHash !== hashToCompare) {
       localChanges = true;
     }
-    console.log('Check local changes', localChanges, hashToCompare, localContentHash);
     return localChanges;
   };
 
@@ -85,22 +86,23 @@ module.exports = DocumentCtrl = (function(_super) {
     if (!this.draftMessageOpen) {
       $('#draft-add-message').slideDown('fast');
       this.draftMessageOpen = true;
-      $('#release').attr('disabled', 'disabled');
       if (callback) {
         callback(false);
       }
     } else {
-      $('#release,#save-draft').attr('disabled', 'disabled');
       message = $("#draft-message").val();
       content = this.editor.exportFile().trim();
       filename = this.viewParams.doc.filename;
       slug = this.viewParams.slug;
       this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
-        return function() {
-          $("#history p:first").text(' ' + message).prepend('<img src="img/draft-dot.png">');
+        return function(err, res) {
+          _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
+            _this.history.setLocalChanges(false);
+            lastCommit.commit_type = 'draft';
+            return _this.history.add(lastCommit);
+          });
           $('#draft-add-message').slideUp('fast');
           _this.draftMessageOpen = false;
-          $('#release').removeAttr('disabled');
           if (callback) {
             return callback(true);
           }
@@ -114,22 +116,24 @@ module.exports = DocumentCtrl = (function(_super) {
     var changes, content, filename, message, releaseFct, slug;
     if (!this.draftMessageOpen) {
       $('#draft-add-message').slideDown('fast');
-      $('#save-draft').attr('disabled', 'disabled');
       this.releaseMessage = true;
       this.draftMessageOpen = true;
       if (callback) {
-        callback(false);
+        return callback(false);
       }
     } else {
-      $('#release,#save-draft').attr('disabled', 'disabled');
       message = $("#draft-message").val();
       content = this.editor.exportFile().trim();
       filename = this.viewParams.doc.filename;
       slug = this.viewParams.slug;
       releaseFct = (function(_this) {
         return function() {
-          return _this.services.documentManager.release(slug, filename, content, message, function() {
-            $("#history").prepend('<p></p>').find('p:first').text(' ' + message).prepend('<img src="img/release-dot.png">');
+          return _this.services.documentManager.release(slug, filename, content, message, function(err, res) {
+            _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
+              _this.history.setLocalChanges(false);
+              lastCommit.commit_type = 'release';
+              return _this.history.add(lastCommit);
+            });
             $('#draft-add-message').slideUp('fast');
             _this.draftMessageOpen = false;
             _this.releaseMessage = false;
@@ -141,21 +145,20 @@ module.exports = DocumentCtrl = (function(_super) {
       })(this);
       changes = this.checkLocalChanges();
       if (changes) {
-        this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
-          return function() {
-            $("#history p:first").text(' ' + message).prepend('<img src="img/draft-dot.png">');
+        return this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
+          return function(err, res) {
+            _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
+              _this.history.setLocalChanges(false);
+              lastCommit.commit_type = 'draft';
+              return _this.history.add(lastCommit);
+            });
             return releaseFct();
           };
         })(this));
       } else {
-        releaseFct();
+        return releaseFct();
       }
     }
-    return this.services.documentManager.getDocumentHistory(this.params.slug, (function(_this) {
-      return function(err, res) {
-        return console.log(release);
-      };
-    })(this));
   };
 
   DocumentCtrl.prototype.remove = function(callback) {
@@ -163,6 +166,7 @@ module.exports = DocumentCtrl = (function(_super) {
     slug = this.viewParams.slug;
     return this.services.documentManager.remove(slug, (function(_this) {
       return function() {
+        _this.app.askForRedirect(false);
         return _this.app.redirect('/documents');
       };
     })(this));
@@ -187,6 +191,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype["do"] = function() {
+    this.history.render($('#history'));
     this.app.askForRedirect('Your local changes might be lost', (function(_this) {
       return function() {
         return _this.checkLocalChanges();
@@ -195,6 +200,7 @@ module.exports = DocumentCtrl = (function(_super) {
     this.autoResizeEditor();
     this.editor = new EpicEditor({
       textarea: 'editor-content',
+      clientSideStorage: true,
       focusOnLoad: true,
       basePath: './lib/epiceditor',
       file: {
@@ -239,23 +245,13 @@ module.exports = DocumentCtrl = (function(_super) {
         });
       };
     })(this));
+    this.editor.remove(this.params.slug);
+    this.editor.importFile(this.params.slug, this.viewParams.lastContent);
     return this.editor.on('update', (function(_this) {
       return function(local) {
-        var hashToCompare, localChanges, localHash;
-        console.log('Editor update', arguments);
-        hashToCompare = _this.viewParams.lastContentHash;
-        localHash = MD5(local.content);
-        localChanges = localHash !== hashToCompare;
-        if (localChanges && $('#history > p:first img').attr('src') !== 'img/local-dot.png') {
-          $('#history').prepend('<p><img src="img/local-dot.png"> Local changes</p>');
-          $('#save-draft,#release').removeAttr('disabled');
-        } else if (!localChanges && $('#history > p:first img').attr('src') === 'img/local-dot.png') {
-          $('#history p:first').remove();
-          $('#save-draft').attr('disabled', 'disabled');
-        }
-        if (!localChanges && (!_this.editor || local.content.trim() === '')) {
-          return $('#save-draft').removeAttr('disabled');
-        }
+        var localChanges;
+        localChanges = _this.viewParams.lastContentHash !== MD5(local.content);
+        return _this.history.setLocalChanges(localChanges);
       };
     })(this));
   };

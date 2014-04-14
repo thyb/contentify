@@ -38,7 +38,6 @@ module.exports = Router = (function() {
         res = route.match(/\/:([a-zA-Z0-9]+)/);
         res.shift();
         params = res;
-        console.log(res, res.length);
         regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_-]+)').replace(/\//g, '\\/');
         res = path.match(new RegExp(regexpStr));
         if (!res) {
@@ -49,10 +48,8 @@ module.exports = Router = (function() {
           if (param === 'index' || param === 'input') {
             continue;
           }
-          console.log('for', param);
           masterParams[params[param]] = res[param];
         }
-        console.log(masterParams);
         if (this._routes[route].ctrl) {
           masterCtrl = this._routes[route].ctrl;
         } else {
@@ -68,7 +65,6 @@ module.exports = Router = (function() {
       }
     }
     masterParams['path'] = path;
-    console.log('params', masterParams);
     return {
       master: masterCtrl,
       masterParams: masterParams,
@@ -88,10 +84,8 @@ module.exports = Router = (function() {
       return this.change('/404');
     }
     this.changeHash(path);
-    console.log("set Master Ctrl");
     this.app.ctrlManager.setMaster(res.master, res.masterParams, (function(_this) {
       return function() {
-        console.log("master set > try to refresh menu");
         if (_this.stop) {
           _this.stop = false;
         }

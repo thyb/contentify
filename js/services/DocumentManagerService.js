@@ -15,7 +15,6 @@ module.exports = DocumentManagerService = (function(_super) {
     this.documents = {};
     href = window.location.href;
     res = href.match(/^http:\/\/([a-zA-Z0-9_-]+).github.io\/([a-zA-Z0-9_-]+)\/.*$/i);
-    console.log('Regexp url', res);
     if (!res) {
       this.repo = this.github.getRepo(config.username, config.repository);
     } else {
@@ -47,35 +46,30 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.release = function(slug, filename, content, message, callback) {
-    console.log('release', slug, filename, content, message);
     this.documents[slug].updated = Date.now();
     return this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
         }
-        console.log('documents.json updated', filename, content, message);
         return _this.repo.write('master', filename, content, message, callback);
       };
     })(this));
   };
 
   DocumentManagerService.prototype.saveDraft = function(slug, filename, content, message, callback) {
-    console.log('saveDraft', slug, filename, content, message);
     this.documents[slug].updated = Date.now();
     return this.repo.write(slug, 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
         }
-        console.log('documents.json updated', filename, content, message);
         return _this.repo.write(slug, filename, content, message, callback);
       };
     })(this));
   };
 
   DocumentManagerService.prototype.getDocument = function(slug, callback) {
-    console.log('getDocument', slug, this.documents);
     if (Object.equal(this.documents, {})) {
       return this.repo.read('master', 'documents.json', (function(_this) {
         return function(err, data) {
@@ -83,6 +77,9 @@ module.exports = DocumentManagerService = (function(_super) {
           _this.documents = JSON.parse(data);
           doc = _this.documents[slug];
           return _this.repo.read(slug, doc.filename, function(err, content) {
+            if (!content) {
+              content = '';
+            }
             return callback(doc, content);
           });
         };
@@ -114,22 +111,19 @@ module.exports = DocumentManagerService = (function(_super) {
 
   DocumentManagerService.prototype.mergeHistory = function(releaseHistory, documentHistory) {
     var history, v, _i, _j, _len, _len1;
-    console.log(releaseHistory, documentHistory);
     history = new Array();
     for (_i = 0, _len = releaseHistory.length; _i < _len; _i++) {
       v = releaseHistory[_i];
-      v.imgType = 'img/release-dot.png';
+      v.commit_type = 'release';
     }
     for (_j = 0, _len1 = documentHistory.length; _j < _len1; _j++) {
       v = documentHistory[_j];
-      v.imgType = 'img/draft-dot.png';
+      v.commit_type = 'draft';
     }
     history = releaseHistory.add(documentHistory);
-    console.log(history);
     history = history.sortBy((function(elem) {
       return new Date(elem.commit.author.date);
     }), true);
-    console.log(history);
     return history;
   };
 
@@ -141,12 +135,8 @@ module.exports = DocumentManagerService = (function(_super) {
     filename = this.documents[slug].filename;
     delete this.documents[slug];
     i = 0;
-    console.log('remove document', slug, filename, this.documents);
     this.repo.deleteRef('heads/' + slug, (function(_this) {
       return function(err) {
-        if (err) {
-          console.log('error updaing documents.json', err);
-        }
         if (callback && ++i === 3) {
           return callback(null, true);
         }
@@ -154,9 +144,6 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
     this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {
       return function(err) {
-        if (err) {
-          console.log('error updating documents.json', err);
-        }
         if (callback && ++i === 3) {
           return callback(null, true);
         }
@@ -164,9 +151,6 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
     return this.repo["delete"]('master', filename, (function(_this) {
       return function(err) {
-        if (err) {
-          console.log('error removing ' + filename, err);
-        }
         if (callback && ++i === 3) {
           return callback(null, true);
         }
@@ -174,11 +158,11 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
   };
 
-  DocumentManagerService.prototype.diffToRelease = function(slug, callback) {
-    return this.repo.compare('master', slug, callback);
+  DocumentManagerService.prototype.getCommit = function(sha, cb) {
+    if (sha) {
+      return this.repo.getCommit(sha, cb);
+    }
   };
-
-  DocumentManagerService.prototype.diff = function(slug, v1, v2) {};
 
   DocumentManagerService.prototype.list = function(callback) {
     return this.repo.read('master', 'documents.json', (function(_this) {

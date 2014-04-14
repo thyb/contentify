@@ -13,11 +13,9 @@ module.exports = DocumentsCtrl = (function(_super) {
 
   function DocumentsCtrl(app) {
     DocumentsCtrl.__super__.constructor.call(this, app);
-    console.log("construct dashboard", this.app.user.isAuth());
     if (!this.app.user.isAuth()) {
       return this.app.redirect('/');
     }
-    console.log(this.app.user);
     this.services.documentManager = new DocumentManagerService(this.app.user.github);
   }
 
@@ -31,7 +29,6 @@ module.exports = DocumentsCtrl = (function(_super) {
             });
           }
         }
-        console.log("list", data);
         _this.app.documents = data;
         if (callback) {
           return callback({

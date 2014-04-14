@@ -5,19 +5,14 @@ DocumentManagerService = require('../services/DocumentManagerService')
 module.exports = class DocumentsCtrl extends Ctrl
 	constructor: (app) ->
 		super(app)
-
-		console.log "construct dashboard", @app.user.isAuth()
-
 		return @app.redirect '/' if not @app.user.isAuth()
 
-		console.log @app.user
 		@services.documentManager = new DocumentManagerService(@app.user.github)
 
 	initialize: (callback) ->
 		@services.documentManager.list (err, data) =>
 			if err == 'not found'
 				return callback documents: null if callback
-			console.log "list", data
 			@app.documents = data
 			callback documents: data if callback
 

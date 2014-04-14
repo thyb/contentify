@@ -13,7 +13,6 @@ module.exports = Ctrl = (function() {
     ctrlname = ctrlname.substr(0, ctrlname.length - 4);
     ctrlname = ctrlname.replace(/([A-Z])/g, "-$1");
     this.templateUrl = ctrlname.substr(1).toLowerCase() + '.html';
-    console.log(this.templateUrl);
     this.scope = {};
     this.event = new CtrlEvent();
     this.view = new View();

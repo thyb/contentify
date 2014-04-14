@@ -7,7 +7,6 @@ module.exports = Env = (function() {
 
   function Env() {
     if (localStorage) {
-      console.log('has local storage');
       try {
         data = JSON.parse(localStorage.getItem('env'));
       } catch (_error) {}
@@ -19,11 +18,8 @@ module.exports = Env = (function() {
   }
 
   Env.prototype.set = function(key, value) {
-    console.log('env set', key, value);
     data[key] = value;
-    console.log(data);
     if (localStorage) {
-      console.log('set localstorage to', data);
       return localStorage.setItem('env', JSON.stringify(data));
     }
   };
