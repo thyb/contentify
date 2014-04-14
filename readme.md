@@ -8,16 +8,11 @@ Installation
 
 Fork [this repository](https://github.com/thyb/dochub) on your account.
 
-You can update `config.json` to configure the runtime of DocHub.
-
-Enable Realtime
----------------
-
-To enable realtime to GibHub, just create an account on Firebase and copy paste you keys in `config.json` in the `firebase` key. Once down, you'll see in realtime when a collaborator update a document or push a new one.
+You can update `config.json` to configure the runtime of DocHub if you're hosting it locally.
 
     {
-        ...
-        firebase: 'YOUR-KEY.firebaseio.com'
+       username: 'thyb'
+       repository: 'dochub'
     }
 
 License
