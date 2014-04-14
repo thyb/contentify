@@ -19,7 +19,8 @@ module.exports = class DocumentCtrl extends Ctrl
 	unload: () ->
 		super()
 		$(window).unbind 'resize'
-		@editor.unload()
+		try
+			@editor.unload()
 
 	initialize: (callback) ->
 		@services.documentManager.getDocument @params.slug, (doc, lastContent) =>
@@ -72,7 +73,7 @@ module.exports = class DocumentCtrl extends Ctrl
 			@services.documentManager.saveDraft slug, filename, content, message, (err, res) =>
 				@viewParams.lastContent = content
 				@viewParams.lastContentHash = MD5 content
-					
+
 				@services.documentManager.getCommit res.commit.sha, (err, lastCommit) =>
 					@history.setLocalChanges false
 					lastCommit.commit_type = 'draft'

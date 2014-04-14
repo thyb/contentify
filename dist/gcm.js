@@ -167,7 +167,9 @@ module.exports = DocumentCtrl = (function(_super) {
   DocumentCtrl.prototype.unload = function() {
     DocumentCtrl.__super__.unload.call(this);
     $(window).unbind('resize');
-    return this.editor.unload();
+    try {
+      return this.editor.unload();
+    } catch (_error) {}
   };
 
   DocumentCtrl.prototype.initialize = function(callback) {
