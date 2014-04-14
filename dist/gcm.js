@@ -98,7 +98,7 @@ module.exports = DocumentHistory = (function() {
 
 },{}],2:[function(require,module,exports){
 module.exports = {
-  repository: 'dochub',
+  repository: 'content',
   username: 'thyb',
   firebase_key: "fiery-fire-8126",
   algolia_key: ""
