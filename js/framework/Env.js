@@ -14,7 +14,6 @@ module.exports = Env = (function() {
         data = {};
       }
     }
-    console.log(data);
   }
 
   Env.prototype.set = function(key, value) {
