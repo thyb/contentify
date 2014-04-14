@@ -23,6 +23,27 @@ module.exports = DocumentManagerService = (function(_super) {
   }
 
   DocumentManagerService.prototype.create = function(params, callback) {
+    if (this.documents[params.slug]) {
+      return callback({
+        error: true,
+        code: 1,
+        msg: 'Slug already exists, please choose another one'
+      });
+    }
+    if (params.extension !== 'md' && params.extension !== 'html') {
+      return callback({
+        error: true,
+        code: 2,
+        msg: 'Unknown extension'
+      });
+    }
+    if (params.name.length > 32) {
+      return callback({
+        error: true,
+        code: 3,
+        msg: 'Name too long'
+      });
+    }
     this.documents[params.slug] = {
       name: params.name,
       extension: params.extension,

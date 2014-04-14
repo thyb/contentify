@@ -329,6 +329,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype["do"] = function() {
+    var editorOptions;
     this.history.render($('#history'));
     this.app.askForRedirect('Your local changes might be lost', (function(_this) {
       return function() {
@@ -336,7 +337,7 @@ module.exports = DocumentCtrl = (function(_super) {
       };
     })(this));
     this.autoResizeEditor();
-    this.editor = new EpicEditor({
+    editorOptions = {
       textarea: 'editor-content',
       clientSideStorage: true,
       focusOnLoad: true,
@@ -344,7 +345,11 @@ module.exports = DocumentCtrl = (function(_super) {
       file: {
         name: this.params.slug
       }
-    }).load((function(_this) {
+    };
+    if (this.viewParams.doc.extension === 'html') {
+      editorOptions.parser = false;
+    }
+    this.editor = new EpicEditor(editorOptions).load((function(_this) {
       return function() {
         var _ref;
         if (((_ref = _this.viewParams.history[0]) != null ? _ref.imgType : void 0) === 'img/release-dot.png' && $('#history > p:first img').attr('src') !== 'img/local-dot.png' || !_this.editor || _this.editor.exportFile().trim() === '') {
@@ -450,7 +455,10 @@ module.exports = DocumentsCtrl = (function(_super) {
     return $('#create-button').click((function(_this) {
       return function() {
         var formData, type;
-        type = 'md';
+        type = $('#new-document-modal .btn-group label.active').text().trim().toLowerCase();
+        if (type === 'markdown') {
+          type = 'md';
+        }
         formData = {
           name: $('#name-input').val(),
           slug: $('#slug-input').val(),
@@ -1302,6 +1310,27 @@ module.exports = DocumentManagerService = (function(_super) {
   }
 
   DocumentManagerService.prototype.create = function(params, callback) {
+    if (this.documents[params.slug]) {
+      return callback({
+        error: true,
+        code: 1,
+        msg: 'Slug already exists, please choose another one'
+      });
+    }
+    if (params.extension !== 'md' && params.extension !== 'html') {
+      return callback({
+        error: true,
+        code: 2,
+        msg: 'Unknown extension'
+      });
+    }
+    if (params.name.length > 32) {
+      return callback({
+        error: true,
+        code: 3,
+        msg: 'Name too long'
+      });
+    }
     this.documents[params.slug] = {
       name: params.name,
       extension: params.extension,

@@ -49,7 +49,10 @@ module.exports = DocumentsCtrl = (function(_super) {
     return $('#create-button').click((function(_this) {
       return function() {
         var formData, type;
-        type = 'md';
+        type = $('#new-document-modal .btn-group label.active').text().trim().toLowerCase();
+        if (type === 'markdown') {
+          type = 'md';
+        }
         formData = {
           name: $('#name-input').val(),
           slug: $('#slug-input').val(),

@@ -191,6 +191,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype["do"] = function() {
+    var editorOptions;
     this.history.render($('#history'));
     this.app.askForRedirect('Your local changes might be lost', (function(_this) {
       return function() {
@@ -198,7 +199,7 @@ module.exports = DocumentCtrl = (function(_super) {
       };
     })(this));
     this.autoResizeEditor();
-    this.editor = new EpicEditor({
+    editorOptions = {
       textarea: 'editor-content',
       clientSideStorage: true,
       focusOnLoad: true,
@@ -206,7 +207,11 @@ module.exports = DocumentCtrl = (function(_super) {
       file: {
         name: this.params.slug
       }
-    }).load((function(_this) {
+    };
+    if (this.viewParams.doc.extension === 'html') {
+      editorOptions.parser = false;
+    }
+    this.editor = new EpicEditor(editorOptions).load((function(_this) {
       return function() {
         var _ref;
         if (((_ref = _this.viewParams.history[0]) != null ? _ref.imgType : void 0) === 'img/release-dot.png' && $('#history > p:first img').attr('src') !== 'img/local-dot.png' || !_this.editor || _this.editor.exportFile().trim() === '') {

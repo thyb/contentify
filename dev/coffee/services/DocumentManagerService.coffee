@@ -15,6 +15,24 @@ module.exports = class DocumentManagerService extends Service
 	create: (params, callback) ->
 
 		#TODO check params
+		if @documents[params.slug]
+			return callback
+				error: true,
+				code: 1
+				msg: 'Slug already exists, please choose another one'
+
+		if params.extension != 'md' and params.extension != 'html'
+			return callback
+				error: true,
+				code: 2
+				msg: 'Unknown extension'
+
+		if params.name.length > 32
+			return callback
+				error: true,
+				code: 3
+				msg: 'Name too long'
+
 		@documents[params.slug] =
 			name: params.name
 			extension: params.extension

@@ -144,14 +144,18 @@ module.exports = class DocumentCtrl extends Ctrl
 
 		@autoResizeEditor()
 
-		@editor = new EpicEditor(
+		editorOptions =
 			textarea: 'editor-content'
 			clientSideStorage: true
 			focusOnLoad: true
 			basePath: './lib/epiceditor',
 			file:
 				name: @params.slug
-		).load =>
+
+		if @viewParams.doc.extension == 'html'
+			editorOptions.parser = false
+
+		@editor = new EpicEditor(editorOptions).load =>
 			if @viewParams.history[0]?.imgType == 'img/release-dot.png' and $('#history > p:first img').attr('src') != 'img/local-dot.png' or not @editor or @editor.exportFile().trim() == ''
 				$('#save-draft').removeAttr('disabled')
 
