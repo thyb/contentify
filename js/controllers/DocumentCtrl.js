@@ -91,11 +91,13 @@ module.exports = DocumentCtrl = (function(_super) {
       }
     } else {
       message = $("#draft-message").val();
-      content = this.editor.exportFile().trim();
+      content = this.editor.exportFile();
       filename = this.viewParams.doc.filename;
       slug = this.viewParams.slug;
       this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
         return function(err, res) {
+          _this.viewParams.lastContent = content;
+          _this.viewParams.lastContentHash = MD5(content);
           _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
             _this.history.setLocalChanges(false);
             lastCommit.commit_type = 'draft';
@@ -123,12 +125,14 @@ module.exports = DocumentCtrl = (function(_super) {
       }
     } else {
       message = $("#draft-message").val();
-      content = this.editor.exportFile().trim();
+      content = this.editor.exportFile();
       filename = this.viewParams.doc.filename;
       slug = this.viewParams.slug;
       releaseFct = (function(_this) {
         return function() {
           return _this.services.documentManager.release(slug, filename, content, message, function(err, res) {
+            _this.viewParams.lastContent = content;
+            _this.viewParams.lastContentHash = MD5(content);
             _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
               _this.history.setLocalChanges(false);
               lastCommit.commit_type = 'release';
@@ -147,6 +151,8 @@ module.exports = DocumentCtrl = (function(_super) {
       if (changes) {
         return this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
           return function(err, res) {
+            _this.viewParams.lastContent = content;
+            _this.viewParams.lastContentHash = MD5(content);
             _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
               _this.history.setLocalChanges(false);
               lastCommit.commit_type = 'draft';
@@ -201,7 +207,6 @@ module.exports = DocumentCtrl = (function(_super) {
     this.autoResizeEditor();
     editorOptions = {
       textarea: 'editor-content',
-      clientSideStorage: true,
       focusOnLoad: true,
       basePath: './lib/epiceditor',
       file: {
@@ -213,10 +218,6 @@ module.exports = DocumentCtrl = (function(_super) {
     }
     this.editor = new EpicEditor(editorOptions).load((function(_this) {
       return function() {
-        var _ref;
-        if (((_ref = _this.viewParams.history[0]) != null ? _ref.imgType : void 0) === 'img/release-dot.png' && $('#history > p:first img').attr('src') !== 'img/local-dot.png' || !_this.editor || _this.editor.exportFile().trim() === '') {
-          $('#save-draft').removeAttr('disabled');
-        }
         $("#save-draft").click(function() {
           _this.saveDraft();
           return false;
@@ -236,7 +237,6 @@ module.exports = DocumentCtrl = (function(_super) {
         $("#draft-message-cancel").click(function() {
           _this.draftMessageOpen = false;
           $("#draft-add-message").slideUp('fast');
-          $('#save-draft,#release').removeAttr('disabled');
           return false;
         });
         $('#remove-doc-link').click(function() {

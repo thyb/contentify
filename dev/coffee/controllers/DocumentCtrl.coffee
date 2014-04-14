@@ -65,11 +65,14 @@ module.exports = class DocumentCtrl extends Ctrl
 		else
 			# $('#release,#save-draft').attr 'disabled', 'disabled'
 			message = $("#draft-message").val()
-			content = @editor.exportFile().trim()
+			content = @editor.exportFile()
 			filename = @viewParams.doc.filename
 			slug = @viewParams.slug
 
 			@services.documentManager.saveDraft slug, filename, content, message, (err, res) =>
+				@viewParams.lastContent = content
+				@viewParams.lastContentHash = MD5 content
+					
 				@services.documentManager.getCommit res.commit.sha, (err, lastCommit) =>
 					@history.setLocalChanges false
 					lastCommit.commit_type = 'draft'
@@ -90,12 +93,14 @@ module.exports = class DocumentCtrl extends Ctrl
 		else
 			#$('#release,#save-draft').attr 'disabled', 'disabled'
 			message = $("#draft-message").val()
-			content = @editor.exportFile().trim()
+			content = @editor.exportFile()
 			filename = @viewParams.doc.filename
 			slug = @viewParams.slug
 
 			releaseFct = =>
 				@services.documentManager.release slug, filename, content, message, (err, res) =>
+					@viewParams.lastContent = content
+					@viewParams.lastContentHash = MD5 content
 					@services.documentManager.getCommit res.commit.sha, (err, lastCommit) =>
 						@history.setLocalChanges false
 						lastCommit.commit_type = 'release'
@@ -108,6 +113,8 @@ module.exports = class DocumentCtrl extends Ctrl
 			changes = @checkLocalChanges()
 			if changes
 				@services.documentManager.saveDraft slug, filename, content, message, (err, res) =>
+					@viewParams.lastContent = content
+					@viewParams.lastContentHash = MD5 content
 					@services.documentManager.getCommit res.commit.sha, (err, lastCommit) =>
 						@history.setLocalChanges false
 						lastCommit.commit_type = 'draft'
@@ -146,7 +153,6 @@ module.exports = class DocumentCtrl extends Ctrl
 
 		editorOptions =
 			textarea: 'editor-content'
-			clientSideStorage: true
 			focusOnLoad: true
 			basePath: './lib/epiceditor',
 			file:
@@ -156,9 +162,6 @@ module.exports = class DocumentCtrl extends Ctrl
 			editorOptions.parser = false
 
 		@editor = new EpicEditor(editorOptions).load =>
-			if @viewParams.history[0]?.imgType == 'img/release-dot.png' and $('#history > p:first img').attr('src') != 'img/local-dot.png' or not @editor or @editor.exportFile().trim() == ''
-				$('#save-draft').removeAttr('disabled')
-
 			$("#save-draft").click =>
 				@saveDraft()
 				return false
@@ -177,13 +180,13 @@ module.exports = class DocumentCtrl extends Ctrl
 			$("#draft-message-cancel").click =>
 				@draftMessageOpen = false
 				$("#draft-add-message").slideUp('fast')
-				$('#save-draft,#release').removeAttr('disabled')
 				return false
 
 			$('#remove-doc-link').click =>
 				if confirm "Are you sure you want to remove this document?"
 					@remove()
 				return false
+
 			$('#rename-doc-link').click =>
 				return false
 
