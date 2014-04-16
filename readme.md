@@ -3,6 +3,14 @@ Content
 
 This content manager allow your non technical team to update static document and release them without to restart your server.
 
+Feature
+-------
+
+* Manage documents - Markdown and HTML support
+* Editor with preview
+* History of draft / release
+* Unlimited colaborators using Github collaborators
+
 Installation over Github Pages
 ------------------------------
 
