@@ -1,10 +1,9 @@
 var DocumentHistory;
 
 module.exports = DocumentHistory = (function() {
-  function DocumentHistory(initialHistory, me, editor) {
+  function DocumentHistory(initialHistory, me) {
     var hist, _i, _len;
     this.me = me;
-    this.editor = editor;
     this.current = 0;
     this.history = [];
     this.listeners = {};

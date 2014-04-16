@@ -2,10 +2,9 @@
 var DocumentHistory;
 
 module.exports = DocumentHistory = (function() {
-  function DocumentHistory(initialHistory, me, editor) {
+  function DocumentHistory(initialHistory, me) {
     var hist, _i, _len;
     this.me = me;
-    this.editor = editor;
     this.current = 0;
     this.history = [];
     this.listeners = {};
@@ -202,10 +201,7 @@ module.exports = DocumentCtrl = (function(_super) {
 
   DocumentCtrl.prototype.unload = function() {
     DocumentCtrl.__super__.unload.call(this);
-    $(window).unbind('resize');
-    try {
-      return this.editor.unload();
-    } catch (_error) {}
+    return $(window).unbind('resize');
   };
 
   DocumentCtrl.prototype.initialize = function(callback) {
@@ -241,20 +237,18 @@ module.exports = DocumentCtrl = (function(_super) {
 
   DocumentCtrl.prototype.checkLocalChanges = function(hashToCompare) {
     var localChanges, localContent, localContentHash;
-    localContent = $('#editor-content').val();
+    localContent = this.editor.getValue();
     localContentHash = MD5(localContent);
     localChanges = false;
     if (!hashToCompare) {
       hashToCompare = this.viewParams.lastContentHash;
     }
-    console.log('check changes', hashToCompare, localContentHash);
     if (!hashToCompare) {
       return false;
     }
     if (localContentHash !== hashToCompare) {
       localChanges = true;
     }
-    console.log(localChanges);
     return localChanges;
   };
 
@@ -268,7 +262,7 @@ module.exports = DocumentCtrl = (function(_super) {
       }
     } else {
       message = $("#draft-message").val();
-      content = this.editor.exportFile();
+      content = this.editor.getValue();
       filename = this.viewParams.doc.filename;
       slug = this.viewParams.slug;
       this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
@@ -302,7 +296,7 @@ module.exports = DocumentCtrl = (function(_super) {
       }
     } else {
       message = $("#draft-message").val();
-      content = this.editor.exportFile();
+      content = this.editor.getValue();
       filename = this.viewParams.doc.filename;
       slug = this.viewParams.slug;
       releaseFct = (function(_this) {
@@ -356,28 +350,34 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.autoResizeEditor = function() {
-    var resize, selector;
-    $('#document-panel, #diff').css('overflow-y', 'auto');
-    selector = $('#epiceditor, #diff, #document-panel');
+    var editorSel, previewSel, resize, selector;
+    $('#document-panel, #preview, #diff').css('overflow-y', 'auto');
+    selector = $('#diff, #document-panel');
+    editorSel = $('#editor');
+    previewSel = $('#preview');
     resize = (function(_this) {
       return function() {
-        return selector.height($(window).height() - 75);
+        selector.height($(window).height() - 75);
+        editorSel.height($(window).height() - 106);
+        return previewSel.height($(window).height() - 125);
       };
     })(this);
     resize();
     return $(window).bind('resize', (function(_this) {
       return function() {
         resize();
-        return _this.editor.reflow();
+        return _this.editor.resize();
       };
     })(this));
   };
 
   DocumentCtrl.prototype.patchPrettyPrint = function(patch) {
     var diff, index, line, lineCounter, lines, regexp, res, template, templateContent, type;
+    if (!patch) {
+      return $('#diff').html('<p class="alert alert-info">No diff with last version</p>');
+    }
     lines = patch.split('\n');
     diff = [];
-    console.log("start prettyprint", lines);
     lineCounter = [1, 1];
     for (index in lines) {
       line = lines[index].substr(1);
@@ -388,12 +388,12 @@ module.exports = DocumentCtrl = (function(_super) {
             cssClass: 'active',
             line1: '',
             line2: '',
-            content: line
+            content: '@' + line
           });
-          regexp = /^@ \-([0-9]+),[0-9]+ \+([0-9]+),[0-9]+ @@.*$/i;
+          regexp = /^@ \-([0-9]+)(,[0-9]+)? \+([0-9]+)(,[0-9]+)? @@.*$/i;
           res = line.match(regexp);
           lineCounter[0] = res[1];
-          lineCounter[1] = res[2];
+          lineCounter[1] = (res[2] && res[2].substr(0, 1) === "," ? res[3] : res[2]);
           break;
         case ' ':
           diff.push({
@@ -432,83 +432,183 @@ module.exports = DocumentCtrl = (function(_super) {
     this.history.render($('#history'));
     return this.history.on('select', (function(_this) {
       return function(item, index) {
+        var t;
         if (index === 0) {
           $('#diff').hide();
-          $('#epiceditor').show();
-          return _this.editor.reflow();
+          t = 'preview';
+          if ($('#editor-mode').hasClass('btn-inverse')) {
+            t = 'editor';
+          }
+          $('#' + t + ', #toolbar').show();
+          return _this.editor.resize();
         } else {
           return _this.services.documentManager.getCommit(item.sha, function(err, commit) {
             var patch;
             patch = commit.files[0].patch;
             _this.patchPrettyPrint(patch);
-            $('#epiceditor').hide();
-            $('#diff').show();
-            return console.log(err, commit);
+            $('#editor, #toolbar, #preview').hide();
+            return $('#diff').show();
           });
         }
       };
     })(this));
   };
 
+  DocumentCtrl.prototype.updatePreview = function() {
+    var previewContent;
+    previewContent = this.editor.getValue();
+    if (this.viewParams.doc.extension === 'md') {
+      previewContent = marked(previewContent);
+    }
+    return $('#preview').html(previewContent);
+  };
+
+  DocumentCtrl.prototype.fullscreenMode = function() {
+    $('#editor,#preview').show();
+    $('#editor').css({
+      position: 'fixed',
+      left: 0,
+      top: '51px',
+      height: ($(window).height() - 51) + 'px',
+      width: '50%'
+    });
+    $('#preview').css({
+      position: 'fixed',
+      left: '50%',
+      top: '51px',
+      height: ($(window).height() - 51) + 'px',
+      width: '50%',
+      backgroundColor: 'white',
+      zIndex: 10
+    });
+    this.editor.resize();
+    $('body').append('<button id="exit-fullscreen" class="btn btn-default">Exit fullscreen</button>');
+    return $('#exit-fullscreen').click((function(_this) {
+      return function() {
+        $('#editor').css({
+          position: 'relative',
+          left: 'auto',
+          top: 'auto',
+          height: ($(window).height() - 106) + 'px',
+          width: 'auto',
+          display: ($('#editor-mode').hasClass('btn-inverse') ? 'block' : 'none')
+        });
+        $('#preview').css({
+          position: 'static',
+          left: 'auto',
+          top: 'auto',
+          height: ($(window).height() - 125) + 'px',
+          width: 'auto',
+          display: ($('#preview-mode').hasClass('btn-inverse') ? 'block' : 'none')
+        });
+        _this.editor.resize();
+        return $('#exit-fullscreen').remove();
+      };
+    })(this));
+  };
+
   DocumentCtrl.prototype["do"] = function() {
-    var editorOptions;
     this.app.askForRedirect('Your local changes might be lost', (function(_this) {
       return function() {
         return _this.checkLocalChanges();
       };
     })(this));
     this.autoResizeEditor();
-    editorOptions = {
-      textarea: 'editor-content',
-      focusOnLoad: true,
-      basePath: './lib/epiceditor',
-      file: {
-        name: this.params.slug
-      }
-    };
-    if (this.viewParams.doc.extension === 'html') {
-      editorOptions.parser = false;
+    this.editor = ace.edit('editor');
+    this.editor.setTheme("ace/theme/twilight");
+    this.editor.getSession().setUseWrapMode(true);
+    if (this.viewParams.doc.extension === 'md') {
+      this.editor.getSession().setMode("ace/mode/markdown");
+    } else {
+      this.editor.getSession().setMode("ace/mode/html");
     }
-    this.editor = new EpicEditor(editorOptions).load((function(_this) {
+    $('#preview-mode').click((function(_this) {
       return function() {
-        $("#save-draft").click(function() {
-          _this.saveDraft();
-          return false;
-        });
-        $("#release").click(function() {
+        $('#editor-mode').removeClass('btn-inverse').addClass('btn-default');
+        $('#preview-mode').addClass('btn-inverse').removeClass('btn-default');
+        $('#editor').hide();
+        $('#preview').show();
+        return _this.updatePreview();
+      };
+    })(this));
+    $('#editor-mode').click((function(_this) {
+      return function() {
+        $('#preview-mode').removeClass('btn-inverse').addClass('btn-default');
+        $('#editor-mode').addClass('btn-inverse').removeClass('btn-default');
+        $('#preview').hide();
+        return $('#editor').show();
+      };
+    })(this));
+    $('#fullscreen-mode').click((function(_this) {
+      return function() {
+        return _this.fullscreenMode();
+      };
+    })(this));
+    $("#save-draft").click((function(_this) {
+      return function() {
+        _this.saveDraft();
+        return false;
+      };
+    })(this));
+    $("#release").click((function(_this) {
+      return function() {
+        _this.release();
+        return false;
+      };
+    })(this));
+    $("#draft-message-go").click((function(_this) {
+      return function() {
+        if (_this.releaseMessage) {
           _this.release();
-          return false;
-        });
-        $("#draft-message-go").click(function() {
-          if (_this.releaseMessage) {
-            _this.release();
-          } else {
-            _this.saveDraft();
-          }
-          return false;
-        });
-        $("#draft-message-cancel").click(function() {
-          _this.draftMessageOpen = false;
-          $("#draft-add-message").slideUp('fast');
-          return false;
-        });
-        $('#remove-doc-link').click(function() {
-          if (confirm("Are you sure you want to remove this document?")) {
-            _this.remove();
-          }
-          return false;
-        });
-        return $('#rename-doc-link').click(function() {
-          return false;
-        });
+        } else {
+          _this.saveDraft();
+        }
+        return false;
+      };
+    })(this));
+    $("#draft-message-cancel").click((function(_this) {
+      return function() {
+        _this.draftMessageOpen = false;
+        $("#draft-add-message").slideUp('fast');
+        return false;
+      };
+    })(this));
+    $('#remove-doc-link').click((function(_this) {
+      return function() {
+        if (confirm("Are you sure you want to remove this document?")) {
+          _this.remove();
+        }
+        return false;
+      };
+    })(this));
+    $('#rename-doc-link').click((function(_this) {
+      return function() {
+        return false;
       };
     })(this));
     this.setupHistory();
-    this.editor.importFile(this.params.slug, this.viewParams.lastContent);
-    return this.editor.on('update', (function(_this) {
-      return function(local) {
-        var localChanges;
-        localChanges = _this.viewParams.lastContentHash !== MD5(local.content);
+    this.editor.setValue(this.viewParams.lastContent);
+    this.editor.clearSelection();
+    this.editor.focus();
+    this.editor.navigateFileStart();
+    this.updatePreview();
+    this.editor.on('paste', (function(_this) {
+      return function(input) {
+        return setTimeout((function() {
+          var content;
+          content = _this.editor.getValue();
+          content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"');
+          _this.editor.setValue(content);
+          return _this.updatePreview();
+        }), 100);
+      };
+    })(this));
+    return this.editor.getSession().on('change', (function(_this) {
+      return function() {
+        var content, localChanges;
+        content = _this.editor.getValue();
+        localChanges = _this.viewParams.lastContentHash !== MD5(content);
+        _this.updatePreview();
         return _this.history.setLocalChanges(localChanges);
       };
     })(this));

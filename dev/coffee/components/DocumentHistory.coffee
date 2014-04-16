@@ -1,7 +1,6 @@
 module.exports = class DocumentHistory
-	constructor: (initialHistory, me, editor)->
+	constructor: (initialHistory, me)->
 		@me = me
-		@editor = editor
 		@current = 0
 		@history = []
 		@listeners = {}

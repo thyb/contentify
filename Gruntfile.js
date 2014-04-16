@@ -7,6 +7,10 @@ module.exports = function(grunt) {
             coffee: {
                 files: ['./**/*.coffee'],
                 tasks: ['coffee', 'browserify']
+            },
+            less: {
+                files: ['./**/*.less'],
+                tasks: ['less', 'browserify']
             }
         },
         coffee: {
@@ -21,12 +25,19 @@ module.exports = function(grunt) {
                 }
             }
         },
+        less: {
+            default: {
+                files: {
+                    "css/main.css": "dev/less/main.less"
+                }
+            }
+        },
         concurrent: {
             server: {
                 options: {
                     logConcurrentOutput: true
                 },
-                tasks: ['watch:coffee','harp']
+                tasks: ['watch:coffee', 'watch:less', 'harp']
             }
         },
         browserify: {
@@ -49,7 +60,7 @@ module.exports = function(grunt) {
             }
         },
 
-        taskDefault: ['coffee', 'browserify', "concurrent:server"],
+        taskDefault: ['coffee', 'less', 'browserify', "concurrent:server"],
     };
 
     grunt.initConfig(gruntConf);
@@ -57,6 +68,7 @@ module.exports = function(grunt) {
     // These plugins provide necessary tasks.
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-coffee');
+    grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-concurrent');
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-uglify');

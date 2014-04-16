@@ -19,8 +19,6 @@ module.exports = class DocumentCtrl extends Ctrl
 	unload: () ->
 		super()
 		$(window).unbind 'resize'
-		try
-			@editor.unload()
 
 	initialize: (callback) ->
 		@services.documentManager.getDocument @params.slug, (doc, lastContent) =>
@@ -44,18 +42,16 @@ module.exports = class DocumentCtrl extends Ctrl
 					callback @viewParams if callback
 
 	checkLocalChanges: (hashToCompare) ->
-		localContent = $('#editor-content').val()
+		localContent = @editor.getValue()
 		localContentHash = MD5 localContent
 		localChanges = false
 		hashToCompare = @viewParams.lastContentHash if not hashToCompare
 
-		console.log 'check changes', hashToCompare, localContentHash
 		return false if not hashToCompare
 
 		if localContentHash != hashToCompare
 			localChanges = true
 
-		console.log localChanges
 		return localChanges
 
 	saveDraft: (callback) ->
@@ -65,7 +61,7 @@ module.exports = class DocumentCtrl extends Ctrl
 			callback false if callback
 		else
 			message = $("#draft-message").val()
-			content = @editor.exportFile()
+			content = @editor.getValue()
 			filename = @viewParams.doc.filename
 			slug = @viewParams.slug
 
@@ -90,7 +86,7 @@ module.exports = class DocumentCtrl extends Ctrl
 			callback false if callback
 		else
 			message = $("#draft-message").val()
-			content = @editor.exportFile()
+			content = @editor.getValue()
 			filename = @viewParams.doc.filename
 			slug = @viewParams.slug
 
@@ -127,21 +123,25 @@ module.exports = class DocumentCtrl extends Ctrl
 			@app.redirect '/documents'
 
 	autoResizeEditor: () ->
-		$('#document-panel, #diff').css('overflow-y', 'auto')
-		selector = $('#epiceditor, #diff, #document-panel')
+		$('#document-panel, #preview, #diff').css('overflow-y', 'auto')
+		selector = $('#diff, #document-panel')
+		editorSel = $('#editor')
+		previewSel = $('#preview')
 
 		resize = =>
 			selector.height $(window).height() - 75
-
+			editorSel.height $(window).height() - 106
+			previewSel.height $(window).height() - 125
 		resize()
 		$(window).bind 'resize', =>
 			resize()
-			@editor.reflow()
+			@editor.resize()
 
 	patchPrettyPrint: (patch) ->
+		if not patch
+			return $('#diff').html '<p class="alert alert-info">No diff with last version</p>'
 		lines = patch.split '\n'
 		diff = []
-		console.log "start prettyprint", lines
 		lineCounter = [1, 1]
 		for index of lines
 			line = lines[index].substr 1
@@ -153,11 +153,11 @@ module.exports = class DocumentCtrl extends Ctrl
 						cssClass: 'active'
 						line1: ''
 						line2: ''
-						content: line
-					regexp = /^@ \-([0-9]+),[0-9]+ \+([0-9]+),[0-9]+ @@.*$/i
+						content: '@' + line
+					regexp = /^@ \-([0-9]+)(,[0-9]+)? \+([0-9]+)(,[0-9]+)? @@.*$/i
 					res = line.match regexp
 					lineCounter[0] = res[1]
-					lineCounter[1] = res[2]
+					lineCounter[1] = (if res[2] and res[2].substr(0, 1) is "," then res[3] else res[2])
 
 				when ' '
 					diff.push
@@ -204,15 +204,64 @@ module.exports = class DocumentCtrl extends Ctrl
 		@history.on 'select', (item, index) =>
 			if index == 0
 				$('#diff').hide()
-				$('#epiceditor').show()
-				@editor.reflow()
+				t = 'preview'
+				if $('#editor-mode').hasClass 'btn-inverse'
+					t = 'editor'
+
+				$('#' + t + ', #toolbar').show()
+				@editor.resize()
 			else
 				@services.documentManager.getCommit item.sha, (err, commit) =>
 					patch = commit.files[0].patch
 					@patchPrettyPrint patch
-					$('#epiceditor').hide()
+					$('#editor, #toolbar, #preview').hide()
 					$('#diff').show()
-					console.log err, commit
+
+	updatePreview: ->
+		previewContent = @editor.getValue()
+		if @viewParams.doc.extension == 'md'
+			previewContent = marked(previewContent)
+		$('#preview').html previewContent
+
+	fullscreenMode: ->
+		$('#editor,#preview').show()
+		$('#editor').css
+			position: 'fixed'
+			left: 0
+			top: '51px'
+			height: ($(window).height() - 51) + 'px'
+			width: '50%'
+
+		$('#preview').css
+			position: 'fixed'
+			left: '50%'
+			top: '51px'
+			height: ($(window).height() - 51) + 'px'
+			width: '50%'
+			backgroundColor: 'white'
+			zIndex: 10
+
+		@editor.resize()
+		$('body').append('<button id="exit-fullscreen" class="btn btn-default">Exit fullscreen</button>')
+		$('#exit-fullscreen').click =>
+			$('#editor').css
+				position: 'relative'
+				left: 'auto'
+				top: 'auto'
+				height: ($(window).height() - 106) + 'px'
+				width: 'auto'
+				display: (if $('#editor-mode').hasClass('btn-inverse') then 'block' else 'none')
+
+			$('#preview').css
+				position: 'static'
+				left: 'auto'
+				top: 'auto'
+				height: ($(window).height() - 125) + 'px'
+				width: 'auto'
+				display: (if $('#preview-mode').hasClass('btn-inverse') then 'block' else 'none')
+
+			@editor.resize()
+			$('#exit-fullscreen').remove()
 
 	do: ->
 		@app.askForRedirect 'Your local changes might be lost', =>
@@ -220,49 +269,77 @@ module.exports = class DocumentCtrl extends Ctrl
 
 		@autoResizeEditor()
 
-		editorOptions =
-			textarea: 'editor-content'
-			focusOnLoad: true
-			basePath: './lib/epiceditor',
-			file:
-				name: @params.slug
+		@editor = ace.edit 'editor'
+		@editor.setTheme "ace/theme/twilight"
 
-		if @viewParams.doc.extension == 'html'
-			editorOptions.parser = false
+		@editor.getSession().setUseWrapMode(true);
 
-		@editor = new EpicEditor(editorOptions).load =>
-			$("#save-draft").click =>
-				@saveDraft()
-				return false
+		if @viewParams.doc.extension == 'md'
+			@editor.getSession().setMode "ace/mode/markdown"
+		else
+			@editor.getSession().setMode "ace/mode/html"
 
-			$("#release").click =>
+		$('#preview-mode').click =>
+			$('#editor-mode').removeClass('btn-inverse').addClass 'btn-default'
+			$('#preview-mode').addClass('btn-inverse').removeClass 'btn-default'
+			$('#editor').hide()
+			$('#preview').show()
+			@updatePreview()
+
+		$('#editor-mode').click =>
+			$('#preview-mode').removeClass('btn-inverse').addClass 'btn-default'
+			$('#editor-mode').addClass('btn-inverse').removeClass 'btn-default'
+			$('#preview').hide()
+			$('#editor').show()
+
+		$('#fullscreen-mode').click =>
+			@fullscreenMode()
+
+		$("#save-draft").click =>
+			@saveDraft()
+			return false
+
+		$("#release").click =>
+			@release()
+			return false
+
+		$("#draft-message-go").click =>
+			if @releaseMessage
 				@release()
-				return false
+			else
+				@saveDraft()
+			return false
 
-			$("#draft-message-go").click =>
-				if @releaseMessage
-					@release()
-				else
-					@saveDraft()
-				return false
+		$("#draft-message-cancel").click =>
+			@draftMessageOpen = false
+			$("#draft-add-message").slideUp('fast')
+			return false
 
-			$("#draft-message-cancel").click =>
-				@draftMessageOpen = false
-				$("#draft-add-message").slideUp('fast')
-				return false
+		$('#remove-doc-link').click =>
+			if confirm "Are you sure you want to remove this document?"
+				@remove()
+			return false
 
-			$('#remove-doc-link').click =>
-				if confirm "Are you sure you want to remove this document?"
-					@remove()
-				return false
-
-			$('#rename-doc-link').click =>
-				return false
+		$('#rename-doc-link').click =>
+			return false
 
 		@setupHistory()
-		@editor.importFile @params.slug, @viewParams.lastContent
+		@editor.setValue @viewParams.lastContent
+		@editor.clearSelection()
+		@editor.focus()
+		@editor.navigateFileStart()
+		@updatePreview()
+		@editor.on 'paste', (input) =>
+			setTimeout (=>
+				content = @editor.getValue()
+				content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"')
+				@editor.setValue content
+				@updatePreview()
+			), 100
 
-		@editor.on 'update', (local) =>
-			localChanges = @viewParams.lastContentHash != MD5 local.content
+		@editor.getSession().on 'change', =>
+			content = @editor.getValue()
+			localChanges = @viewParams.lastContentHash != MD5 content
 
+			@updatePreview()
 			@history.setLocalChanges localChanges
