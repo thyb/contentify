@@ -1,14 +1,16 @@
 var DocumentHistory;
 
 module.exports = DocumentHistory = (function() {
-  function DocumentHistory(initialHistory, me) {
+  function DocumentHistory(initialHistory, me, editor) {
     var hist, _i, _len;
     this.me = me;
+    this.editor = editor;
     this.current = 0;
     this.history = [];
+    this.listeners = {};
     for (_i = 0, _len = initialHistory.length; _i < _len; _i++) {
       hist = initialHistory[_i];
-      this.history.unshift({
+      this.history.push({
         sha: hist.sha,
         version_type: hist.commit_type,
         message: hist.commit.message,
@@ -16,6 +18,7 @@ module.exports = DocumentHistory = (function() {
         avatar_url: hist.author.avatar_url
       });
     }
+    console.log(this.history);
     this.generateTemplate();
   }
 
@@ -54,24 +57,57 @@ module.exports = DocumentHistory = (function() {
         return false;
       }
       this.history.shift();
-      return this.container.find('p:first').remove();
-    }
-  };
-
-  DocumentHistory.prototype.on = function(event, callback) {
-    if (event === 'select') {
-      return callback();
-    }
-  };
-
-  DocumentHistory.prototype.renderElement = function(index) {
-    var elem;
-    elem = this.history[index];
-    this.container.prepend(this.template(elem));
-    if (index === this.current) {
+      this.container.find('p:first').remove();
       this.container.find('p.active').removeClass('active');
-      return this.container.find('p:eq(' + index + ')').addClass('active');
+      return this.container.find('p:eq(' + this.current.toString() + ')').addClass('active');
     }
+  };
+
+  DocumentHistory.prototype.on = function(e, callback) {
+    if (!this.listeners[e]) {
+      this.listeners[e] = [];
+    }
+    return this.listeners[e].push(callback);
+  };
+
+  DocumentHistory.prototype.renderElement = function(index, init) {
+    var elem, selector;
+    if (!init) {
+      init = false;
+    }
+    elem = this.history[index];
+    if (init) {
+      this.container.append(this.template(elem));
+    } else if (index === 0) {
+      this.container.prepend(this.template(elem));
+    } else {
+      this.container.find('p:eq(' + index.toString() + ')').html(this.template(elem));
+    }
+    selector = this.container.find('p:eq(' + index.toString() + ')');
+    console.log(index, this.current, selector);
+    if (index === this.current) {
+      console.log('in', index);
+      this.container.find('p.active').removeClass('active');
+      selector.addClass('active');
+    }
+    return selector.click((function(_this) {
+      return function() {
+        var ind;
+        if (!selector.hasClass('active')) {
+          ind = selector.index();
+          _this.change(ind);
+          return _this.listeners['select'].each(function(fct) {
+            return fct(_this.history[ind], ind);
+          });
+        }
+      };
+    })(this));
+  };
+
+  DocumentHistory.prototype.change = function(index) {
+    this.current = index;
+    this.container.find('p.active').removeClass('active');
+    return this.container.find('p:eq(' + index.toString() + ')').addClass('active');
   };
 
   DocumentHistory.prototype.render = function(container) {
@@ -80,14 +116,14 @@ module.exports = DocumentHistory = (function() {
     this.container.html('');
     _results = [];
     for (i in this.history) {
-      _results.push(this.renderElement(i));
+      _results.push(this.renderElement(parseInt(i), true));
     }
     return _results;
   };
 
   DocumentHistory.prototype.generateTemplate = function() {
     var content;
-    content = '<p><img width="42" height="42" title="{{login}}" class="img-circle {{version_type}}" src="{{avatar_url}}"><span>{{message}}</span></p>';
+    content = '<p> <img width="42" height="42" title="{{login}}" class="img-circle {{version_type}}" src="{{avatar_url}}"> <span class="msg">{{message}}</span> </p>';
     return this.template = Handlebars.compile(content);
   };
 

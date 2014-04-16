@@ -32,7 +32,6 @@ module.exports = class DocumentCtrl extends Ctrl
 					localChanges = false
 
 					merge = @services.documentManager.mergeHistory(releaseHistory, documentHistory)
-					@history = new DocumentHistory(merge, @app.user)
 					@viewParams =
 						doc: doc
 						slug: @params.slug
@@ -49,22 +48,22 @@ module.exports = class DocumentCtrl extends Ctrl
 		localContentHash = MD5 localContent
 		localChanges = false
 		hashToCompare = @viewParams.lastContentHash if not hashToCompare
+
+		console.log 'check changes', hashToCompare, localContentHash
 		return false if not hashToCompare
 
 		if localContentHash != hashToCompare
 			localChanges = true
 
-
+		console.log localChanges
 		return localChanges
 
 	saveDraft: (callback) ->
 		if not @draftMessageOpen
 			$('#draft-add-message').slideDown('fast')
 			@draftMessageOpen = true
-			# $('#release').attr 'disabled', 'disabled'
 			callback false if callback
 		else
-			# $('#release,#save-draft').attr 'disabled', 'disabled'
 			message = $("#draft-message").val()
 			content = @editor.exportFile()
 			filename = @viewParams.doc.filename
@@ -80,19 +79,16 @@ module.exports = class DocumentCtrl extends Ctrl
 					@history.add lastCommit
 				$('#draft-add-message').slideUp('fast')
 				@draftMessageOpen = false
-				# $('#release').removeAttr 'disabled'
 				callback true if callback
 		return false
 
 	release: (callback) ->
 		if not @draftMessageOpen
 			$('#draft-add-message').slideDown('fast')
-			# $('#save-draft').attr 'disabled', 'disabled'
 			@releaseMessage = true
 			@draftMessageOpen = true
 			callback false if callback
 		else
-			#$('#release,#save-draft').attr 'disabled', 'disabled'
 			message = $("#draft-message").val()
 			content = @editor.exportFile()
 			filename = @viewParams.doc.filename
@@ -124,9 +120,6 @@ module.exports = class DocumentCtrl extends Ctrl
 			else
 				releaseFct()
 
-		#@services.documentManager.getDocumentHistory @params.slug, (err, res) =>
-		#	console.log release
-
 	remove: (callback) ->
 		slug = @viewParams.slug
 		@services.documentManager.remove slug, =>
@@ -134,8 +127,8 @@ module.exports = class DocumentCtrl extends Ctrl
 			@app.redirect '/documents'
 
 	autoResizeEditor: () ->
-		$('#document-panel').css('overflow-y', 'auto')
-		selector = $('#epiceditor, #document-panel')
+		$('#document-panel, #diff').css('overflow-y', 'auto')
+		selector = $('#epiceditor, #diff, #document-panel')
 
 		resize = =>
 			selector.height $(window).height() - 75
@@ -145,8 +138,83 @@ module.exports = class DocumentCtrl extends Ctrl
 			resize()
 			@editor.reflow()
 
-	do: ->
+	patchPrettyPrint: (patch) ->
+		lines = patch.split '\n'
+		diff = []
+		console.log "start prettyprint", lines
+		lineCounter = [1, 1]
+		for index of lines
+			line = lines[index].substr 1
+			type = lines[index].substr 0, 1
+
+			switch type
+				when '@'
+					diff.push
+						cssClass: 'active'
+						line1: ''
+						line2: ''
+						content: line
+					regexp = /^@ \-([0-9]+),[0-9]+ \+([0-9]+),[0-9]+ @@.*$/i
+					res = line.match regexp
+					lineCounter[0] = res[1]
+					lineCounter[1] = res[2]
+
+				when ' '
+					diff.push
+						cssClass: ''
+						line1: lineCounter[0]++
+						line2: lineCounter[1]++
+						content: line
+
+				when '+'
+					diff.push
+						cssClass: 'success'
+						line1: lineCounter[0]++
+						line2: ''
+						content: line
+
+				when '-'
+					diff.push
+						cssClass: 'danger'
+						line1: ''
+						line2: lineCounter[1]++
+						content: line
+
+		templateContent = '<table class="table table-responsive table-condensed">
+	{{#each lines}}
+	<tr class={{cssClass}}>
+		<td class="line" style="color:">{{line1}}</td>
+		<td class="line">{{line2}}</td>
+		<td class="content"><pre>{{content}}</pre></td>
+	</tr>
+	{{/each}}
+</table>'
+
+		template = Handlebars.compile templateContent
+		$('#diff').html template(lines: diff)
+
+		#comment
+		#addition
+		#deletion
+		#normal
+
+	setupHistory: () ->
+		@history = new DocumentHistory(@viewParams.history, @app.user, @editor)
 		@history.render $('#history')
+		@history.on 'select', (item, index) =>
+			if index == 0
+				$('#diff').hide()
+				$('#epiceditor').show()
+				@editor.reflow()
+			else
+				@services.documentManager.getCommit item.sha, (err, commit) =>
+					patch = commit.files[0].patch
+					@patchPrettyPrint patch
+					$('#epiceditor').hide()
+					$('#diff').show()
+					console.log err, commit
+
+	do: ->
 		@app.askForRedirect 'Your local changes might be lost', =>
 			return @checkLocalChanges()
 
@@ -191,19 +259,10 @@ module.exports = class DocumentCtrl extends Ctrl
 			$('#rename-doc-link').click =>
 				return false
 
-		@editor.remove @params.slug
+		@setupHistory()
 		@editor.importFile @params.slug, @viewParams.lastContent
 
 		@editor.on 'update', (local) =>
 			localChanges = @viewParams.lastContentHash != MD5 local.content
 
 			@history.setLocalChanges localChanges
-			#if localChanges and $('#history > p:first img').attr('src') != 'img/local-dot.png'
-			#	$('#history').prepend '<p><img src="img/local-dot.png"> Local changes</p>'
-			#	$('#save-draft,#release').removeAttr('disabled')
-
-			#else if not localChanges and $('#history > p:first img').attr('src') == 'img/local-dot.png'
-			#	$('#history p:first').remove()
-			#	$('#save-draft').attr('disabled', 'disabled')
-			#if not localChanges and (not @editor or local.content.trim() == '')
-			#	$('#save-draft').removeAttr('disabled')

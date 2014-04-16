@@ -14,7 +14,6 @@ module.exports = class DocumentManagerService extends Service
 
 	create: (params, callback) ->
 
-		#TODO check params
 		if @documents[params.slug]
 			return callback
 				error: true,
@@ -27,7 +26,7 @@ module.exports = class DocumentManagerService extends Service
 				code: 2
 				msg: 'Unknown extension'
 
-		if params.name.length > 32
+		if params.name.length > 70
 			return callback
 				error: true,
 				code: 3

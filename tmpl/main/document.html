@@ -1,22 +1,45 @@
 <style>
-#history {color: #999; margin-left: 15px; border-left: 5px solid #333}
+/* TODO: lazy mode on: to put in less with some refactoring */
+#history { color: #999; margin-left: 15px; border-left: 5px solid #333}
 #history > p { margin-top: 25px; clear: left; position: relative; left: -23px}
+#history > p:not(.active):hover { text-decoration: underline;  cursor: pointer;}
 #history > p.active {font-weight: bold;}
 #history > p:first-child { margin-top: 0; top: -4px }
 #history > p:last-child { top: 4px }
-#history > p > img { float: left;}
-#history > p > img.draft { border: 3px solid #428bca;}
-#history > p > img.release {border: 3px solid #5cb85c;}
-#history > p > img.local {border: 3px solid #999999;}
-#history > p > span { margin-left: 55px; display: block; padding: 10px 0; }
+#history > p img { float: left;}
+#history > p img.draft { border: 3px solid #428bca;}
+#history > p img.release {border: 3px solid #5cb85c;}
+#history > p img.local {border: 3px solid #999999;}
+#history > p span { margin-left: 55px; display: block; padding: 10px 0; }
+#diff .table { border: 1px solid #ccc }
+#diff .table tr { }
+#diff .table tr.active td { border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; }
+#diff .table tr td { border: 0px solid transparent; padding: 0 10px; margin: 0; }
+#diff .table tr td.line { border-right: 1px solid #EEE; padding: 0 10px; font-size: 13px; color: #AAA; font-family: Menlo,Monaco,Consolas,"Courier New",monospace; text-align: center;}
+#diff .table tr td.line:last-child: {padding: 0 5px 0 10px;}
+
+#diff .table tr.success td.line {border-right: 1px solid #cae2c0;}
+#diff .table tr.danger td.line {border-right: 1px solid #ebcece;}
+#diff .table tr.active td.line {border-right: 0px solid transparent;}
+
+#diff .table tr td pre {
+  white-space: pre-wrap;       /* css-3 */
+
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  border: 0px solid transparent;
+}
+
 </style>
 <div class="row" style="margin-top:10px">
   <div class="col-xs-9">
     <div id="epiceditor"></div>
     <textarea class="hide" id="editor-content">{{lastContent}}</textarea>
+    <div id="diff" style="display: none">
+    </div>
   </div>
   <div class="col-xs-3" id="document-panel">
-
     <h4>{{doc.name}}</h4>
     <p class="text-muted">{{slug}}.{{doc.extension}}<p>
     <div class="btn-group">

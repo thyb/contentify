@@ -2,14 +2,16 @@
 var DocumentHistory;
 
 module.exports = DocumentHistory = (function() {
-  function DocumentHistory(initialHistory, me) {
+  function DocumentHistory(initialHistory, me, editor) {
     var hist, _i, _len;
     this.me = me;
+    this.editor = editor;
     this.current = 0;
     this.history = [];
+    this.listeners = {};
     for (_i = 0, _len = initialHistory.length; _i < _len; _i++) {
       hist = initialHistory[_i];
-      this.history.unshift({
+      this.history.push({
         sha: hist.sha,
         version_type: hist.commit_type,
         message: hist.commit.message,
@@ -17,6 +19,7 @@ module.exports = DocumentHistory = (function() {
         avatar_url: hist.author.avatar_url
       });
     }
+    console.log(this.history);
     this.generateTemplate();
   }
 
@@ -55,24 +58,57 @@ module.exports = DocumentHistory = (function() {
         return false;
       }
       this.history.shift();
-      return this.container.find('p:first').remove();
-    }
-  };
-
-  DocumentHistory.prototype.on = function(event, callback) {
-    if (event === 'select') {
-      return callback();
-    }
-  };
-
-  DocumentHistory.prototype.renderElement = function(index) {
-    var elem;
-    elem = this.history[index];
-    this.container.prepend(this.template(elem));
-    if (index === this.current) {
+      this.container.find('p:first').remove();
       this.container.find('p.active').removeClass('active');
-      return this.container.find('p:eq(' + index + ')').addClass('active');
+      return this.container.find('p:eq(' + this.current.toString() + ')').addClass('active');
     }
+  };
+
+  DocumentHistory.prototype.on = function(e, callback) {
+    if (!this.listeners[e]) {
+      this.listeners[e] = [];
+    }
+    return this.listeners[e].push(callback);
+  };
+
+  DocumentHistory.prototype.renderElement = function(index, init) {
+    var elem, selector;
+    if (!init) {
+      init = false;
+    }
+    elem = this.history[index];
+    if (init) {
+      this.container.append(this.template(elem));
+    } else if (index === 0) {
+      this.container.prepend(this.template(elem));
+    } else {
+      this.container.find('p:eq(' + index.toString() + ')').html(this.template(elem));
+    }
+    selector = this.container.find('p:eq(' + index.toString() + ')');
+    console.log(index, this.current, selector);
+    if (index === this.current) {
+      console.log('in', index);
+      this.container.find('p.active').removeClass('active');
+      selector.addClass('active');
+    }
+    return selector.click((function(_this) {
+      return function() {
+        var ind;
+        if (!selector.hasClass('active')) {
+          ind = selector.index();
+          _this.change(ind);
+          return _this.listeners['select'].each(function(fct) {
+            return fct(_this.history[ind], ind);
+          });
+        }
+      };
+    })(this));
+  };
+
+  DocumentHistory.prototype.change = function(index) {
+    this.current = index;
+    this.container.find('p.active').removeClass('active');
+    return this.container.find('p:eq(' + index.toString() + ')').addClass('active');
   };
 
   DocumentHistory.prototype.render = function(container) {
@@ -81,14 +117,14 @@ module.exports = DocumentHistory = (function() {
     this.container.html('');
     _results = [];
     for (i in this.history) {
-      _results.push(this.renderElement(i));
+      _results.push(this.renderElement(parseInt(i), true));
     }
     return _results;
   };
 
   DocumentHistory.prototype.generateTemplate = function() {
     var content;
-    content = '<p><img width="42" height="42" title="{{login}}" class="img-circle {{version_type}}" src="{{avatar_url}}"><span>{{message}}</span></p>';
+    content = '<p> <img width="42" height="42" title="{{login}}" class="img-circle {{version_type}}" src="{{avatar_url}}"> <span class="msg">{{message}}</span> </p>';
     return this.template = Handlebars.compile(content);
   };
 
@@ -185,7 +221,6 @@ module.exports = DocumentCtrl = (function(_super) {
             lastContentHash = MD5(lastContent);
             localChanges = false;
             merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
-            _this.history = new DocumentHistory(merge, _this.app.user);
             _this.viewParams = {
               doc: doc,
               slug: _this.params.slug,
@@ -212,12 +247,14 @@ module.exports = DocumentCtrl = (function(_super) {
     if (!hashToCompare) {
       hashToCompare = this.viewParams.lastContentHash;
     }
+    console.log('check changes', hashToCompare, localContentHash);
     if (!hashToCompare) {
       return false;
     }
     if (localContentHash !== hashToCompare) {
       localChanges = true;
     }
+    console.log(localChanges);
     return localChanges;
   };
 
@@ -320,8 +357,8 @@ module.exports = DocumentCtrl = (function(_super) {
 
   DocumentCtrl.prototype.autoResizeEditor = function() {
     var resize, selector;
-    $('#document-panel').css('overflow-y', 'auto');
-    selector = $('#epiceditor, #document-panel');
+    $('#document-panel, #diff').css('overflow-y', 'auto');
+    selector = $('#epiceditor, #diff, #document-panel');
     resize = (function(_this) {
       return function() {
         return selector.height($(window).height() - 75);
@@ -336,9 +373,85 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
   };
 
+  DocumentCtrl.prototype.patchPrettyPrint = function(patch) {
+    var diff, index, line, lineCounter, lines, regexp, res, template, templateContent, type;
+    lines = patch.split('\n');
+    diff = [];
+    console.log("start prettyprint", lines);
+    lineCounter = [1, 1];
+    for (index in lines) {
+      line = lines[index].substr(1);
+      type = lines[index].substr(0, 1);
+      switch (type) {
+        case '@':
+          diff.push({
+            cssClass: 'active',
+            line1: '',
+            line2: '',
+            content: line
+          });
+          regexp = /^@ \-([0-9]+),[0-9]+ \+([0-9]+),[0-9]+ @@.*$/i;
+          res = line.match(regexp);
+          lineCounter[0] = res[1];
+          lineCounter[1] = res[2];
+          break;
+        case ' ':
+          diff.push({
+            cssClass: '',
+            line1: lineCounter[0]++,
+            line2: lineCounter[1]++,
+            content: line
+          });
+          break;
+        case '+':
+          diff.push({
+            cssClass: 'success',
+            line1: lineCounter[0]++,
+            line2: '',
+            content: line
+          });
+          break;
+        case '-':
+          diff.push({
+            cssClass: 'danger',
+            line1: '',
+            line2: lineCounter[1]++,
+            content: line
+          });
+      }
+    }
+    templateContent = '<table class="table table-responsive table-condensed"> {{#each lines}} <tr class={{cssClass}}> <td class="line" style="color:">{{line1}}</td> <td class="line">{{line2}}</td> <td class="content"><pre>{{content}}</pre></td> </tr> {{/each}} </table>';
+    template = Handlebars.compile(templateContent);
+    return $('#diff').html(template({
+      lines: diff
+    }));
+  };
+
+  DocumentCtrl.prototype.setupHistory = function() {
+    this.history = new DocumentHistory(this.viewParams.history, this.app.user, this.editor);
+    this.history.render($('#history'));
+    return this.history.on('select', (function(_this) {
+      return function(item, index) {
+        if (index === 0) {
+          $('#diff').hide();
+          $('#epiceditor').show();
+          return _this.editor.reflow();
+        } else {
+          return _this.services.documentManager.getCommit(item.sha, function(err, commit) {
+            var patch;
+            patch = commit.files[0].patch;
+            _this.patchPrettyPrint(patch);
+            $('#epiceditor').hide();
+            $('#diff').show();
+            return console.log(err, commit);
+          });
+        }
+      };
+    })(this));
+  };
+
   DocumentCtrl.prototype["do"] = function() {
     var editorOptions;
-    this.history.render($('#history'));
     this.app.askForRedirect('Your local changes might be lost', (function(_this) {
       return function() {
         return _this.checkLocalChanges();
@@ -390,7 +503,7 @@ module.exports = DocumentCtrl = (function(_super) {
         });
       };
     })(this));
-    this.editor.remove(this.params.slug);
+    this.setupHistory();
     this.editor.importFile(this.params.slug, this.viewParams.lastContent);
     return this.editor.on('update', (function(_this) {
       return function(local) {
@@ -1326,7 +1439,7 @@ module.exports = DocumentManagerService = (function(_super) {
         msg: 'Unknown extension'
       });
     }
-    if (params.name.length > 32) {
+    if (params.name.length > 70) {
       return callback({
         error: true,
         code: 3,

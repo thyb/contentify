@@ -47,7 +47,6 @@ module.exports = DocumentCtrl = (function(_super) {
             lastContentHash = MD5(lastContent);
             localChanges = false;
             merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
-            _this.history = new DocumentHistory(merge, _this.app.user);
             _this.viewParams = {
               doc: doc,
               slug: _this.params.slug,
@@ -74,12 +73,14 @@ module.exports = DocumentCtrl = (function(_super) {
     if (!hashToCompare) {
       hashToCompare = this.viewParams.lastContentHash;
     }
+    console.log('check changes', hashToCompare, localContentHash);
     if (!hashToCompare) {
       return false;
     }
     if (localContentHash !== hashToCompare) {
       localChanges = true;
     }
+    console.log(localChanges);
     return localChanges;
   };
 
@@ -182,8 +183,8 @@ module.exports = DocumentCtrl = (function(_super) {
 
   DocumentCtrl.prototype.autoResizeEditor = function() {
     var resize, selector;
-    $('#document-panel').css('overflow-y', 'auto');
-    selector = $('#epiceditor, #document-panel');
+    $('#document-panel, #diff').css('overflow-y', 'auto');
+    selector = $('#epiceditor, #diff, #document-panel');
     resize = (function(_this) {
       return function() {
         return selector.height($(window).height() - 75);
@@ -198,9 +199,85 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
   };
 
+  DocumentCtrl.prototype.patchPrettyPrint = function(patch) {
+    var diff, index, line, lineCounter, lines, regexp, res, template, templateContent, type;
+    lines = patch.split('\n');
+    diff = [];
+    console.log("start prettyprint", lines);
+    lineCounter = [1, 1];
+    for (index in lines) {
+      line = lines[index].substr(1);
+      type = lines[index].substr(0, 1);
+      switch (type) {
+        case '@':
+          diff.push({
+            cssClass: 'active',
+            line1: '',
+            line2: '',
+            content: line
+          });
+          regexp = /^@ \-([0-9]+),[0-9]+ \+([0-9]+),[0-9]+ @@.*$/i;
+          res = line.match(regexp);
+          lineCounter[0] = res[1];
+          lineCounter[1] = res[2];
+          break;
+        case ' ':
+          diff.push({
+            cssClass: '',
+            line1: lineCounter[0]++,
+            line2: lineCounter[1]++,
+            content: line
+          });
+          break;
+        case '+':
+          diff.push({
+            cssClass: 'success',
+            line1: lineCounter[0]++,
+            line2: '',
+            content: line
+          });
+          break;
+        case '-':
+          diff.push({
+            cssClass: 'danger',
+            line1: '',
+            line2: lineCounter[1]++,
+            content: line
+          });
+      }
+    }
+    templateContent = '<table class="table table-responsive table-condensed"> {{#each lines}} <tr class={{cssClass}}> <td class="line" style="color:">{{line1}}</td> <td class="line">{{line2}}</td> <td class="content"><pre>{{content}}</pre></td> </tr> {{/each}} </table>';
+    template = Handlebars.compile(templateContent);
+    return $('#diff').html(template({
+      lines: diff
+    }));
+  };
+
+  DocumentCtrl.prototype.setupHistory = function() {
+    this.history = new DocumentHistory(this.viewParams.history, this.app.user, this.editor);
+    this.history.render($('#history'));
+    return this.history.on('select', (function(_this) {
+      return function(item, index) {
+        if (index === 0) {
+          $('#diff').hide();
+          $('#epiceditor').show();
+          return _this.editor.reflow();
+        } else {
+          return _this.services.documentManager.getCommit(item.sha, function(err, commit) {
+            var patch;
+            patch = commit.files[0].patch;
+            _this.patchPrettyPrint(patch);
+            $('#epiceditor').hide();
+            $('#diff').show();
+            return console.log(err, commit);
+          });
+        }
+      };
+    })(this));
+  };
+
   DocumentCtrl.prototype["do"] = function() {
     var editorOptions;
-    this.history.render($('#history'));
     this.app.askForRedirect('Your local changes might be lost', (function(_this) {
       return function() {
         return _this.checkLocalChanges();
@@ -252,7 +329,7 @@ module.exports = DocumentCtrl = (function(_super) {
         });
       };
     })(this));
-    this.editor.remove(this.params.slug);
+    this.setupHistory();
     this.editor.importFile(this.params.slug, this.viewParams.lastContent);
     return this.editor.on('update', (function(_this) {
       return function(local) {

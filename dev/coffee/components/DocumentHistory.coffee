@@ -1,15 +1,20 @@
 module.exports = class DocumentHistory
-	constructor: (initialHistory, me)->
+	constructor: (initialHistory, me, editor)->
 		@me = me
+		@editor = editor
 		@current = 0
 		@history = []
+		@listeners = {}
+
 		for hist in initialHistory
-			@history.unshift
+			@history.push
 				sha: hist.sha
 				version_type: hist.commit_type
 				message: hist.commit.message
 				login: hist.author.login
 				avatar_url: hist.author.avatar_url
+
+		console.log @history
 		@generateTemplate()
 
 	add: (hist) ->
@@ -42,25 +47,52 @@ module.exports = class DocumentHistory
 			return false if not @history[0] or @history[0]?.version_type != 'local'
 			@history.shift()
 			@container.find('p:first').remove()
+			@container.find('p.active').removeClass 'active'
+			@container.find('p:eq(' + @current.toString() + ')').addClass 'active'
 
-	on: (event, callback) ->
-		if event == 'select'
-			callback()
+	on: (e, callback) ->
+		@listeners[e] = [] if not @listeners[e]
+		@listeners[e].push callback
 
-	renderElement: (index) ->
+	renderElement: (index, init) ->
+		init = false if not init
 		elem = @history[index]
 
-		@container.prepend(@template(elem))
+		if init
+			@container.append @template(elem)
+		else if index == 0
+			@container.prepend @template(elem)
+		else
+			@container.find('p:eq(' + index.toString() + ')').html @template(elem)
 
+		selector = @container.find('p:eq(' + index.toString() + ')')
+		console.log index, @current, selector
 		if index == @current
+			console.log 'in', index
 			@container.find('p.active').removeClass 'active'
-			@container.find('p:eq(' + index + ')').addClass 'active'
+			selector.addClass 'active'
+
+		selector.click =>
+			if not selector.hasClass('active')
+				ind = selector.index()
+				@change ind
+				@listeners['select'].each (fct) =>
+					fct @history[ind], ind
+
+	change: (index) ->
+		@current = index
+		@container.find('p.active').removeClass 'active'
+		@container.find('p:eq(' + index.toString() + ')').addClass 'active'
 
 	render: (@container) ->
 		@container.html('')
+
 		for i of @history
-			@renderElement i
+			@renderElement parseInt(i), true
 
 	generateTemplate: ->
-		content = '<p><img width="42" height="42" title="{{login}}" class="img-circle {{version_type}}" src="{{avatar_url}}"><span>{{message}}</span></p>'
+		content = '<p>
+	<img width="42" height="42" title="{{login}}" class="img-circle {{version_type}}" src="{{avatar_url}}">
+	<span class="msg">{{message}}</span>
+</p>'
 		@template = Handlebars.compile content

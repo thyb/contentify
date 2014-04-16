@@ -4,10 +4,7 @@ module.exports = function(grunt) {
     // Project configuration.
     var gruntConf = {
         watch: {
-            options: {
-                nospawn: true
-            },
-            default: {
+            coffee: {
                 files: ['./**/*.coffee'],
                 tasks: ['coffee', 'browserify']
             }
@@ -28,7 +25,8 @@ module.exports = function(grunt) {
             server: {
                 options: {
                     logConcurrentOutput: true
-                }
+                },
+                tasks: ['watch:coffee','harp']
             }
         },
         browserify: {
@@ -51,7 +49,7 @@ module.exports = function(grunt) {
             }
         },
 
-        taskDefault: ['coffee', 'browserify', 'harp'],
+        taskDefault: ['coffee', 'browserify', "concurrent:server"],
     };
 
     grunt.initConfig(gruntConf);

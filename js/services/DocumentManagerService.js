@@ -37,7 +37,7 @@ module.exports = DocumentManagerService = (function(_super) {
         msg: 'Unknown extension'
       });
     }
-    if (params.name.length > 32) {
+    if (params.name.length > 70) {
       return callback({
         error: true,
         code: 3,
