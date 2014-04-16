@@ -22,5 +22,12 @@
     "created": 1397678776123,
     "path": "",
     "filename": "teste-html.html"
+  },
+  "test-42": {
+    "name": "Test 42",
+    "extension": "html",
+    "created": 1397683108375,
+    "path": "",
+    "filename": "test-42.html"
   }
 }
