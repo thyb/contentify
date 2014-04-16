@@ -17,7 +17,6 @@ module.exports = DocumentHistory = (function() {
         avatar_url: hist.author.avatar_url
       });
     }
-    console.log(this.history);
     this.generateTemplate();
   }
 
@@ -83,9 +82,7 @@ module.exports = DocumentHistory = (function() {
       this.container.find('p:eq(' + index.toString() + ')').html(this.template(elem));
     }
     selector = this.container.find('p:eq(' + index.toString() + ')');
-    console.log(index, this.current, selector);
     if (index === this.current) {
-      console.log('in', index);
       this.container.find('p.active').removeClass('active');
       selector.addClass('active');
     }

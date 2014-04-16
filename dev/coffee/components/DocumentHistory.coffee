@@ -13,7 +13,6 @@ module.exports = class DocumentHistory
 				login: hist.author.login
 				avatar_url: hist.author.avatar_url
 
-		console.log @history
 		@generateTemplate()
 
 	add: (hist) ->
@@ -65,9 +64,7 @@ module.exports = class DocumentHistory
 			@container.find('p:eq(' + index.toString() + ')').html @template(elem)
 
 		selector = @container.find('p:eq(' + index.toString() + ')')
-		console.log index, @current, selector
 		if index == @current
-			console.log 'in', index
 			@container.find('p.active').removeClass 'active'
 			selector.addClass 'active'
 
