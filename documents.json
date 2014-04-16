@@ -15,5 +15,12 @@
     "path": "",
     "filename": "test.md",
     "updated": 1397678246073
+  },
+  "teste-html": {
+    "name": "teste HTML",
+    "extension": "html",
+    "created": 1397678776123,
+    "path": "",
+    "filename": "teste-html.html"
   }
 }
