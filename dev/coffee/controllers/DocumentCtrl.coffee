@@ -139,38 +139,32 @@ module.exports = class DocumentCtrl extends Ctrl
 			resize()
 			@editor.resize()
 
-	# doesnt work yet, not used..
 	syncScroll: () ->
-		scroll: (src) ->
+		scroll = (src, editorScrollT) =>
+			return false if $('#editor').css('display') == 'none' or $('#preview').css('display') == 'none'
 			editorH = $('#editor').height()
-			previewH = $('#preview').height()
+			previewH = $('#preview').outerHeight()
 
-			console.log editorH, previewH
-
-			return false if not editorH or not previewH
-
-			editorScrollH = $('#editor')[0].scrollHeight
-			previewScrollH = $('#preview')[0].scrollHeight
-
-			editorScrollT = $('#editor')[0].scrollTop
 			previewScrollT = $('#preview')[0].scrollTop
 
-			ratioEditor = editorScrollT / editorScrollH
-			ratioPreview = previewScrollT / previewScrollH
+			editorScrollH = @editor.getSession().getScreenLength() * 16
+			previewScrollH = $('#preview')[0].scrollHeight
+
+			editorScrollH = 0 if editorScrollH < 0
+			previewScrollH = 0 if previewScrollH < 0
+
+			ratioPreview = previewScrollT / (previewScrollH - previewH)
+			ratioEditor = editorScrollT / (editorScrollH - editorH)
+			ratioEditor2 = editorH / editorScrollH
 
 			if src == 'editor'
-				console.log 'editor', editorScrollT, editorScrollH, ratioEditor,
-				console.log 'preview', previewScrollT, previewScrollH, ratioPreview,
-				# $('#preview')[0].scrollTop = ratioEditor
+				$('#preview')[0].scrollTop = ratioEditor * (previewScrollH - previewH)
 			else
-				# $('#editor')[0].scrollTop =
+				@editor.getSession().setScrollTop ratioPreview * (editorScrollH - editorH)
 
-		console.log @editor
-		@editor.onScrollTopChange (e) =>
-			console.log e, arguments
-			scroll 'editor'
+		@editor.getSession().on 'changeScrollTop', (scrollTop) =>
+			scroll 'editor', scrollTop
 		$('#preview').scroll => scroll 'preview'
-	# end not working
 
 	patchPrettyPrint: (patch) ->
 		if not patch
@@ -404,6 +398,7 @@ module.exports = class DocumentCtrl extends Ctrl
 		@editor.clearSelection()
 		@editor.focus()
 		@editor.navigateFileStart()
+		@syncScroll()
 		@updatePreview()
 		@editor.on 'paste', (input) =>
 			setTimeout (=>

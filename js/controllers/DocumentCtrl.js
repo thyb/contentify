@@ -200,33 +200,37 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.syncScroll = function() {
-    ({
-      scroll: function(src) {
-        var editorH, editorScrollH, editorScrollT, previewH, previewScrollH, previewScrollT, ratioEditor, ratioPreview;
-        editorH = $('#editor').height();
-        previewH = $('#preview').height();
-        console.log(editorH, previewH);
-        if (!editorH || !previewH) {
+    var scroll;
+    scroll = (function(_this) {
+      return function(src, editorScrollT) {
+        var editorH, editorScrollH, previewH, previewScrollH, previewScrollT, ratioEditor, ratioEditor2, ratioPreview;
+        if ($('#editor').css('display') === 'none' || $('#preview').css('display') === 'none') {
           return false;
         }
-        editorScrollH = $('#editor')[0].scrollHeight;
-        previewScrollH = $('#preview')[0].scrollHeight;
-        editorScrollT = $('#editor')[0].scrollTop;
+        editorH = $('#editor').height();
+        previewH = $('#preview').outerHeight();
         previewScrollT = $('#preview')[0].scrollTop;
-        ratioEditor = editorScrollT / editorScrollH;
-        ratioPreview = previewScrollT / previewScrollH;
-        if (src === 'editor') {
-          return console.log('editor', editorScrollT, editorScrollH, ratioEditor, console.log('preview', previewScrollT, previewScrollH, ratioPreview));
-        } else {
-
+        editorScrollH = _this.editor.getSession().getScreenLength() * 16;
+        previewScrollH = $('#preview')[0].scrollHeight;
+        if (editorScrollH < 0) {
+          editorScrollH = 0;
         }
-      }
-    });
-    console.log(this.editor);
-    this.editor.onScrollTopChange((function(_this) {
-      return function(e) {
-        console.log(e, arguments);
-        return scroll('editor');
+        if (previewScrollH < 0) {
+          previewScrollH = 0;
+        }
+        ratioPreview = previewScrollT / (previewScrollH - previewH);
+        ratioEditor = editorScrollT / (editorScrollH - editorH);
+        ratioEditor2 = editorH / editorScrollH;
+        if (src === 'editor') {
+          return $('#preview')[0].scrollTop = ratioEditor * (previewScrollH - previewH);
+        } else {
+          return _this.editor.getSession().setScrollTop(ratioPreview * (editorScrollH - editorH));
+        }
+      };
+    })(this);
+    this.editor.getSession().on('changeScrollTop', (function(_this) {
+      return function(scrollTop) {
+        return scroll('editor', scrollTop);
       };
     })(this));
     return $('#preview').scroll((function(_this) {
@@ -492,6 +496,7 @@ module.exports = DocumentCtrl = (function(_super) {
     this.editor.clearSelection();
     this.editor.focus();
     this.editor.navigateFileStart();
+    this.syncScroll();
     this.updatePreview();
     this.editor.on('paste', (function(_this) {
       return function(input) {
