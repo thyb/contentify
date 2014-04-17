@@ -673,14 +673,14 @@ module.exports = DocumentCtrl = (function(_super) {
         return setTimeout((function() {
           var content, cur;
           content = _this.editor.getValue();
-          content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"').replace(/…/g, '...');
-          cur = _this.editor.selection.getCursor();
-          _this.editor.setValue(content);
-          _this.editor.clearSelection();
-          _this.editor.selection.moveCursorToPosition(cur);
-          return _this.editor.scrollToLine(cur.row, true, false, function() {
-            return _this.updatePreview();
-          });
+          if (content.match(/[’“”]/g)) {
+            content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"').replace(/…/g, '...');
+            cur = _this.editor.selection.getCursor();
+            _this.editor.setValue(content);
+            _this.editor.clearSelection();
+            _this.editor.selection.moveCursorToPosition(cur);
+            return _this.editor.scrollToLine(cur.row, true, false, function() {});
+          }
         }), 100);
       };
     })(this));

@@ -403,13 +403,13 @@ module.exports = class DocumentCtrl extends Ctrl
 		@editor.on 'paste', (input) =>
 			setTimeout (=>
 				content = @editor.getValue()
-				content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"').replace(/…/g, '...')
-				cur = @editor.selection.getCursor()
-				@editor.setValue content
-				@editor.clearSelection()
-				@editor.selection.moveCursorToPosition cur
-				@editor.scrollToLine cur.row, true, false, =>
-					@updatePreview()
+				if content.match /[’“”]/g # if drive...
+					content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"').replace(/…/g, '...')
+					cur = @editor.selection.getCursor()
+					@editor.setValue content
+					@editor.clearSelection()
+					@editor.selection.moveCursorToPosition cur
+					@editor.scrollToLine cur.row, true, false, =>
 			), 100
 
 		@editor.getSession().on 'change', =>
