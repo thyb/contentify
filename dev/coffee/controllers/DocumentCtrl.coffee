@@ -223,6 +223,45 @@ module.exports = class DocumentCtrl extends Ctrl
 			previewContent = marked(previewContent)
 		$('#preview').html previewContent
 
+	setupTheme: ->
+		editor = @editor
+		app = @app
+		list = [
+			'github'
+			'monokai'
+			'terminal'
+			'tomorrow'
+			'tomorrow_night'
+			'tomorrow_night_bright'
+			'tomorrow_night_eighties'
+			'twilight'
+			'xcode'
+		]
+
+		selectTheme = (theme) =>
+			$.getScript 'http://cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/theme-' + theme + '.js', =>
+				editor.setTheme 'ace/theme/' + theme
+				app.env.set 'theme', theme
+				$('#theme').find('span.name').text theme.titleize()
+
+
+		menu = $('#theme').parent().find('ul')
+
+		list.forEach (item) =>
+			menu.append('<li id="' + item + '"><a href="#">' + item.titleize() + '</a></li>')
+
+		def = 'twilight'
+		theme = @app.env.get 'theme'
+		if not theme
+			theme = def
+		selectTheme theme
+
+		$('li a', menu).click (e) ->
+			item = $(@).parent().attr('id')
+			selectTheme item
+			$('#theme').dropdown('toggle')
+			return false
+
 	fullscreenMode: ->
 		$('#editor,#preview').show()
 		$('#editor').css
@@ -270,27 +309,29 @@ module.exports = class DocumentCtrl extends Ctrl
 		@autoResizeEditor()
 
 		@editor = ace.edit 'editor'
-		@editor.setTheme "ace/theme/twilight"
 
-		@editor.getSession().setUseWrapMode(true);
+		@editor.getSession().setUseWrapMode true
 
 		if @viewParams.doc.extension == 'md'
 			@editor.getSession().setMode "ace/mode/markdown"
 		else
 			@editor.getSession().setMode "ace/mode/html"
 
+		@setupTheme()
+
 		$('#preview-mode').click =>
 			$('#editor-mode').removeClass('btn-inverse').addClass 'btn-default'
 			$('#preview-mode').addClass('btn-inverse').removeClass 'btn-default'
 			$('#editor').hide()
 			$('#preview').show()
-			@updatePreview()
+			$('#theme').parent().hide()
 
 		$('#editor-mode').click =>
 			$('#preview-mode').removeClass('btn-inverse').addClass 'btn-default'
 			$('#editor-mode').addClass('btn-inverse').removeClass 'btn-default'
 			$('#preview').hide()
 			$('#editor').show()
+			$('#theme').parent().show()
 
 		$('#fullscreen-mode').click =>
 			@fullscreenMode()

@@ -290,6 +290,41 @@ module.exports = DocumentCtrl = (function(_super) {
     return $('#preview').html(previewContent);
   };
 
+  DocumentCtrl.prototype.setupTheme = function() {
+    var app, def, editor, list, menu, selectTheme, theme;
+    editor = this.editor;
+    app = this.app;
+    list = ['github', 'monokai', 'terminal', 'tomorrow', 'tomorrow_night', 'tomorrow_night_bright', 'tomorrow_night_eighties', 'twilight', 'xcode'];
+    selectTheme = (function(_this) {
+      return function(theme) {
+        return $.getScript('http://cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/theme-' + theme + '.js', function() {
+          editor.setTheme('ace/theme/' + theme);
+          app.env.set('theme', theme);
+          return $('#theme').find('span.name').text(theme.titleize());
+        });
+      };
+    })(this);
+    menu = $('#theme').parent().find('ul');
+    list.forEach((function(_this) {
+      return function(item) {
+        return menu.append('<li id="' + item + '"><a href="#">' + item.titleize() + '</a></li>');
+      };
+    })(this));
+    def = 'twilight';
+    theme = this.app.env.get('theme');
+    if (!theme) {
+      theme = def;
+    }
+    selectTheme(theme);
+    return $('li a', menu).click(function(e) {
+      var item;
+      item = $(this).parent().attr('id');
+      selectTheme(item);
+      $('#theme').dropdown('toggle');
+      return false;
+    });
+  };
+
   DocumentCtrl.prototype.fullscreenMode = function() {
     $('#editor,#preview').show();
     $('#editor').css({
@@ -342,20 +377,20 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
     this.autoResizeEditor();
     this.editor = ace.edit('editor');
-    this.editor.setTheme("ace/theme/twilight");
     this.editor.getSession().setUseWrapMode(true);
     if (this.viewParams.doc.extension === 'md') {
       this.editor.getSession().setMode("ace/mode/markdown");
     } else {
       this.editor.getSession().setMode("ace/mode/html");
     }
+    this.setupTheme();
     $('#preview-mode').click((function(_this) {
       return function() {
         $('#editor-mode').removeClass('btn-inverse').addClass('btn-default');
         $('#preview-mode').addClass('btn-inverse').removeClass('btn-default');
         $('#editor').hide();
         $('#preview').show();
-        return _this.updatePreview();
+        return $('#theme').parent().hide();
       };
     })(this));
     $('#editor-mode').click((function(_this) {
@@ -363,7 +398,8 @@ module.exports = DocumentCtrl = (function(_super) {
         $('#preview-mode').removeClass('btn-inverse').addClass('btn-default');
         $('#editor-mode').addClass('btn-inverse').removeClass('btn-default');
         $('#preview').hide();
-        return $('#editor').show();
+        $('#editor').show();
+        return $('#theme').parent().show();
       };
     })(this));
     $('#fullscreen-mode').click((function(_this) {
