@@ -198,7 +198,8 @@ module.exports = DocumentCtrl = (function(_super) {
 
   DocumentCtrl.prototype.unload = function() {
     DocumentCtrl.__super__.unload.call(this);
-    return $(window).unbind('resize');
+    $(window).unbind('resize');
+    return $('#exit-fullscreen').remove();
   };
 
   DocumentCtrl.prototype.initialize = function(callback) {
@@ -355,7 +356,7 @@ module.exports = DocumentCtrl = (function(_super) {
     resize = (function(_this) {
       return function() {
         selector.height($(window).height() - 75);
-        editorSel.height($(window).height() - 106);
+        editorSel.height($(window).height() - 105);
         return previewSel.height($(window).height() - 125);
       };
     })(this);
@@ -364,6 +365,43 @@ module.exports = DocumentCtrl = (function(_super) {
       return function() {
         resize();
         return _this.editor.resize();
+      };
+    })(this));
+  };
+
+  DocumentCtrl.prototype.syncScroll = function() {
+    ({
+      scroll: function(src) {
+        var editorH, editorScrollH, editorScrollT, previewH, previewScrollH, previewScrollT, ratioEditor, ratioPreview;
+        editorH = $('#editor').height();
+        previewH = $('#preview').height();
+        console.log(editorH, previewH);
+        if (!editorH || !previewH) {
+          return false;
+        }
+        editorScrollH = $('#editor')[0].scrollHeight;
+        previewScrollH = $('#preview')[0].scrollHeight;
+        editorScrollT = $('#editor')[0].scrollTop;
+        previewScrollT = $('#preview')[0].scrollTop;
+        ratioEditor = editorScrollT / editorScrollH;
+        ratioPreview = previewScrollT / previewScrollH;
+        if (src === 'editor') {
+          return console.log('editor', editorScrollT, editorScrollH, ratioEditor, console.log('preview', previewScrollT, previewScrollH, ratioPreview));
+        } else {
+
+        }
+      }
+    });
+    console.log(this.editor);
+    this.editor.onScrollTopChange((function(_this) {
+      return function(e) {
+        console.log(e, arguments);
+        return scroll('editor');
+      };
+    })(this));
+    return $('#preview').scroll((function(_this) {
+      return function() {
+        return scroll('preview');
       };
     })(this));
   };
@@ -630,7 +668,7 @@ module.exports = DocumentCtrl = (function(_super) {
         return setTimeout((function() {
           var content;
           content = _this.editor.getValue();
-          content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"');
+          content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"').replace(/…/g, '...');
           _this.editor.setValue(content);
           return _this.updatePreview();
         }), 100);

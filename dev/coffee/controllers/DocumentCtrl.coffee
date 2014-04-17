@@ -19,6 +19,7 @@ module.exports = class DocumentCtrl extends Ctrl
 	unload: () ->
 		super()
 		$(window).unbind 'resize'
+		$('#exit-fullscreen').remove()
 
 	initialize: (callback) ->
 		@services.documentManager.getDocument @params.slug, (doc, lastContent) =>
@@ -130,12 +131,46 @@ module.exports = class DocumentCtrl extends Ctrl
 
 		resize = =>
 			selector.height $(window).height() - 75
-			editorSel.height $(window).height() - 106
+			editorSel.height $(window).height() - 105
 			previewSel.height $(window).height() - 125
+
 		resize()
 		$(window).bind 'resize', =>
 			resize()
 			@editor.resize()
+
+	# doesnt work yet, not used..
+	syncScroll: () ->
+		scroll: (src) ->
+			editorH = $('#editor').height()
+			previewH = $('#preview').height()
+
+			console.log editorH, previewH
+
+			return false if not editorH or not previewH
+
+			editorScrollH = $('#editor')[0].scrollHeight
+			previewScrollH = $('#preview')[0].scrollHeight
+
+			editorScrollT = $('#editor')[0].scrollTop
+			previewScrollT = $('#preview')[0].scrollTop
+
+			ratioEditor = editorScrollT / editorScrollH
+			ratioPreview = previewScrollT / previewScrollH
+
+			if src == 'editor'
+				console.log 'editor', editorScrollT, editorScrollH, ratioEditor,
+				console.log 'preview', previewScrollT, previewScrollH, ratioPreview,
+				# $('#preview')[0].scrollTop = ratioEditor
+			else
+				# $('#editor')[0].scrollTop =
+
+		console.log @editor
+		@editor.onScrollTopChange (e) =>
+			console.log e, arguments
+			scroll 'editor'
+		$('#preview').scroll => scroll 'preview'
+	# end not working
 
 	patchPrettyPrint: (patch) ->
 		if not patch
@@ -373,7 +408,7 @@ module.exports = class DocumentCtrl extends Ctrl
 		@editor.on 'paste', (input) =>
 			setTimeout (=>
 				content = @editor.getValue()
-				content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"')
+				content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"').replace(/…/g, '...')
 				@editor.setValue content
 				@updatePreview()
 			), 100
