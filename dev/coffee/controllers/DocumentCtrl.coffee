@@ -409,8 +409,12 @@ module.exports = class DocumentCtrl extends Ctrl
 			setTimeout (=>
 				content = @editor.getValue()
 				content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"').replace(/…/g, '...')
+				cur = @editor.selection.getCursor()
 				@editor.setValue content
-				@updatePreview()
+				@editor.clearSelection()
+				@editor.selection.moveCursorToPosition cur
+				@editor.scrollToLine cur.row, true, false, =>
+					@updatePreview()
 			), 100
 
 		@editor.getSession().on 'change', =>
