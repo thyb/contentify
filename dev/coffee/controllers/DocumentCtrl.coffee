@@ -1,6 +1,7 @@
 Ctrl = require('../framework/Ctrl')
 DocumentManagerService = require('../services/DocumentManagerService')
 DocumentHistory = require('../components/DocumentHistory')
+config = require('../../config')
 
 module.exports = class DocumentCtrl extends Ctrl
 	constructor: (app, params) ->
@@ -22,25 +23,28 @@ module.exports = class DocumentCtrl extends Ctrl
 		$('#exit-fullscreen').remove()
 
 	initialize: (callback) ->
-		@services.documentManager.getDocument @params.slug, (doc, lastContent) =>
-			@app.redirect '/documents' if not doc
-			@services.documentManager.getDocumentHistory @params.slug, (err, documentHistory) =>
-				@services.documentManager.getReleaseHistory @params.slug, (err, releaseHistory) =>
-					localContent = lastContent
-					lastContentHash = MD5 lastContent
-					localChanges = false
+		@services.documentManager.checkAccess @app.user.get('login'), (access) =>
+			return @app.redirect '/403' if not access
+			@access = access
+			@services.documentManager.getDocument @params.slug, (doc, lastContent) =>
+				@app.redirect '/documents' if not doc
+				@services.documentManager.getDocumentHistory @params.slug, (err, documentHistory) =>
+					@services.documentManager.getReleaseHistory @params.slug, (err, releaseHistory) =>
+						localContent = lastContent
+						lastContentHash = MD5 lastContent
+						localChanges = false
 
-					merge = @services.documentManager.mergeHistory(releaseHistory, documentHistory)
-					@viewParams =
-						doc: doc
-						slug: @params.slug
-						diff: documentHistory
-						history: merge
-						localChanges: localChanges
-						lastContent: lastContent
-						lastContentHash: lastContentHash
+						merge = @services.documentManager.mergeHistory(releaseHistory, documentHistory)
+						@viewParams =
+							doc: doc
+							slug: @params.slug
+							diff: documentHistory
+							history: merge
+							localChanges: localChanges
+							lastContent: lastContent
+							lastContentHash: lastContentHash
 
-					callback @viewParams if callback
+						callback @viewParams if callback
 
 	checkLocalChanges: (hashToCompare) ->
 		localContent = @editor.getValue()
@@ -235,6 +239,8 @@ module.exports = class DocumentCtrl extends Ctrl
 				$('#diff').hide()
 				t = 'preview'
 				if $('#editor-mode').hasClass 'btn-inverse'
+					if $('#editor').parent().hasClass 'firepad'
+						$('#editor').parent().show()
 					t = 'editor'
 
 				$('#' + t + ', #toolbar').show()
@@ -244,6 +250,9 @@ module.exports = class DocumentCtrl extends Ctrl
 					patch = commit.files[0].patch
 					@patchPrettyPrint patch
 					$('#editor, #toolbar, #preview').hide()
+					if $('#editor').parent().hasClass 'firepad'
+						$('#editor').parent().hide()
+
 					$('#diff').show()
 
 	updatePreview: ->
@@ -352,6 +361,8 @@ module.exports = class DocumentCtrl extends Ctrl
 			$('#editor-mode').removeClass('btn-inverse').addClass 'btn-default'
 			$('#preview-mode').addClass('btn-inverse').removeClass 'btn-default'
 			$('#editor').hide()
+			if $('#editor').parent().hasClass 'firepad'
+				$('#editor').parent().hide()
 			$('#preview').show()
 			$('#theme').parent().hide()
 
@@ -360,6 +371,8 @@ module.exports = class DocumentCtrl extends Ctrl
 			$('#editor-mode').addClass('btn-inverse').removeClass 'btn-default'
 			$('#preview').hide()
 			$('#editor').show()
+			if $('#editor').parent().hasClass 'firepad'
+				$('#editor').parent().show()
 			$('#theme').parent().show()
 
 		$('#fullscreen-mode').click =>
@@ -393,11 +406,44 @@ module.exports = class DocumentCtrl extends Ctrl
 		$('#rename-doc-link').click =>
 			return false
 
+		$('#fork').click =>
+			alert 'work in progress'
+
 		@setupHistory()
-		@editor.setValue @viewParams.lastContent
-		@editor.clearSelection()
-		@editor.focus()
-		@editor.navigateFileStart()
+
+		if @access == 'collaborator' and config.firebase_url and config.firebase_url != ''
+			$('#editor').append '<div id="loader-editor">
+			<div class="teardrop tearLeft"></div>
+			<div class="teardrop tearRight"></div>
+			<div id="contain1">
+				<div id="ball-holder1">
+					<div class="ballSettings ball1"></div>
+				</div>
+			</div>
+			<div id="contain2">
+				<div id="ball-holder2">
+					<div class="ballSettings ball2"></div>
+				</div>
+			</div>
+		</div>'
+			@firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + @viewParams.slug)
+			@firepad = Firepad.fromACE @firepadRef, @editor
+
+			@firepad.on 'ready', =>
+				$('#loader-editor').remove()
+				text = @firepad.getText()
+				if text == ''
+					@firepad.setText @viewParams.lastContent
+		else
+			@editor.setValue @viewParams.lastContent
+			@editor.clearSelection()
+			@editor.focus()
+			@editor.navigateFileStart()
+			if @access == 'guest'
+				@editor.setReadOnly true
+				$("#save-draft,#release").hide()
+				$('#fork,#read-only').show()
+
 		@syncScroll()
 		@updatePreview()
 		@editor.on 'paste', (input) =>
