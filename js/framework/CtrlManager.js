@@ -11,6 +11,7 @@ module.exports = CtrlManager = (function() {
       this.master.unload();
     }
     this.master = new ctrl(this.app, params);
+    $('#content').html('<div style="margin-top: 100px; text-align:center" id="loading"><img src="./img/loading.gif"></div>');
     if (this.app.router.stop && this.app.router.stop !== params.path) {
       return (this.app.router.stop = false);
     }

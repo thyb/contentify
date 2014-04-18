@@ -1,4 +1,4 @@
-var Ctrl, DocumentCtrl, DocumentHistory, DocumentManagerService,
+var Ctrl, DocumentCtrl, DocumentHistory, DocumentManagerService, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -7,6 +7,8 @@ Ctrl = require('../framework/Ctrl');
 DocumentManagerService = require('../services/DocumentManagerService');
 
 DocumentHistory = require('../components/DocumentHistory');
+
+config = require('../../config');
 
 module.exports = DocumentCtrl = (function(_super) {
   __extends(DocumentCtrl, _super);
@@ -33,30 +35,36 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.initialize = function(callback) {
-    return this.services.documentManager.getDocument(this.params.slug, (function(_this) {
-      return function(doc, lastContent) {
-        if (!doc) {
-          _this.app.redirect('/documents');
+    return this.services.documentManager.checkAccess(this.app.user.get('login'), (function(_this) {
+      return function(access) {
+        if (!access) {
+          return _this.app.redirect('/403');
         }
-        return _this.services.documentManager.getDocumentHistory(_this.params.slug, function(err, documentHistory) {
-          return _this.services.documentManager.getReleaseHistory(_this.params.slug, function(err, releaseHistory) {
-            var lastContentHash, localChanges, localContent, merge;
-            localContent = lastContent;
-            lastContentHash = MD5(lastContent);
-            localChanges = false;
-            merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
-            _this.viewParams = {
-              doc: doc,
-              slug: _this.params.slug,
-              diff: documentHistory,
-              history: merge,
-              localChanges: localChanges,
-              lastContent: lastContent,
-              lastContentHash: lastContentHash
-            };
-            if (callback) {
-              return callback(_this.viewParams);
-            }
+        _this.access = access;
+        return _this.services.documentManager.getDocument(_this.params.slug, function(doc, lastContent) {
+          if (!doc) {
+            _this.app.redirect('/documents');
+          }
+          return _this.services.documentManager.getDocumentHistory(_this.params.slug, function(err, documentHistory) {
+            return _this.services.documentManager.getReleaseHistory(_this.params.slug, function(err, releaseHistory) {
+              var lastContentHash, localChanges, localContent, merge;
+              localContent = lastContent;
+              lastContentHash = MD5(lastContent);
+              localChanges = false;
+              merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
+              _this.viewParams = {
+                doc: doc,
+                slug: _this.params.slug,
+                diff: documentHistory,
+                history: merge,
+                localChanges: localChanges,
+                lastContent: lastContent,
+                lastContentHash: lastContentHash
+              };
+              if (callback) {
+                return callback(_this.viewParams);
+              }
+            });
           });
         });
       };
@@ -306,6 +314,9 @@ module.exports = DocumentCtrl = (function(_super) {
           $('#diff').hide();
           t = 'preview';
           if ($('#editor-mode').hasClass('btn-inverse')) {
+            if ($('#editor').parent().hasClass('firepad')) {
+              $('#editor').parent().show();
+            }
             t = 'editor';
           }
           $('#' + t + ', #toolbar').show();
@@ -316,6 +327,9 @@ module.exports = DocumentCtrl = (function(_super) {
             patch = commit.files[0].patch;
             _this.patchPrettyPrint(patch);
             $('#editor, #toolbar, #preview').hide();
+            if ($('#editor').parent().hasClass('firepad')) {
+              $('#editor').parent().hide();
+            }
             return $('#diff').show();
           });
         }
@@ -431,6 +445,9 @@ module.exports = DocumentCtrl = (function(_super) {
         $('#editor-mode').removeClass('btn-inverse').addClass('btn-default');
         $('#preview-mode').addClass('btn-inverse').removeClass('btn-default');
         $('#editor').hide();
+        if ($('#editor').parent().hasClass('firepad')) {
+          $('#editor').parent().hide();
+        }
         $('#preview').show();
         return $('#theme').parent().hide();
       };
@@ -441,6 +458,9 @@ module.exports = DocumentCtrl = (function(_super) {
         $('#editor-mode').addClass('btn-inverse').removeClass('btn-default');
         $('#preview').hide();
         $('#editor').show();
+        if ($('#editor').parent().hasClass('firepad')) {
+          $('#editor').parent().show();
+        }
         return $('#theme').parent().show();
       };
     })(this));
@@ -491,11 +511,37 @@ module.exports = DocumentCtrl = (function(_super) {
         return false;
       };
     })(this));
+    $('#fork').click((function(_this) {
+      return function() {
+        return alert('work in progress');
+      };
+    })(this));
     this.setupHistory();
-    this.editor.setValue(this.viewParams.lastContent);
-    this.editor.clearSelection();
-    this.editor.focus();
-    this.editor.navigateFileStart();
+    if (this.access === 'collaborator' && config.firebase_url && config.firebase_url !== '') {
+      $('#editor').append('<div id="loader-editor"> <div class="teardrop tearLeft"></div> <div class="teardrop tearRight"></div> <div id="contain1"> <div id="ball-holder1"> <div class="ballSettings ball1"></div> </div> </div> <div id="contain2"> <div id="ball-holder2"> <div class="ballSettings ball2"></div> </div> </div> </div>');
+      this.firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + this.viewParams.slug);
+      this.firepad = Firepad.fromACE(this.firepadRef, this.editor);
+      this.firepad.on('ready', (function(_this) {
+        return function() {
+          var text;
+          $('#loader-editor').remove();
+          text = _this.firepad.getText();
+          if (text === '') {
+            return _this.firepad.setText(_this.viewParams.lastContent);
+          }
+        };
+      })(this));
+    } else {
+      this.editor.setValue(this.viewParams.lastContent);
+      this.editor.clearSelection();
+      this.editor.focus();
+      this.editor.navigateFileStart();
+      if (this.access === 'guest') {
+        this.editor.setReadOnly(true);
+        $("#save-draft,#release").hide();
+        $('#fork,#read-only').show();
+      }
+    }
     this.syncScroll();
     this.updatePreview();
     this.editor.on('paste', (function(_this) {

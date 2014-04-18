@@ -6,6 +6,7 @@
         <button id="preview-mode" class="btn btn-default btn-xs">preview</button>
       </div>
       <button id="fullscreen-mode" class="btn btn-default btn-xs">fullscreen</button>
+      <span style="display: none" id="read-only"><em style="font-size:12px;color: #f79696">Read only - You are not a collaborator</em></span>
       <div class="btn-group pull-right">
         <button id="theme" type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
           <span class="name"></span> theme <span class="caret"></span>
@@ -25,6 +26,7 @@
       <button id="save-draft" class="btn btn-primary">Save draft</button>
       <button id="release" class="btn btn-success">Release</button>
     </div>
+    <button style="display:none" id="fork" class="btn btn-success">Fork to edit</button>
     <hr />
     <div id="draft-add-message" style="display: none">
       <form role="form">

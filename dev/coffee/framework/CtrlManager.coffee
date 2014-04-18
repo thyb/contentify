@@ -3,8 +3,8 @@ module.exports = class CtrlManager
 		@partials = []
 	setMaster: (ctrl, params, callback) ->
 		@master.unload() if @master
-
 		@master = new ctrl @app, params
+		$('#content').html('<div style="margin-top: 100px; text-align:center" id="loading"><img src="./img/loading.gif"></div>')
 		return (@app.router.stop = false) if @app.router.stop and @app.router.stop isnt params.path
 		@master.use callback
 	addPartial: (ctrl, placement, callback) ->
