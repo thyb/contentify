@@ -22,6 +22,20 @@ module.exports = DocumentManagerService = (function(_super) {
     }
   }
 
+  DocumentManagerService.prototype.checkAccess = function(username, callback) {
+    return this.repo.isCollaborator(username, function(err, res) {
+      if (res) {
+        return callback('collaborator');
+      } else {
+        if (config["private"]) {
+          return callback(false);
+        } else {
+          return callback('guest');
+        }
+      }
+    });
+  };
+
   DocumentManagerService.prototype.create = function(params, callback) {
     if (this.documents[params.slug]) {
       return callback({

@@ -403,7 +403,7 @@ module.exports = class DocumentCtrl extends Ctrl
 		@editor.on 'paste', (input) =>
 			setTimeout (=>
 				content = @editor.getValue()
-				if content.match /[’“”]/g # if drive...
+				if content.match /[’“”]/g # if copy/paste from google drive...
 					content = content.replace(/\’/g, '\'').replace(/[“”]/g, '"').replace(/…/g, '...')
 					cur = @editor.selection.getCursor()
 					@editor.setValue content

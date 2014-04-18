@@ -40,6 +40,7 @@ $('document').ready ->
 		'/document/:slug': DocumentCtrl
 		'/': IndexCtrl
 		'/404': ErrorCtrl
+		'/403': ErrorCtrl
 		'/documents': DocumentsCtrl
 		'/medias': MediasCtrl
 		'/logout': LogoutCtrl

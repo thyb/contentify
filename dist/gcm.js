@@ -722,21 +722,26 @@ module.exports = DocumentsCtrl = (function(_super) {
   }
 
   DocumentsCtrl.prototype.initialize = function(callback) {
-    return this.services.documentManager.list((function(_this) {
-      return function(err, data) {
-        if (err === 'not found') {
+    return this.services.documentManager.checkAccess(this.app.user.get('login'), (function(_this) {
+      return function(access) {
+        if (!access) {
+          return _this.app.redirect('/403');
+        }
+        return _this.services.documentManager.list(function(err, data) {
+          if (err === 'not found') {
+            if (callback) {
+              return callback({
+                documents: null
+              });
+            }
+          }
+          _this.app.documents = data;
           if (callback) {
             return callback({
-              documents: null
+              documents: data
             });
           }
-        }
-        _this.app.documents = data;
-        if (callback) {
-          return callback({
-            documents: data
-          });
-        }
+        });
       };
     })(this));
   };
@@ -782,8 +787,13 @@ Ctrl = require('../framework/Ctrl');
 module.exports = ErrorCtrl = (function(_super) {
   __extends(ErrorCtrl, _super);
 
-  function ErrorCtrl() {
-    return ErrorCtrl.__super__.constructor.apply(this, arguments);
+  function ErrorCtrl(app, params) {
+    ErrorCtrl.__super__.constructor.call(this, app);
+    if (params.path === '/403') {
+      this.setView('error/403');
+    } else {
+      this.setView('error/404');
+    }
   }
 
   ErrorCtrl.prototype["do"] = function() {};
@@ -1052,6 +1062,10 @@ module.exports = Ctrl = (function() {
   };
 
   Ctrl.prototype.include = function(ctrl, placement, callback) {};
+
+  Ctrl.prototype.setView = function(template) {
+    return this.templateUrl = template + '.html';
+  };
 
   Ctrl.prototype.unload = function() {
     if (this._askedForRedirect) {
@@ -1567,6 +1581,7 @@ $('document').ready(function() {
     '/document/:slug': DocumentCtrl,
     '/': IndexCtrl,
     '/404': ErrorCtrl,
+    '/403': ErrorCtrl,
     '/documents': DocumentsCtrl,
     '/medias': MediasCtrl,
     '/logout': LogoutCtrl
@@ -1604,6 +1619,20 @@ module.exports = DocumentManagerService = (function(_super) {
       this.repo = this.github.getRepo(res[1], res[2]);
     }
   }
+
+  DocumentManagerService.prototype.checkAccess = function(username, callback) {
+    return this.repo.isCollaborator(username, function(err, res) {
+      if (res) {
+        return callback('collaborator');
+      } else {
+        if (config["private"]) {
+          return callback(false);
+        } else {
+          return callback('guest');
+        }
+      }
+    });
+  };
 
   DocumentManagerService.prototype.create = function(params, callback) {
     if (this.documents[params.slug]) {

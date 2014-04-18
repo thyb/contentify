@@ -12,6 +12,16 @@ module.exports = class DocumentManagerService extends Service
 		else
 			@repo = @github.getRepo res[1], res[2]
 
+	checkAccess: (username, callback) ->
+		@repo.isCollaborator username, (err, res) ->
+			if res
+				return callback 'collaborator'
+			else
+				if config.private
+					return callback false
+				else
+					return callback 'guest'
+
 	create: (params, callback) ->
 
 		if @documents[params.slug]

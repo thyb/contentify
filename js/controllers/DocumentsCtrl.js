@@ -20,21 +20,26 @@ module.exports = DocumentsCtrl = (function(_super) {
   }
 
   DocumentsCtrl.prototype.initialize = function(callback) {
-    return this.services.documentManager.list((function(_this) {
-      return function(err, data) {
-        if (err === 'not found') {
+    return this.services.documentManager.checkAccess(this.app.user.get('login'), (function(_this) {
+      return function(access) {
+        if (!access) {
+          return _this.app.redirect('/403');
+        }
+        return _this.services.documentManager.list(function(err, data) {
+          if (err === 'not found') {
+            if (callback) {
+              return callback({
+                documents: null
+              });
+            }
+          }
+          _this.app.documents = data;
           if (callback) {
             return callback({
-              documents: null
+              documents: data
             });
           }
-        }
-        _this.app.documents = data;
-        if (callback) {
-          return callback({
-            documents: data
-          });
-        }
+        });
       };
     })(this));
   };

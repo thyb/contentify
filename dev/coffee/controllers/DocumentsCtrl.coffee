@@ -10,11 +10,13 @@ module.exports = class DocumentsCtrl extends Ctrl
 		@services.documentManager = new DocumentManagerService(@app.user.github)
 
 	initialize: (callback) ->
-		@services.documentManager.list (err, data) =>
-			if err == 'not found'
-				return callback documents: null if callback
-			@app.documents = data
-			callback documents: data if callback
+		@services.documentManager.checkAccess @app.user.get('login'), (access) =>
+			return @app.redirect '/403' if not access
+			@services.documentManager.list (err, data) =>
+				if err == 'not found'
+					return callback documents: null if callback
+				@app.documents = data
+				callback documents: data if callback
 
 	do: ->
 		$('#create-document').click ->

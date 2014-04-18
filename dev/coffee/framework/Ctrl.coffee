@@ -27,6 +27,7 @@ module.exports = class Ctrl
 
 	include: (ctrl, placement, callback) ->
 
-
+	setView: (template) ->
+		@templateUrl = template + '.html'
 	unload: ->
 		$(window).unbind 'beforeunload' if @_askedForRedirect

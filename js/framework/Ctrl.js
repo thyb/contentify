@@ -49,6 +49,10 @@ module.exports = Ctrl = (function() {
 
   Ctrl.prototype.include = function(ctrl, placement, callback) {};
 
+  Ctrl.prototype.setView = function(template) {
+    return this.templateUrl = template + '.html';
+  };
+
   Ctrl.prototype.unload = function() {
     if (this._askedForRedirect) {
       return $(window).unbind('beforeunload');

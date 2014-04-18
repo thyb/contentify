@@ -7,8 +7,13 @@ Ctrl = require('../framework/Ctrl');
 module.exports = ErrorCtrl = (function(_super) {
   __extends(ErrorCtrl, _super);
 
-  function ErrorCtrl() {
-    return ErrorCtrl.__super__.constructor.apply(this, arguments);
+  function ErrorCtrl(app, params) {
+    ErrorCtrl.__super__.constructor.call(this, app);
+    if (params.path === '/403') {
+      this.setView('error/403');
+    } else {
+      this.setView('error/404');
+    }
   }
 
   ErrorCtrl.prototype["do"] = function() {};
