@@ -1,11 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-module.exports = {
-	repository: 'content',
-	username: 'thyb',
-	firebase_url: "",
-	algolia_key: ""
-};
-},{}],2:[function(require,module,exports){
 var DocumentHistory;
 
 module.exports = DocumentHistory = (function() {
@@ -135,7 +128,7 @@ module.exports = DocumentHistory = (function() {
 
 })();
 
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 var AlwaysCtrl, Ctrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -166,8 +159,8 @@ module.exports = AlwaysCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":11}],4:[function(require,module,exports){
-var Ctrl, DocumentCtrl, DocumentHistory, DocumentManagerService, config,
+},{"../framework/Ctrl":10}],3:[function(require,module,exports){
+var Ctrl, DocumentCtrl, DocumentHistory, DocumentManagerService,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -176,8 +169,6 @@ Ctrl = require('../framework/Ctrl');
 DocumentManagerService = require('../services/DocumentManagerService');
 
 DocumentHistory = require('../components/DocumentHistory');
-
-config = require('../../config');
 
 module.exports = DocumentCtrl = (function(_super) {
   __extends(DocumentCtrl, _super);
@@ -744,14 +735,12 @@ module.exports = DocumentCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../../config":1,"../components/DocumentHistory":2,"../framework/Ctrl":11,"../services/DocumentManagerService":22}],5:[function(require,module,exports){
-var Ctrl, DocumentManagerService, DocumentsCtrl, config,
+},{"../components/DocumentHistory":1,"../framework/Ctrl":10,"../services/DocumentManagerService":21}],4:[function(require,module,exports){
+var Ctrl, DocumentManagerService, DocumentsCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Ctrl = require('../framework/Ctrl');
-
-config = require('../../config');
 
 DocumentManagerService = require('../services/DocumentManagerService');
 
@@ -822,7 +811,7 @@ module.exports = DocumentsCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../../config":1,"../framework/Ctrl":11,"../services/DocumentManagerService":22}],6:[function(require,module,exports){
+},{"../framework/Ctrl":10,"../services/DocumentManagerService":21}],5:[function(require,module,exports){
 var Ctrl, ErrorCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -847,7 +836,7 @@ module.exports = ErrorCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":11}],7:[function(require,module,exports){
+},{"../framework/Ctrl":10}],6:[function(require,module,exports){
 var Ctrl, IndexCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -887,7 +876,7 @@ module.exports = IndexCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":11}],8:[function(require,module,exports){
+},{"../framework/Ctrl":10}],7:[function(require,module,exports){
 var Ctrl, LogoutCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -907,7 +896,7 @@ module.exports = LogoutCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":11}],9:[function(require,module,exports){
+},{"../framework/Ctrl":10}],8:[function(require,module,exports){
 var Ctrl, MediasCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -933,8 +922,8 @@ module.exports = MediasCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":11}],10:[function(require,module,exports){
-var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User, config;
+},{"../framework/Ctrl":10}],9:[function(require,module,exports){
+var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User;
 
 Router = require('./Router');
 
@@ -949,8 +938,6 @@ TemplateManager = require('./TemplateManager');
 LayoutManager = require('./LayoutManager');
 
 User = require('./User');
-
-config = require('../../config');
 
 module.exports = App = (function() {
   function App() {
@@ -1056,7 +1043,7 @@ module.exports = App = (function() {
 
 })();
 
-},{"../../config":1,"./CtrlManager":12,"./Env":13,"./GlobalEvent":14,"./LayoutManager":15,"./Router":16,"./TemplateManager":18,"./User":19}],11:[function(require,module,exports){
+},{"./CtrlManager":11,"./Env":12,"./GlobalEvent":13,"./LayoutManager":14,"./Router":15,"./TemplateManager":17,"./User":18}],10:[function(require,module,exports){
 var Ctrl, View;
 
 View = require('./View');
@@ -1119,7 +1106,7 @@ module.exports = Ctrl = (function() {
 
 })();
 
-},{"./View":20}],12:[function(require,module,exports){
+},{"./View":19}],11:[function(require,module,exports){
 var CtrlManager;
 
 module.exports = CtrlManager = (function() {
@@ -1163,7 +1150,7 @@ module.exports = CtrlManager = (function() {
 
 })();
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var Env;
 
 module.exports = Env = (function() {
@@ -1197,7 +1184,7 @@ module.exports = Env = (function() {
 
 })();
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var GlobalEvent;
 
 module.exports = GlobalEvent = (function() {
@@ -1231,7 +1218,7 @@ module.exports = GlobalEvent = (function() {
 
 })();
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var LayoutManager;
 
 module.exports = LayoutManager = (function() {
@@ -1292,7 +1279,7 @@ module.exports = LayoutManager = (function() {
 
 })();
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var Router, View;
 
 View = require('./View');
@@ -1394,7 +1381,7 @@ module.exports = Router = (function() {
 
 })();
 
-},{"./View":20}],17:[function(require,module,exports){
+},{"./View":19}],16:[function(require,module,exports){
 var Service;
 
 module.exports = Service = (function() {
@@ -1404,7 +1391,7 @@ module.exports = Service = (function() {
 
 })();
 
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var TemplateManager;
 
 module.exports = TemplateManager = (function() {
@@ -1450,7 +1437,7 @@ module.exports = TemplateManager = (function() {
 
 })();
 
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var User;
 
 module.exports = User = (function() {
@@ -1515,7 +1502,7 @@ module.exports = User = (function() {
 
 })();
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var TemplateManager, View;
 
 TemplateManager = require('./TemplateManager');
@@ -1538,7 +1525,7 @@ module.exports = View = (function() {
 
 })();
 
-},{"./TemplateManager":18}],21:[function(require,module,exports){
+},{"./TemplateManager":17}],20:[function(require,module,exports){
 
 /*
 class GDraft
@@ -1604,14 +1591,12 @@ $('document').ready(function() {
   return app.setMenu('#menu').setLayout('index').start();
 });
 
-},{"./controllers/AlwaysCtrl":3,"./controllers/DocumentCtrl":4,"./controllers/DocumentsCtrl":5,"./controllers/ErrorCtrl":6,"./controllers/IndexCtrl":7,"./controllers/LogoutCtrl":8,"./controllers/MediasCtrl":9,"./framework/App":10}],22:[function(require,module,exports){
-var DocumentManagerService, Service, config,
+},{"./controllers/AlwaysCtrl":2,"./controllers/DocumentCtrl":3,"./controllers/DocumentsCtrl":4,"./controllers/ErrorCtrl":5,"./controllers/IndexCtrl":6,"./controllers/LogoutCtrl":7,"./controllers/MediasCtrl":8,"./framework/App":9}],21:[function(require,module,exports){
+var DocumentManagerService, Service,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Service = require('../framework/Service');
-
-config = require('../../config');
 
 module.exports = DocumentManagerService = (function(_super) {
   __extends(DocumentManagerService, _super);
@@ -1832,4 +1817,4 @@ module.exports = DocumentManagerService = (function(_super) {
 
 })(Service);
 
-},{"../../config":1,"../framework/Service":17}]},{},[21])
+},{"../framework/Service":16}]},{},[20])

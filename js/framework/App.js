@@ -1,4 +1,4 @@
-var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User, config;
+var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User;
 
 Router = require('./Router');
 
@@ -13,8 +13,6 @@ TemplateManager = require('./TemplateManager');
 LayoutManager = require('./LayoutManager');
 
 User = require('./User');
-
-config = require('../../config');
 
 module.exports = App = (function() {
   function App() {

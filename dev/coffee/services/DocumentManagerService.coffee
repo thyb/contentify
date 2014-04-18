@@ -1,5 +1,4 @@
 Service = require('../framework/Service')
-config = require('../../config')
 
 module.exports = class DocumentManagerService extends Service
 	constructor: (@github)->

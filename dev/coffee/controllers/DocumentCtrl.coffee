@@ -1,7 +1,6 @@
 Ctrl = require('../framework/Ctrl')
 DocumentManagerService = require('../services/DocumentManagerService')
 DocumentHistory = require('../components/DocumentHistory')
-config = require('../../config')
 
 module.exports = class DocumentCtrl extends Ctrl
 	constructor: (app, params) ->
