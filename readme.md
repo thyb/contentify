@@ -59,7 +59,8 @@ e.g.
 
     grunt
 
-
+Enable realtime with Firebase
+-----------------------------
 
 License
 -------
