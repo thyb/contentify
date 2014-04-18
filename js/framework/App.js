@@ -14,7 +14,7 @@ LayoutManager = require('./LayoutManager');
 
 User = require('./User');
 
-config = require('../config');
+config = require('../../config');
 
 module.exports = App = (function() {
   function App() {

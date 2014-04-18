@@ -1,4 +1,11 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+module.exports = {
+	repository: 'content',
+	username: 'thyb',
+	firebase_key: "fiery-fire-8126",
+	algolia_key: ""
+}
+},{}],2:[function(require,module,exports){
 var DocumentHistory;
 
 module.exports = DocumentHistory = (function() {
@@ -128,7 +135,7 @@ module.exports = DocumentHistory = (function() {
 
 })();
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 module.exports = {
   repository: 'content',
   username: 'thyb',
@@ -136,7 +143,7 @@ module.exports = {
   algolia_key: ""
 };
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 var AlwaysCtrl, Ctrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -167,7 +174,7 @@ module.exports = AlwaysCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":11}],4:[function(require,module,exports){
+},{"../framework/Ctrl":12}],5:[function(require,module,exports){
 var Ctrl, DocumentCtrl, DocumentHistory, DocumentManagerService,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -699,7 +706,7 @@ module.exports = DocumentCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../components/DocumentHistory":1,"../framework/Ctrl":11,"../services/DocumentManagerService":23}],5:[function(require,module,exports){
+},{"../components/DocumentHistory":2,"../framework/Ctrl":12,"../services/DocumentManagerService":24}],6:[function(require,module,exports){
 var Ctrl, DocumentManagerService, DocumentsCtrl, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -777,7 +784,7 @@ module.exports = DocumentsCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../config":2,"../framework/Ctrl":11,"../services/DocumentManagerService":23}],6:[function(require,module,exports){
+},{"../config":3,"../framework/Ctrl":12,"../services/DocumentManagerService":24}],7:[function(require,module,exports){
 var Ctrl, ErrorCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -802,7 +809,7 @@ module.exports = ErrorCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":11}],7:[function(require,module,exports){
+},{"../framework/Ctrl":12}],8:[function(require,module,exports){
 var Ctrl, IndexCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -842,7 +849,7 @@ module.exports = IndexCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":11}],8:[function(require,module,exports){
+},{"../framework/Ctrl":12}],9:[function(require,module,exports){
 var Ctrl, LogoutCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -862,7 +869,7 @@ module.exports = LogoutCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":11}],9:[function(require,module,exports){
+},{"../framework/Ctrl":12}],10:[function(require,module,exports){
 var Ctrl, MediasCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -888,7 +895,7 @@ module.exports = MediasCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":11}],10:[function(require,module,exports){
+},{"../framework/Ctrl":12}],11:[function(require,module,exports){
 var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User, config;
 
 Router = require('./Router');
@@ -905,7 +912,7 @@ LayoutManager = require('./LayoutManager');
 
 User = require('./User');
 
-config = require('../config');
+config = require('../../config');
 
 module.exports = App = (function() {
   function App() {
@@ -1011,7 +1018,7 @@ module.exports = App = (function() {
 
 })();
 
-},{"../config":2,"./CtrlManager":13,"./Env":14,"./GlobalEvent":15,"./LayoutManager":16,"./Router":17,"./TemplateManager":19,"./User":20}],11:[function(require,module,exports){
+},{"../../config":1,"./CtrlManager":14,"./Env":15,"./GlobalEvent":16,"./LayoutManager":17,"./Router":18,"./TemplateManager":20,"./User":21}],12:[function(require,module,exports){
 var Ctrl, CtrlEvent, View;
 
 CtrlEvent = require('./CtrlEvent');
@@ -1077,7 +1084,7 @@ module.exports = Ctrl = (function() {
 
 })();
 
-},{"./CtrlEvent":12,"./View":21}],12:[function(require,module,exports){
+},{"./CtrlEvent":13,"./View":22}],13:[function(require,module,exports){
 var CtrlEvent;
 
 module.exports = CtrlEvent = (function() {
@@ -1111,7 +1118,7 @@ module.exports = CtrlEvent = (function() {
 
 })();
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var CtrlManager;
 
 module.exports = CtrlManager = (function() {
@@ -1154,7 +1161,7 @@ module.exports = CtrlManager = (function() {
 
 })();
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var Env;
 
 module.exports = Env = (function() {
@@ -1188,7 +1195,7 @@ module.exports = Env = (function() {
 
 })();
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var GlobalEvent;
 
 module.exports = GlobalEvent = (function() {
@@ -1222,7 +1229,7 @@ module.exports = GlobalEvent = (function() {
 
 })();
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var LayoutManager;
 
 module.exports = LayoutManager = (function() {
@@ -1283,7 +1290,7 @@ module.exports = LayoutManager = (function() {
 
 })();
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var Router, View;
 
 View = require('./View');
@@ -1385,7 +1392,7 @@ module.exports = Router = (function() {
 
 })();
 
-},{"./View":21}],18:[function(require,module,exports){
+},{"./View":22}],19:[function(require,module,exports){
 var Service;
 
 module.exports = Service = (function() {
@@ -1395,7 +1402,7 @@ module.exports = Service = (function() {
 
 })();
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var TemplateManager;
 
 module.exports = TemplateManager = (function() {
@@ -1441,7 +1448,7 @@ module.exports = TemplateManager = (function() {
 
 })();
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var User;
 
 module.exports = User = (function() {
@@ -1506,7 +1513,7 @@ module.exports = User = (function() {
 
 })();
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 var TemplateManager, View;
 
 TemplateManager = require('./TemplateManager');
@@ -1529,7 +1536,7 @@ module.exports = View = (function() {
 
 })();
 
-},{"./TemplateManager":19}],22:[function(require,module,exports){
+},{"./TemplateManager":20}],23:[function(require,module,exports){
 
 /*
 class GDraft
@@ -1595,14 +1602,14 @@ $('document').ready(function() {
   return app.setMenu('#menu').setLayout('index').start();
 });
 
-},{"./controllers/AlwaysCtrl":3,"./controllers/DocumentCtrl":4,"./controllers/DocumentsCtrl":5,"./controllers/ErrorCtrl":6,"./controllers/IndexCtrl":7,"./controllers/LogoutCtrl":8,"./controllers/MediasCtrl":9,"./framework/App":10}],23:[function(require,module,exports){
+},{"./controllers/AlwaysCtrl":4,"./controllers/DocumentCtrl":5,"./controllers/DocumentsCtrl":6,"./controllers/ErrorCtrl":7,"./controllers/IndexCtrl":8,"./controllers/LogoutCtrl":9,"./controllers/MediasCtrl":10,"./framework/App":11}],24:[function(require,module,exports){
 var DocumentManagerService, Service, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Service = require('../framework/Service');
 
-config = require('../config');
+config = require('../../config');
 
 module.exports = DocumentManagerService = (function(_super) {
   __extends(DocumentManagerService, _super);
@@ -1823,4 +1830,4 @@ module.exports = DocumentManagerService = (function(_super) {
 
 })(Service);
 
-},{"../config":2,"../framework/Service":18}]},{},[22])
+},{"../../config":1,"../framework/Service":19}]},{},[23])

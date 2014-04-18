@@ -5,7 +5,7 @@ CtrlManager = require('./CtrlManager')
 TemplateManager = require('./TemplateManager')
 LayoutManager = require('./LayoutManager')
 User = require('./User')
-config = require('../config')
+config = require('../../config')
 
 module.exports = class App
 	constructor: () ->

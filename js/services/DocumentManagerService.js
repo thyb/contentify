@@ -4,7 +4,7 @@ var DocumentManagerService, Service, config,
 
 Service = require('../framework/Service');
 
-config = require('../config');
+config = require('../../config');
 
 module.exports = DocumentManagerService = (function(_super) {
   __extends(DocumentManagerService, _super);
