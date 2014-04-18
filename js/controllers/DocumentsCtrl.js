@@ -4,7 +4,7 @@ var Ctrl, DocumentManagerService, DocumentsCtrl, config,
 
 Ctrl = require('../framework/Ctrl');
 
-config = require('../config');
+config = require('../../config');
 
 DocumentManagerService = require('../services/DocumentManagerService');
 
