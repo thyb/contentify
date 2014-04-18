@@ -3,6 +3,8 @@ Content
 
 This content manager allow your non technical team to update static document and release them without to restart your server.
 
+
+
 Feature
 -------
 
@@ -11,12 +13,25 @@ Feature
 * History of draft / release
 * Unlimited colaborators using Github collaborators
 
+
+
 Installation over Github Pages
 ------------------------------
 
 Fork this repository on your account. Then, to build the Github Pages, Github need a push. To do it, you can simply change a file with the Github Interface or using the console after clonning the forked repository: `git push origin master`
 
 Finally, go on http://[your-github-username].github.io/[your-github-repository] and start editing documents in Markdown or HTML in a simple editor.
+
+Installation over Github private pages
+--------------------------------------
+
+To install `content` over a Github **private** repository, you have to clone this repository with `--bare` option and push it with `--mirror` option on your private repository:
+
+    git clone --bare https://github.com/thyb/content.git
+    cd content.git
+    git push --mirror https://github.com/LOGIN/REPO.git
+
+Then, to disable the Github Pages to be displayed by non collaborator users, Go in https://github.com/LOGIN/REPO, and update config.js to put the option `private` set to `true`.
 
 Local installation
 ------------------
