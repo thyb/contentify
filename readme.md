@@ -3,8 +3,6 @@ Content
 
 This content manager allow your non technical team to update static document and release them without to restart your server.
 
-
-
 Feature
 -------
 
@@ -12,8 +10,6 @@ Feature
 * Editor with preview
 * History of draft / release
 * Unlimited colaborators using Github collaborators
-
-
 
 Installation over Github Pages
 ------------------------------
@@ -32,6 +28,11 @@ To install `content` over a Github **private** repository, you have to clone thi
     git push --mirror https://github.com/LOGIN/REPO.git
 
 Then, to disable the Github Pages to be displayed by non collaborator users, Go in https://github.com/LOGIN/REPO, and update config.js to put the option `private` set to `true`.
+
+    module.exports = {
+        ...
+        private: true
+    }
 
 Local installation
 ------------------
