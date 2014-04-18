@@ -24,7 +24,6 @@ module.exports = DocumentManagerService = (function(_super) {
 
   DocumentManagerService.prototype.checkAccess = function(username, callback) {
     return this.repo.isCollaborator(username, function(err, res) {
-      console.log(err, res);
       if (res) {
         return callback('collaborator');
       } else {
