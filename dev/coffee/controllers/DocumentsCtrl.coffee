@@ -1,5 +1,5 @@
 Ctrl = require('../framework/Ctrl')
-config = require('../config')
+config = require('../../config')
 DocumentManagerService = require('../services/DocumentManagerService')
 
 module.exports = class DocumentsCtrl extends Ctrl

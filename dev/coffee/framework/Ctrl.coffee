@@ -1,4 +1,3 @@
-CtrlEvent = require('./CtrlEvent')
 View = require('./View')
 
 module.exports = class Ctrl
@@ -9,7 +8,6 @@ module.exports = class Ctrl
 		@templateUrl = ctrlname.substr(1).toLowerCase() + '.html'
 		# @templateUrl = @constructor.name.substr(0, @constructor.name.length - 4).toLowerCase() + '.html'
 		@scope = {}
-		@event = new CtrlEvent()
 		@view = new View()
 		@services = {}
 		@_askedForRedirect = false
