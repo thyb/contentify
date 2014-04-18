@@ -14,6 +14,7 @@ module.exports = class DocumentManagerService extends Service
 
 	checkAccess: (username, callback) ->
 		@repo.isCollaborator username, (err, res) ->
+			console.log err, res
 			if res
 				return callback 'collaborator'
 			else
