@@ -7,9 +7,11 @@ Feature
 -------
 
 * Manage documents - Markdown and HTML support
-* Editor with preview
-* History of draft / release
-* Unlimited colaborators using Github collaborators
+* Editor with preview / fullscreen / syntax coloration etc...
+* Real time edition with Github collaborators
+* History of all your draft / release with diff
+* Unlimited colaborators
+* Simple interface
 
 Installation over Github Pages
 ------------------------------
@@ -52,14 +54,24 @@ You have to update `dev/coffee/config.coffee` to configure the runtime of DocHub
 e.g.
 
     module.exports =
-       username: 'thyb'
-       repository: 'content'
+        username: 'thyb'
+        repository: 'content'
 
 ### Start the server
 
     grunt
 
+Enable realtime with Firebase
+-----------------------------
 
+You can edit with your Github collaborators easily by updating `config.js` and `firebase_url` set to your Firebase URL. To get one, just signup on [Firebase](https://firebase.com).
+
+    {
+        ...
+        firebase_url: 'xxxx-xxxx-xxxx.firebaseIO.com'
+    }
+
+That's it! You can start editing in realtime with your collaborators.
 
 License
 -------
