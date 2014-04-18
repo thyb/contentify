@@ -1,0 +1,832 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"editorSc",
+				"editorScrollH"
+			],
+			[
+				"fullscr",
+				"fullscreenMode"
+			],
+			[
+				"base64",
+				"Base64"
+			],
+			[
+				"lastCon",
+				"lastContentHash"
+			],
+			[
+				"localCon",
+				"localContentHash"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"contents": "(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require==\"function\"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error(\"Cannot find module '\"+o+\"'\")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require==\"function\"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){\nmodule.exports = {\n	repository: 'content',\n	username: 'thyb',\n	firebase_key: \"fiery-fire-8126\",\n	algolia_key: \"\"\n}\n},{}],2:[function(require,module,exports){\nvar DocumentHistory;\n\nmodule.exports = DocumentHistory = (function() {\n  function DocumentHistory(initialHistory, me) {\n    var hist, _i, _len;\n    this.me = me;\n    this.current = 0;\n    this.history = [];\n    this.listeners = {};\n    for (_i = 0, _len = initialHistory.length; _i < _len; _i++) {\n      hist = initialHistory[_i];\n      this.history.push({\n        sha: hist.sha,\n        version_type: hist.commit_type,\n        message: hist.commit.message,\n        login: hist.author.login,\n        avatar_url: hist.author.avatar_url\n      });\n    }\n    this.generateTemplate();\n  }\n\n  DocumentHistory.prototype.add = function(hist) {\n    this.history.unshift({\n      sha: hist.sha,\n      version_type: hist.commit_type,\n      message: hist.commit.message,\n      login: hist.author.login,\n      avatar_url: hist.author.avatar_url\n    });\n    if (this.current !== 0) {\n      this.current++;\n    }\n    return this.renderElement(0);\n  };\n\n  DocumentHistory.prototype.setLocalChanges = function(state) {\n    var _ref, _ref1;\n    if (state) {\n      if (((_ref = this.history[0]) != null ? _ref.version_type : void 0) === 'local') {\n        return false;\n      }\n      this.history.unshift({\n        version_type: 'local',\n        message: 'Local changes',\n        login: this.me.get('login'),\n        avatar_url: this.me.get('avatar_url')\n      });\n      if (this.current !== 0) {\n        this.current++;\n      }\n      return this.renderElement(0);\n    } else {\n      if (!this.history[0] || ((_ref1 = this.history[0]) != null ? _ref1.version_type : void 0) !== 'local') {\n        return false;\n      }\n      this.history.shift();\n      this.container.find('p:first').remove();\n      this.container.find('p.active').removeClass('active');\n      return this.container.find('p:eq(' + this.current.toString() + ')').addClass('active');\n    }\n  };\n\n  DocumentHistory.prototype.on = function(e, callback) {\n    if (!this.listeners[e]) {\n      this.listeners[e] = [];\n    }\n    return this.listeners[e].push(callback);\n  };\n\n  DocumentHistory.prototype.renderElement = function(index, init) {\n    var elem, selector;\n    if (!init) {\n      init = false;\n    }\n    elem = this.history[index];\n    if (init) {\n      this.container.append(this.template(elem));\n    } else if (index === 0) {\n      this.container.prepend(this.template(elem));\n    } else {\n      this.container.find('p:eq(' + index.toString() + ')').html(this.template(elem));\n    }\n    selector = this.container.find('p:eq(' + index.toString() + ')');\n    if (index === this.current) {\n      this.container.find('p.active').removeClass('active');\n      selector.addClass('active');\n    }\n    return selector.click((function(_this) {\n      return function() {\n        var ind;\n        if (!selector.hasClass('active')) {\n          ind = selector.index();\n          _this.change(ind);\n          return _this.listeners['select'].each(function(fct) {\n            return fct(_this.history[ind], ind);\n          });\n        }\n      };\n    })(this));\n  };\n\n  DocumentHistory.prototype.change = function(index) {\n    this.current = index;\n    this.container.find('p.active').removeClass('active');\n    return this.container.find('p:eq(' + index.toString() + ')').addClass('active');\n  };\n\n  DocumentHistory.prototype.render = function(container) {\n    var i, _results;\n    this.container = container;\n    this.container.html('');\n    _results = [];\n    for (i in this.history) {\n      _results.push(this.renderElement(parseInt(i), true));\n    }\n    return _results;\n  };\n\n  DocumentHistory.prototype.generateTemplate = function() {\n    var content;\n    content = '<p> <img width=\"42\" height=\"42\" title=\"{{login}}\" class=\"img-circle {{version_type}}\" src=\"{{avatar_url}}\"> <span class=\"msg\">{{message}}</span> </p>';\n    return this.template = Handlebars.compile(content);\n  };\n\n  return DocumentHistory;\n\n})();\n\n},{}],3:[function(require,module,exports){\nmodule.exports = {\n  repository: 'content',\n  username: 'thyb',\n  firebase_key: \"fiery-fire-8126\",\n  algolia_key: \"\",\n  private: true\n};\n\n},{}],4:[function(require,module,exports){\nvar AlwaysCtrl, Ctrl,\n  __hasProp = {}.hasOwnProperty,\n  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };\n\nCtrl = require('../framework/Ctrl');\n\nmodule.exports = AlwaysCtrl = (function(_super) {\n  __extends(AlwaysCtrl, _super);\n\n  function AlwaysCtrl() {\n    return AlwaysCtrl.__super__.constructor.apply(this, arguments);\n  }\n\n  AlwaysCtrl.prototype.initialize = function(callback) {\n    if (callback) {\n      return callback();\n    }\n  };\n\n  AlwaysCtrl.prototype[\"do\"] = function() {};\n\n  AlwaysCtrl.prototype.on = {\n    \"signin\": function() {},\n    \"logout\": function() {}\n  };\n\n  return AlwaysCtrl;\n\n})(Ctrl);\n\n},{\"../framework/Ctrl\":12}],5:[function(require,module,exports){\nvar Ctrl, DocumentCtrl, DocumentHistory, DocumentManagerService,\n  __hasProp = {}.hasOwnProperty,\n  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };\n\nCtrl = require('../framework/Ctrl');\n\nDocumentManagerService = require('../services/DocumentManagerService');\n\nDocumentHistory = require('../components/DocumentHistory');\n\nmodule.exports = DocumentCtrl = (function(_super) {\n  __extends(DocumentCtrl, _super);\n\n  function DocumentCtrl(app, params) {\n    DocumentCtrl.__super__.constructor.call(this, app, params);\n    if (!this.app.user.isAuth()) {\n      return this.app.redirect('/');\n    }\n    this.services.documentManager = new DocumentManagerService(this.app.user.github);\n    Handlebars.registerHelper('releaseDotImg', function(passedString) {\n      if (passedString.substr(0, 6) === 'Delete') {\n        return 'img/delete-dot.png';\n      } else {\n        return 'img/release-dot.png';\n      }\n    });\n  }\n\n  DocumentCtrl.prototype.unload = function() {\n    DocumentCtrl.__super__.unload.call(this);\n    $(window).unbind('resize');\n    return $('#exit-fullscreen').remove();\n  };\n\n  DocumentCtrl.prototype.initialize = function(callback) {\n    return this.services.documentManager.getDocument(this.params.slug, (function(_this) {\n      return function(doc, lastContent) {\n        if (!doc) {\n          _this.app.redirect('/documents');\n        }\n        return _this.services.documentManager.getDocumentHistory(_this.params.slug, function(err, documentHistory) {\n          return _this.services.documentManager.getReleaseHistory(_this.params.slug, function(err, releaseHistory) {\n            var lastContentHash, localChanges, localContent, merge;\n            localContent = lastContent;\n            lastContentHash = MD5(lastContent);\n            localChanges = false;\n            merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);\n            _this.viewParams = {\n              doc: doc,\n              slug: _this.params.slug,\n              diff: documentHistory,\n              history: merge,\n              localChanges: localChanges,\n              lastContent: lastContent,\n              lastContentHash: lastContentHash\n            };\n            if (callback) {\n              return callback(_this.viewParams);\n            }\n          });\n        });\n      };\n    })(this));\n  };\n\n  DocumentCtrl.prototype.checkLocalChanges = function(hashToCompare) {\n    var localChanges, localContent, localContentHash;\n    localContent = this.editor.getValue();\n    localContentHash = MD5(localContent);\n    localChanges = false;\n    if (!hashToCompare) {\n      hashToCompare = this.viewParams.lastContentHash;\n    }\n    if (!hashToCompare) {\n      return false;\n    }\n    if (localContentHash !== hashToCompare) {\n      localChanges = true;\n    }\n    return localChanges;\n  };\n\n  DocumentCtrl.prototype.saveDraft = function(callback) {\n    var content, filename, message, slug;\n    if (!this.draftMessageOpen) {\n      $('#draft-add-message').slideDown('fast');\n      this.draftMessageOpen = true;\n      if (callback) {\n        callback(false);\n      }\n    } else {\n      message = $(\"#draft-message\").val();\n      content = this.editor.getValue();\n      filename = this.viewParams.doc.filename;\n      slug = this.viewParams.slug;\n      this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {\n        return function(err, res) {\n          _this.viewParams.lastContent = content;\n          _this.viewParams.lastContentHash = MD5(content);\n          _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {\n            _this.history.setLocalChanges(false);\n            lastCommit.commit_type = 'draft';\n            return _this.history.add(lastCommit);\n          });\n          $('#draft-add-message').slideUp('fast');\n          _this.draftMessageOpen = false;\n          if (callback) {\n            return callback(true);\n          }\n        };\n      })(this));\n    }\n    return false;\n  };\n\n  DocumentCtrl.prototype.release = function(callback) {\n    var changes, content, filename, message, releaseFct, slug;\n    if (!this.draftMessageOpen) {\n      $('#draft-add-message').slideDown('fast');\n      this.releaseMessage = true;\n      this.draftMessageOpen = true;\n      if (callback) {\n        return callback(false);\n      }\n    } else {\n      message = $(\"#draft-message\").val();\n      content = this.editor.getValue();\n      filename = this.viewParams.doc.filename;\n      slug = this.viewParams.slug;\n      releaseFct = (function(_this) {\n        return function() {\n          return _this.services.documentManager.release(slug, filename, content, message, function(err, res) {\n            _this.viewParams.lastContent = content;\n            _this.viewParams.lastContentHash = MD5(content);\n            _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {\n              _this.history.setLocalChanges(false);\n              lastCommit.commit_type = 'release';\n              return _this.history.add(lastCommit);\n            });\n            $('#draft-add-message').slideUp('fast');\n            _this.draftMessageOpen = false;\n            _this.releaseMessage = false;\n            if (callback) {\n              return callback(true);\n            }\n          });\n        };\n      })(this);\n      changes = this.checkLocalChanges();\n      if (changes) {\n        return this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {\n          return function(err, res) {\n            _this.viewParams.lastContent = content;\n            _this.viewParams.lastContentHash = MD5(content);\n            _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {\n              _this.history.setLocalChanges(false);\n              lastCommit.commit_type = 'draft';\n              return _this.history.add(lastCommit);\n            });\n            return releaseFct();\n          };\n        })(this));\n      } else {\n        return releaseFct();\n      }\n    }\n  };\n\n  DocumentCtrl.prototype.remove = function(callback) {\n    var slug;\n    slug = this.viewParams.slug;\n    return this.services.documentManager.remove(slug, (function(_this) {\n      return function() {\n        _this.app.askForRedirect(false);\n        return _this.app.redirect('/documents');\n      };\n    })(this));\n  };\n\n  DocumentCtrl.prototype.autoResizeEditor = function() {\n    var editorSel, previewSel, resize, selector;\n    $('#document-panel, #preview, #diff').css('overflow-y', 'auto');\n    selector = $('#diff, #document-panel');\n    editorSel = $('#editor');\n    previewSel = $('#preview');\n    resize = (function(_this) {\n      return function() {\n        selector.height($(window).height() - 75);\n        editorSel.height($(window).height() - 105);\n        return previewSel.height($(window).height() - 125);\n      };\n    })(this);\n    resize();\n    return $(window).bind('resize', (function(_this) {\n      return function() {\n        resize();\n        return _this.editor.resize();\n      };\n    })(this));\n  };\n\n  DocumentCtrl.prototype.syncScroll = function() {\n    var scroll;\n    scroll = (function(_this) {\n      return function(src, editorScrollT) {\n        var editorH, editorScrollH, previewH, previewScrollH, previewScrollT, ratioEditor, ratioEditor2, ratioPreview;\n        if ($('#editor').css('display') === 'none' || $('#preview').css('display') === 'none') {\n          return false;\n        }\n        editorH = $('#editor').height();\n        previewH = $('#preview').outerHeight();\n        previewScrollT = $('#preview')[0].scrollTop;\n        editorScrollH = _this.editor.getSession().getScreenLength() * 16;\n        previewScrollH = $('#preview')[0].scrollHeight;\n        if (editorScrollH < 0) {\n          editorScrollH = 0;\n        }\n        if (previewScrollH < 0) {\n          previewScrollH = 0;\n        }\n        ratioPreview = previewScrollT / (previewScrollH - previewH);\n        ratioEditor = editorScrollT / (editorScrollH - editorH);\n        ratioEditor2 = editorH / editorScrollH;\n        if (src === 'editor') {\n          return $('#preview')[0].scrollTop = ratioEditor * (previewScrollH - previewH);\n        } else {\n          return _this.editor.getSession().setScrollTop(ratioPreview * (editorScrollH - editorH));\n        }\n      };\n    })(this);\n    this.editor.getSession().on('changeScrollTop', (function(_this) {\n      return function(scrollTop) {\n        return scroll('editor', scrollTop);\n      };\n    })(this));\n    return $('#preview').scroll((function(_this) {\n      return function() {\n        return scroll('preview');\n      };\n    })(this));\n  };\n\n  DocumentCtrl.prototype.patchPrettyPrint = function(patch) {\n    var diff, index, line, lineCounter, lines, regexp, res, template, templateContent, type;\n    if (!patch) {\n      return $('#diff').html('<p class=\"alert alert-info\">No diff with last version</p>');\n    }\n    lines = patch.split('\\n');\n    diff = [];\n    lineCounter = [1, 1];\n    for (index in lines) {\n      line = lines[index].substr(1);\n      type = lines[index].substr(0, 1);\n      switch (type) {\n        case '@':\n          diff.push({\n            cssClass: 'active',\n            line1: '',\n            line2: '',\n            content: '@' + line\n          });\n          regexp = /^@ \\-([0-9]+)(,[0-9]+)? \\+([0-9]+)(,[0-9]+)? @@.*$/i;\n          res = line.match(regexp);\n          lineCounter[0] = res[1];\n          lineCounter[1] = (res[2] && res[2].substr(0, 1) === \",\" ? res[3] : res[2]);\n          break;\n        case ' ':\n          diff.push({\n            cssClass: '',\n            line1: lineCounter[0]++,\n            line2: lineCounter[1]++,\n            content: line\n          });\n          break;\n        case '+':\n          diff.push({\n            cssClass: 'success',\n            line1: lineCounter[0]++,\n            line2: '',\n            content: line\n          });\n          break;\n        case '-':\n          diff.push({\n            cssClass: 'danger',\n            line1: '',\n            line2: lineCounter[1]++,\n            content: line\n          });\n      }\n    }\n    templateContent = '<table class=\"table table-responsive table-condensed\"> {{#each lines}} <tr class={{cssClass}}> <td class=\"line\" style=\"color:\">{{line1}}</td> <td class=\"line\">{{line2}}</td> <td class=\"content\"><pre>{{content}}</pre></td> </tr> {{/each}} </table>';\n    template = Handlebars.compile(templateContent);\n    return $('#diff').html(template({\n      lines: diff\n    }));\n  };\n\n  DocumentCtrl.prototype.setupHistory = function() {\n    this.history = new DocumentHistory(this.viewParams.history, this.app.user, this.editor);\n    this.history.render($('#history'));\n    return this.history.on('select', (function(_this) {\n      return function(item, index) {\n        var t;\n        if (index === 0) {\n          $('#diff').hide();\n          t = 'preview';\n          if ($('#editor-mode').hasClass('btn-inverse')) {\n            t = 'editor';\n          }\n          $('#' + t + ', #toolbar').show();\n          return _this.editor.resize();\n        } else {\n          return _this.services.documentManager.getCommit(item.sha, function(err, commit) {\n            var patch;\n            patch = commit.files[0].patch;\n            _this.patchPrettyPrint(patch);\n            $('#editor, #toolbar, #preview').hide();\n            return $('#diff').show();\n          });\n        }\n      };\n    })(this));\n  };\n\n  DocumentCtrl.prototype.updatePreview = function() {\n    var previewContent;\n    previewContent = this.editor.getValue();\n    if (this.viewParams.doc.extension === 'md') {\n      previewContent = marked(previewContent);\n    }\n    return $('#preview').html(previewContent);\n  };\n\n  DocumentCtrl.prototype.setupTheme = function() {\n    var app, def, editor, list, menu, selectTheme, theme;\n    editor = this.editor;\n    app = this.app;\n    list = ['github', 'monokai', 'terminal', 'tomorrow', 'tomorrow_night', 'tomorrow_night_bright', 'tomorrow_night_eighties', 'twilight', 'xcode'];\n    selectTheme = (function(_this) {\n      return function(theme) {\n        return $.getScript('http://cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/theme-' + theme + '.js', function() {\n          editor.setTheme('ace/theme/' + theme);\n          app.env.set('theme', theme);\n          return $('#theme').find('span.name').text(theme.titleize());\n        });\n      };\n    })(this);\n    menu = $('#theme').parent().find('ul');\n    list.forEach((function(_this) {\n      return function(item) {\n        return menu.append('<li id=\"' + item + '\"><a href=\"#\">' + item.titleize() + '</a></li>');\n      };\n    })(this));\n    def = 'twilight';\n    theme = this.app.env.get('theme');\n    if (!theme) {\n      theme = def;\n    }\n    selectTheme(theme);\n    return $('li a', menu).click(function(e) {\n      var item;\n      item = $(this).parent().attr('id');\n      selectTheme(item);\n      $('#theme').dropdown('toggle');\n      return false;\n    });\n  };\n\n  DocumentCtrl.prototype.fullscreenMode = function() {\n    $('#editor,#preview').show();\n    $('#editor').css({\n      position: 'fixed',\n      left: 0,\n      top: '51px',\n      height: ($(window).height() - 51) + 'px',\n      width: '50%'\n    });\n    $('#preview').css({\n      position: 'fixed',\n      left: '50%',\n      top: '51px',\n      height: ($(window).height() - 51) + 'px',\n      width: '50%',\n      backgroundColor: 'white',\n      zIndex: 10\n    });\n    this.editor.resize();\n    $('body').append('<button id=\"exit-fullscreen\" class=\"btn btn-default\">Exit fullscreen</button>');\n    return $('#exit-fullscreen').click((function(_this) {\n      return function() {\n        $('#editor').css({\n          position: 'relative',\n          left: 'auto',\n          top: 'auto',\n          height: ($(window).height() - 106) + 'px',\n          width: 'auto',\n          display: ($('#editor-mode').hasClass('btn-inverse') ? 'block' : 'none')\n        });\n        $('#preview').css({\n          position: 'static',\n          left: 'auto',\n          top: 'auto',\n          height: ($(window).height() - 125) + 'px',\n          width: 'auto',\n          display: ($('#preview-mode').hasClass('btn-inverse') ? 'block' : 'none')\n        });\n        _this.editor.resize();\n        return $('#exit-fullscreen').remove();\n      };\n    })(this));\n  };\n\n  DocumentCtrl.prototype[\"do\"] = function() {\n    this.app.askForRedirect('Your local changes might be lost', (function(_this) {\n      return function() {\n        return _this.checkLocalChanges();\n      };\n    })(this));\n    this.autoResizeEditor();\n    this.editor = ace.edit('editor');\n    this.editor.getSession().setUseWrapMode(true);\n    if (this.viewParams.doc.extension === 'md') {\n      this.editor.getSession().setMode(\"ace/mode/markdown\");\n    } else {\n      this.editor.getSession().setMode(\"ace/mode/html\");\n    }\n    this.setupTheme();\n    $('#preview-mode').click((function(_this) {\n      return function() {\n        $('#editor-mode').removeClass('btn-inverse').addClass('btn-default');\n        $('#preview-mode').addClass('btn-inverse').removeClass('btn-default');\n        $('#editor').hide();\n        $('#preview').show();\n        return $('#theme').parent().hide();\n      };\n    })(this));\n    $('#editor-mode').click((function(_this) {\n      return function() {\n        $('#preview-mode').removeClass('btn-inverse').addClass('btn-default');\n        $('#editor-mode').addClass('btn-inverse').removeClass('btn-default');\n        $('#preview').hide();\n        $('#editor').show();\n        return $('#theme').parent().show();\n      };\n    })(this));\n    $('#fullscreen-mode').click((function(_this) {\n      return function() {\n        return _this.fullscreenMode();\n      };\n    })(this));\n    $(\"#save-draft\").click((function(_this) {\n      return function() {\n        _this.saveDraft();\n        return false;\n      };\n    })(this));\n    $(\"#release\").click((function(_this) {\n      return function() {\n        _this.release();\n        return false;\n      };\n    })(this));\n    $(\"#draft-message-go\").click((function(_this) {\n      return function() {\n        if (_this.releaseMessage) {\n          _this.release();\n        } else {\n          _this.saveDraft();\n        }\n        return false;\n      };\n    })(this));\n    $(\"#draft-message-cancel\").click((function(_this) {\n      return function() {\n        _this.draftMessageOpen = false;\n        $(\"#draft-add-message\").slideUp('fast');\n        return false;\n      };\n    })(this));\n    $('#remove-doc-link').click((function(_this) {\n      return function() {\n        if (confirm(\"Are you sure you want to remove this document?\")) {\n          _this.remove();\n        }\n        return false;\n      };\n    })(this));\n    $('#rename-doc-link').click((function(_this) {\n      return function() {\n        return false;\n      };\n    })(this));\n    this.setupHistory();\n    this.editor.setValue(this.viewParams.lastContent);\n    this.editor.clearSelection();\n    this.editor.focus();\n    this.editor.navigateFileStart();\n    this.syncScroll();\n    this.updatePreview();\n    this.editor.on('paste', (function(_this) {\n      return function(input) {\n        return setTimeout((function() {\n          var content, cur;\n          content = _this.editor.getValue();\n          if (content.match(/[’“”]/g)) {\n            content = content.replace(/\\’/g, '\\'').replace(/[“”]/g, '\"').replace(/…/g, '...');\n            cur = _this.editor.selection.getCursor();\n            _this.editor.setValue(content);\n            _this.editor.clearSelection();\n            _this.editor.selection.moveCursorToPosition(cur);\n            return _this.editor.scrollToLine(cur.row, true, false, function() {});\n          }\n        }), 100);\n      };\n    })(this));\n    return this.editor.getSession().on('change', (function(_this) {\n      return function() {\n        var content, localChanges;\n        content = _this.editor.getValue();\n        localChanges = _this.viewParams.lastContentHash !== MD5(content);\n        _this.updatePreview();\n        return _this.history.setLocalChanges(localChanges);\n      };\n    })(this));\n  };\n\n  return DocumentCtrl;\n\n})(Ctrl);\n\n},{\"../components/DocumentHistory\":2,\"../framework/Ctrl\":12,\"../services/DocumentManagerService\":24}],6:[function(require,module,exports){\nvar Ctrl, DocumentManagerService, DocumentsCtrl, config,\n  __hasProp = {}.hasOwnProperty,\n  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };\n\nCtrl = require('../framework/Ctrl');\n\nconfig = require('../config');\n\nDocumentManagerService = require('../services/DocumentManagerService');\n\nmodule.exports = DocumentsCtrl = (function(_super) {\n  __extends(DocumentsCtrl, _super);\n\n  function DocumentsCtrl(app) {\n    DocumentsCtrl.__super__.constructor.call(this, app);\n    if (!this.app.user.isAuth()) {\n      return this.app.redirect('/');\n    }\n    this.services.documentManager = new DocumentManagerService(this.app.user.github);\n  }\n\n  DocumentsCtrl.prototype.initialize = function(callback) {\n    return this.services.documentManager.checkAccess(this.app.user.get('login'), (function(_this) {\n      return function(access) {\n        if (!access) {\n          return _this.app.redirect('/403');\n        }\n        return _this.services.documentManager.list(function(err, data) {\n          if (err === 'not found') {\n            if (callback) {\n              return callback({\n                documents: null\n              });\n            }\n          }\n          _this.app.documents = data;\n          if (callback) {\n            return callback({\n              documents: data\n            });\n          }\n        });\n      };\n    })(this));\n  };\n\n  DocumentsCtrl.prototype[\"do\"] = function() {\n    $('#create-document').click(function() {\n      return $('#new-document-modal').modal('show');\n    });\n    $('#name-input').keyup(function() {\n      return $('#slug-input').val($(this).val().dasherize());\n    });\n    return $('#create-button').click((function(_this) {\n      return function() {\n        var formData, type;\n        type = $('#new-document-modal .btn-group label.active').text().trim().toLowerCase();\n        if (type === 'markdown') {\n          type = 'md';\n        }\n        formData = {\n          name: $('#name-input').val(),\n          slug: $('#slug-input').val(),\n          extension: type\n        };\n        return _this.services.documentManager.create(formData, function(err) {\n          $('.modal-backdrop').remove();\n          return _this.app.redirect('/document/' + formData.slug);\n        });\n      };\n    })(this));\n  };\n\n  return DocumentsCtrl;\n\n})(Ctrl);\n\n},{\"../config\":3,\"../framework/Ctrl\":12,\"../services/DocumentManagerService\":24}],7:[function(require,module,exports){\nvar Ctrl, ErrorCtrl,\n  __hasProp = {}.hasOwnProperty,\n  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };\n\nCtrl = require('../framework/Ctrl');\n\nmodule.exports = ErrorCtrl = (function(_super) {\n  __extends(ErrorCtrl, _super);\n\n  function ErrorCtrl(app, params) {\n    ErrorCtrl.__super__.constructor.call(this, app);\n    if (params.path === '/403') {\n      this.setView('error/403');\n    } else {\n      this.setView('error/404');\n    }\n  }\n\n  ErrorCtrl.prototype[\"do\"] = function() {};\n\n  return ErrorCtrl;\n\n})(Ctrl);\n\n},{\"../framework/Ctrl\":12}],8:[function(require,module,exports){\nvar Ctrl, IndexCtrl,\n  __hasProp = {}.hasOwnProperty,\n  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };\n\nCtrl = require('../framework/Ctrl');\n\nmodule.exports = IndexCtrl = (function(_super) {\n  __extends(IndexCtrl, _super);\n\n  function IndexCtrl(app) {\n    IndexCtrl.__super__.constructor.call(this, app);\n    if (this.app.user.isAuth()) {\n      this.app.redirect('/documents');\n    }\n  }\n\n  IndexCtrl.prototype[\"do\"] = function() {\n    return $('button').click((function(_this) {\n      return function() {\n        return OAuth.popup('github', function(err, res) {\n          if (err) {\n            return console.log(err);\n          }\n          return res.get('/user').done(function(data) {\n            _this.app.user.login(data, {\n              access_token: res.access_token,\n              provider: 'github'\n            });\n            return _this.app.redirect('/documents');\n          });\n        });\n      };\n    })(this));\n  };\n\n  return IndexCtrl;\n\n})(Ctrl);\n\n},{\"../framework/Ctrl\":12}],9:[function(require,module,exports){\nvar Ctrl, LogoutCtrl,\n  __hasProp = {}.hasOwnProperty,\n  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };\n\nCtrl = require('../framework/Ctrl');\n\nmodule.exports = LogoutCtrl = (function(_super) {\n  __extends(LogoutCtrl, _super);\n\n  function LogoutCtrl(app) {\n    LogoutCtrl.__super__.constructor.call(this, app);\n    this.app.user.logout();\n    this.app.redirect('/');\n  }\n\n  return LogoutCtrl;\n\n})(Ctrl);\n\n},{\"../framework/Ctrl\":12}],10:[function(require,module,exports){\nvar Ctrl, MediasCtrl,\n  __hasProp = {}.hasOwnProperty,\n  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };\n\nCtrl = require('../framework/Ctrl');\n\nmodule.exports = MediasCtrl = (function(_super) {\n  __extends(MediasCtrl, _super);\n\n  function MediasCtrl(app) {\n    MediasCtrl.__super__.constructor.call(this, app);\n  }\n\n  MediasCtrl.prototype.initialize = function(callback) {\n    if (callback) {\n      return callback();\n    }\n  };\n\n  MediasCtrl.prototype[\"do\"] = function() {};\n\n  return MediasCtrl;\n\n})(Ctrl);\n\n},{\"../framework/Ctrl\":12}],11:[function(require,module,exports){\nvar App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User, config;\n\nRouter = require('./Router');\n\nEnv = require('./Env');\n\nGlobalEvent = require('./GlobalEvent');\n\nCtrlManager = require('./CtrlManager');\n\nTemplateManager = require('./TemplateManager');\n\nLayoutManager = require('./LayoutManager');\n\nUser = require('./User');\n\nconfig = require('../../config');\n\nmodule.exports = App = (function() {\n  function App() {\n    this.env = new Env();\n    this.event = new GlobalEvent();\n    this.ctrlManager = new CtrlManager(this);\n    this.templateManager = TemplateManager;\n    this.layoutManager = LayoutManager;\n    this.ready = true;\n    this.user = new User(this);\n  }\n\n  App.prototype.initializeRouter = function(setting) {\n    this.router = new Router(this, setting);\n    return this.router;\n  };\n\n  App.prototype.setLayout = function(layout) {\n    this.ready = false;\n    this.layoutManager.set(layout, (function(_this) {\n      return function() {\n        _this.router.setDefaultPlacement('#content');\n        _this.ready = true;\n        if (_this.started) {\n          return _this.start();\n        }\n      };\n    })(this));\n    return this;\n  };\n\n  App.prototype.start = function() {\n    var hash;\n    this.started = true;\n    if (this.ready) {\n      this.user.initialize();\n      hash = window.location.hash;\n      if (hash && hash !== '#') {\n        return this.redirect(hash.substr(1));\n      } else if (!this.router._state) {\n        return this.redirect('/');\n      } else {\n        return this.redirect(this.router._state);\n      }\n    }\n  };\n\n  App.prototype.askForRedirect = function(msg, answer) {\n    if (!msg) {\n      this._askedForRedirect = false;\n      return this._askedForRedirectFct = null;\n    } else {\n      this._askedForRedirect = true;\n      this._askedForRedirectFct = answer;\n      return $(window).bind('beforeunload', function() {\n        return 'Your local changes might be lost';\n      });\n    }\n  };\n\n  App.prototype.redirect = function(path) {\n    var answer;\n    if (this._askedForRedirect) {\n      answer = this._askedForRedirectFct();\n      if (!answer || (answer && confirm('Are you sure you want to quit this page? all local changes will be lost.'))) {\n        this._askedForRedirect = false;\n        this._askedForRedirectFct = null;\n        $(window).unbind('beforeunload');\n        return this.router.stopPropagate(path).change(path);\n      } else {\n        this.router.nextNoRedirect = true;\n        return this.router.changeHash(this.router._state);\n      }\n    } else {\n      return this.router.stopPropagate(path).change(path);\n    }\n  };\n\n  App.prototype.refreshMenu = function(path) {\n    if (!this.menu) {\n      return false;\n    }\n    $('li.active', this.menu).removeClass('active');\n    $('li a[href=\"#' + path + '\"]').parent().addClass('active');\n    if (!this.user.isAuth()) {\n      $('li.need-auth').hide();\n    }\n    if (this.user.isAuth()) {\n      return $('li.need-auth').show();\n    }\n  };\n\n  App.prototype.setMenu = function(selector) {\n    this.menu = selector;\n    return this;\n  };\n\n  App.prototype.setTitle = function(title) {};\n\n  App.prototype.setMeta = function(meta, value) {};\n\n  return App;\n\n})();\n\n},{\"../../config\":1,\"./CtrlManager\":14,\"./Env\":15,\"./GlobalEvent\":16,\"./LayoutManager\":17,\"./Router\":18,\"./TemplateManager\":20,\"./User\":21}],12:[function(require,module,exports){\nvar Ctrl, CtrlEvent, View;\n\nCtrlEvent = require('./CtrlEvent');\n\nView = require('./View');\n\nmodule.exports = Ctrl = (function() {\n  function Ctrl(app, params) {\n    var ctrlname;\n    this.app = app;\n    this.params = params;\n    ctrlname = this.constructor.name;\n    ctrlname = ctrlname.substr(0, ctrlname.length - 4);\n    ctrlname = ctrlname.replace(/([A-Z])/g, \"-$1\");\n    this.templateUrl = ctrlname.substr(1).toLowerCase() + '.html';\n    this.scope = {};\n    this.event = new CtrlEvent();\n    this.view = new View();\n    this.services = {};\n    this._askedForRedirect = false;\n  }\n\n  Ctrl.prototype.use = function(callback) {\n    return this.render((function(_this) {\n      return function() {\n        _this[\"do\"]();\n        if (callback()) {\n          return callback;\n        }\n      };\n    })(this));\n  };\n\n  Ctrl.prototype.initialize = function(callback) {\n    if (callback) {\n      return callback();\n    }\n  };\n\n  Ctrl.prototype[\"do\"] = function() {};\n\n  Ctrl.prototype.render = function(callback) {\n    return this.initialize((function(_this) {\n      return function(params) {\n        return _this.view.render(_this.templateUrl, params, _this.app.router.defaultPlacement, callback);\n      };\n    })(this));\n  };\n\n  Ctrl.prototype.include = function(ctrl, placement, callback) {};\n\n  Ctrl.prototype.setView = function(template) {\n    return this.templateUrl = template + '.html';\n  };\n\n  Ctrl.prototype.unload = function() {\n    if (this._askedForRedirect) {\n      return $(window).unbind('beforeunload');\n    }\n  };\n\n  return Ctrl;\n\n})();\n\n},{\"./CtrlEvent\":13,\"./View\":22}],13:[function(require,module,exports){\nvar CtrlEvent;\n\nmodule.exports = CtrlEvent = (function() {\n  function CtrlEvent() {\n    this.listeners = [];\n  }\n\n  CtrlEvent.prototype.emit = function(name, value) {\n    var listener, _i, _len, _ref, _results;\n    _ref = this.listeners;\n    _results = [];\n    for (_i = 0, _len = _ref.length; _i < _len; _i++) {\n      listener = _ref[_i];\n      if (listener.name === name) {\n        _results.push(listener.callback(value));\n      } else {\n        _results.push(void 0);\n      }\n    }\n    return _results;\n  };\n\n  CtrlEvent.prototype.receive = function(name, callback) {\n    return this.listeners.push({\n      name: name,\n      callback: callback\n    });\n  };\n\n  return CtrlEvent;\n\n})();\n\n},{}],14:[function(require,module,exports){\nvar CtrlManager;\n\nmodule.exports = CtrlManager = (function() {\n  function CtrlManager(app) {\n    this.app = app;\n    this.partials = [];\n  }\n\n  CtrlManager.prototype.setMaster = function(ctrl, params, callback) {\n    if (this.master) {\n      this.master.unload();\n    }\n    this.master = new ctrl(this.app, params);\n    if (this.app.router.stop && this.app.router.stop !== params.path) {\n      return (this.app.router.stop = false);\n    }\n    return this.master.use(callback);\n  };\n\n  CtrlManager.prototype.addPartial = function(ctrl, placement, callback) {\n    this.partials.push({\n      ctrl: new ctrl(this.app, {\n        placement: placement\n      })\n    });\n    return this.partials[this.partials.length - 1].ctrl.use(callback);\n  };\n\n  CtrlManager.prototype.removePartial = function(ctrl, placement) {\n    var partial;\n    for (partial in this.partials) {\n      if (partials[partial].placement === placement) {\n        delete partials[partial];\n      }\n    }\n    return $(placement).html('');\n  };\n\n  return CtrlManager;\n\n})();\n\n},{}],15:[function(require,module,exports){\nvar Env;\n\nmodule.exports = Env = (function() {\n  var data;\n\n  data = {};\n\n  function Env() {\n    if (localStorage) {\n      try {\n        data = JSON.parse(localStorage.getItem('env'));\n      } catch (_error) {}\n      if (!data) {\n        data = {};\n      }\n    }\n  }\n\n  Env.prototype.set = function(key, value) {\n    data[key] = value;\n    if (localStorage) {\n      return localStorage.setItem('env', JSON.stringify(data));\n    }\n  };\n\n  Env.prototype.get = function(key) {\n    return data[key];\n  };\n\n  return Env;\n\n})();\n\n},{}],16:[function(require,module,exports){\nvar GlobalEvent;\n\nmodule.exports = GlobalEvent = (function() {\n  function GlobalEvent() {\n    this.listeners = [];\n  }\n\n  GlobalEvent.prototype.emit = function(name, value) {\n    var listener, _i, _len, _ref, _results;\n    _ref = this.listeners;\n    _results = [];\n    for (_i = 0, _len = _ref.length; _i < _len; _i++) {\n      listener = _ref[_i];\n      if (listener.name === name) {\n        _results.push(listener.callback(value));\n      } else {\n        _results.push(void 0);\n      }\n    }\n    return _results;\n  };\n\n  GlobalEvent.prototype.on = function(name, callback) {\n    return this.listeners.push({\n      name: name,\n      callback: callback\n    });\n  };\n\n  return GlobalEvent;\n\n})();\n\n},{}],17:[function(require,module,exports){\nvar LayoutManager;\n\nmodule.exports = LayoutManager = (function() {\n  var Layout, baseUrl, layout, layouts;\n\n  function LayoutManager() {}\n\n  layouts = {};\n\n  layout = null;\n\n  baseUrl = './tmpl/layout/';\n\n  Layout = (function() {\n    function Layout(template) {\n      this.template = template;\n    }\n\n    Layout.prototype.getContent = function(callback) {\n      if (this.content) {\n        return callback(this.content);\n      }\n      return $.ajax({\n        url: baseUrl + this.template + '.html',\n        type: \"get\"\n      }).done((function(_this) {\n        return function(content) {\n          _this.content = content;\n          if (callback) {\n            return callback(content);\n          }\n        };\n      })(this));\n    };\n\n    return Layout;\n\n  })();\n\n  LayoutManager.setBaseUrl = function(base) {\n    return baseUrl = base;\n  };\n\n  LayoutManager.set = function(l, callback) {\n    layout = l;\n    if (layouts[layout] == null) {\n      layouts[layout] = new Layout(layout);\n    }\n    return layouts[layout].getContent((function(_this) {\n      return function(content) {\n        $('body').html(content);\n        return callback();\n      };\n    })(this));\n  };\n\n  return LayoutManager;\n\n})();\n\n},{}],18:[function(require,module,exports){\nvar Router, View;\n\nView = require('./View');\n\nmodule.exports = Router = (function() {\n  function Router(app, setup) {\n    this.app = app;\n    this._routes = setup;\n    this.changingHash = false;\n    this.defaultPlacement = 'body';\n    $(window).hashchange((function(_this) {\n      return function() {\n        if (_this.nextNoRedirect) {\n          return _this.nextNoRedirect = false;\n        } else {\n          return _this.app.redirect(window.location.hash.substr(1));\n        }\n      };\n    })(this));\n  }\n\n  Router.prototype.setDefaultPlacement = function(defaultPlacement) {\n    this.defaultPlacement = defaultPlacement;\n    return this;\n  };\n\n  Router.prototype.changeHash = function(path) {\n    this._state = path;\n    this.changingHash = true;\n    return window.location.hash = this._state;\n  };\n\n  Router.prototype._checkPath = function(path) {\n    var masterCtrl, masterParams, param, params, regexpStr, res, route;\n    masterParams = new Array();\n    for (route in this._routes) {\n      if (route.indexOf('/:') !== -1) {\n        res = route.match(/\\/:([a-zA-Z0-9]+)/);\n        res.shift();\n        params = res;\n        regexpStr = route.replace(/\\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_-]+)').replace(/\\//g, '\\\\/');\n        res = path.match(new RegExp(regexpStr));\n        if (!res) {\n          continue;\n        }\n        res.shift();\n        for (param in params) {\n          if (param === 'index' || param === 'input') {\n            continue;\n          }\n          masterParams[params[param]] = res[param];\n        }\n        if (this._routes[route].ctrl) {\n          masterCtrl = this._routes[route].ctrl;\n        } else {\n          masterCtrl = this._routes[route];\n        }\n      } else if (route === path) {\n        if (this._routes[route].ctrl) {\n          masterCtrl = this._routes[route].ctrl;\n        } else {\n          masterCtrl = this._routes[route];\n        }\n        break;\n      }\n    }\n    masterParams['path'] = path;\n    return {\n      master: masterCtrl,\n      masterParams: masterParams,\n      partial: null\n    };\n  };\n\n  Router.prototype.stopPropagate = function(path) {\n    this.stop = path;\n    return this;\n  };\n\n  Router.prototype.change = function(path) {\n    var res;\n    res = this._checkPath(path);\n    if (!res.master) {\n      return this.change('/404');\n    }\n    this.changeHash(path);\n    this.app.ctrlManager.setMaster(res.master, res.masterParams, (function(_this) {\n      return function() {\n        if (_this.stop) {\n          _this.stop = false;\n        }\n        return _this.app.refreshMenu(path);\n      };\n    })(this));\n    return this;\n  };\n\n  return Router;\n\n})();\n\n},{\"./View\":22}],19:[function(require,module,exports){\nvar Service;\n\nmodule.exports = Service = (function() {\n  function Service() {}\n\n  return Service;\n\n})();\n\n},{}],20:[function(require,module,exports){\nvar TemplateManager;\n\nmodule.exports = TemplateManager = (function() {\n  var Template, baseUrl, instances;\n\n  function TemplateManager() {}\n\n  instances = {};\n\n  baseUrl = './tmpl/main/';\n\n  Template = (function() {\n    function Template(template) {\n      this.template = template;\n    }\n\n    Template.prototype.getContent = function(callback) {\n      if (this.content) {\n        return callback(this.content);\n      }\n      return $.ajax({\n        url: baseUrl + this.template,\n        type: \"get\"\n      }).done(callback);\n    };\n\n    return Template;\n\n  })();\n\n  TemplateManager.setBaseUrl = function(base) {\n    return baseUrl = base;\n  };\n\n  TemplateManager.get = function(template, callback) {\n    if (instances[template] == null) {\n      instances[template] = new Template(template);\n    }\n    return instances[template].getContent(callback);\n  };\n\n  return TemplateManager;\n\n})();\n\n},{}],21:[function(require,module,exports){\nvar User;\n\nmodule.exports = User = (function() {\n  function User(app) {\n    this.app = app;\n    if (this.app.env.get('auth')) {\n      if (this.app.env.get('access_token') && this.app.env.get('provider')) {\n        if (this.app.env.get('provider') === 'github') {\n          this.github = new Github({\n            token: this.app.env.get('access_token'),\n            auth: 'oauth'\n          });\n        }\n      }\n    }\n  }\n\n  User.prototype.initialize = function() {\n    if (this.app.env.get('auth')) {\n      return this.app.event.emit(\"login\");\n    }\n  };\n\n  User.prototype.login = function(userinfo, social) {\n    this.app.env.set('auth', true);\n    this.app.env.set('userinfo', userinfo);\n    if (social.provider && social.access_token) {\n      this.app.env.set('access_token', social.access_token);\n      this.app.env.set('provider', social.provider);\n      if (social.provider === 'github') {\n        this.github = new Github({\n          token: social.access_token,\n          auth: 'oauth'\n        });\n      }\n    }\n    return this.app.event.emit(\"login\");\n  };\n\n  User.prototype.setRight = function(right) {\n    this.right = right;\n  };\n\n  User.prototype.isAuth = function() {\n    return this.app.env.get('auth');\n  };\n\n  User.prototype.get = function(key) {\n    return this.app.env.get('userinfo')[key];\n  };\n\n  User.prototype.logout = function() {\n    this.github = null;\n    this.app.env.set('auth', false);\n    this.app.env.set('username', '');\n    this.app.env.set('access_token', '');\n    this.app.env.set('provider', '');\n    return this.app.event.emit('logout');\n  };\n\n  return User;\n\n})();\n\n},{}],22:[function(require,module,exports){\nvar TemplateManager, View;\n\nTemplateManager = require('./TemplateManager');\n\nmodule.exports = View = (function() {\n  function View() {}\n\n  View.prototype.render = function(templateUrl, params, placement, success) {\n    return TemplateManager.get(templateUrl, function(content) {\n      var template;\n      template = Handlebars.compile(content);\n      $(placement).html(template(params));\n      if (success) {\n        return success();\n      }\n    });\n  };\n\n  return View;\n\n})();\n\n},{\"./TemplateManager\":20}],23:[function(require,module,exports){\n\n/*\nclass GDraft\n	construct: (slug, commit) ->\n	push: (content, commit) ->\n	diff: (commit) ->\n\nclass GDocument\n	construct: (slug, options) ->\n	getContent: ->\n	getMeta: ->\n	createDraft: ->\n\ndocumentManager =\n	documents: [],\n	createOrOpen: (slug, options) ->\n		 *git branch document-{slug} if not exists\n		 *git checkout document-{slug}\n		 *\n	diff: (slug, v1, v2) ->\n	list: ->\n\nrepo =\n	construct: ->\n */\nvar AlwaysCtrl, App, DocumentCtrl, DocumentsCtrl, ErrorCtrl, IndexCtrl, LogoutCtrl, MediasCtrl;\n\nApp = require('./framework/App');\n\nAlwaysCtrl = require('./controllers/AlwaysCtrl');\n\nErrorCtrl = require('./controllers/ErrorCtrl');\n\nIndexCtrl = require('./controllers/IndexCtrl');\n\nDocumentsCtrl = require('./controllers/DocumentsCtrl');\n\nDocumentCtrl = require('./controllers/DocumentCtrl');\n\nMediasCtrl = require('./controllers/MediasCtrl');\n\nLogoutCtrl = require('./controllers/LogoutCtrl');\n\n$('document').ready(function() {\n  var app;\n  OAuth.initialize('poZr5pdrx7yFDfoE-gICayo2cBc');\n  app = new App();\n  app.initializeRouter({\n    '/document/:slug': DocumentCtrl,\n    '/': IndexCtrl,\n    '/404': ErrorCtrl,\n    '/403': ErrorCtrl,\n    '/documents': DocumentsCtrl,\n    '/medias': MediasCtrl,\n    '/logout': LogoutCtrl\n  });\n  app.event.on('login', function() {\n    return $('#user-menu').prepend('<li id=\"user-avatar\" class=\"auth-needed\"><a href=\"https://github.com/' + app.user.get('login') + '\"><img style=\"margin-top: -15px; position: relative; top: 6px\" width=\"32\" src=\"' + app.user.get('avatar_url') + '\" class=\"img-circle\"></a></li>');\n  });\n  app.event.on('logout', function() {\n    return $('#user-avatar').remove();\n  });\n  return app.setMenu('#menu').setLayout('index').start();\n});\n\n},{\"./controllers/AlwaysCtrl\":4,\"./controllers/DocumentCtrl\":5,\"./controllers/DocumentsCtrl\":6,\"./controllers/ErrorCtrl\":7,\"./controllers/IndexCtrl\":8,\"./controllers/LogoutCtrl\":9,\"./controllers/MediasCtrl\":10,\"./framework/App\":11}],24:[function(require,module,exports){\nvar DocumentManagerService, Service, config,\n  __hasProp = {}.hasOwnProperty,\n  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };\n\nService = require('../framework/Service');\n\nconfig = require('../../config');\n\nmodule.exports = DocumentManagerService = (function(_super) {\n  __extends(DocumentManagerService, _super);\n\n  function DocumentManagerService(github) {\n    var href, res;\n    this.github = github;\n    this.documents = {};\n    href = window.location.href;\n    res = href.match(/^http:\\/\\/([a-zA-Z0-9_-]+).github.io\\/([a-zA-Z0-9_-]+)\\/.*$/i);\n    if (!res) {\n      this.repo = this.github.getRepo(config.username, config.repository);\n    } else {\n      this.repo = this.github.getRepo(res[1], res[2]);\n    }\n  }\n\n  DocumentManagerService.prototype.checkAccess = function(username, callback) {\n    return this.repo.isCollaborator(username, function(err, res) {\n      if (res) {\n        return callback('collaborator');\n      } else {\n        if (config[\"private\"]) {\n          return callback(false);\n        } else {\n          return callback('guest');\n        }\n      }\n    });\n  };\n\n  DocumentManagerService.prototype.create = function(params, callback) {\n    if (this.documents[params.slug]) {\n      return callback({\n        error: true,\n        code: 1,\n        msg: 'Slug already exists, please choose another one'\n      });\n    }\n    if (params.extension !== 'md' && params.extension !== 'html') {\n      return callback({\n        error: true,\n        code: 2,\n        msg: 'Unknown extension'\n      });\n    }\n    if (params.name.length > 70) {\n      return callback({\n        error: true,\n        code: 3,\n        msg: 'Name too long'\n      });\n    }\n    this.documents[params.slug] = {\n      name: params.name,\n      extension: params.extension,\n      created: Date.now(),\n      path: '',\n      filename: params.slug + '.' + params.extension\n    };\n    return this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + params.slug + ' in documents.json', (function(_this) {\n      return function(err) {\n        if (err) {\n          return callback(err);\n        }\n        return _this.repo.branch(params.slug, function(err) {\n          if (err) {\n            return callback(err);\n          }\n          return callback();\n        });\n      };\n    })(this));\n  };\n\n  DocumentManagerService.prototype.release = function(slug, filename, content, message, callback) {\n    this.documents[slug].updated = Date.now();\n    return this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {\n      return function(err) {\n        if (err) {\n          return callback(err);\n        }\n        return _this.repo.write('master', filename, content, message, callback);\n      };\n    })(this));\n  };\n\n  DocumentManagerService.prototype.saveDraft = function(slug, filename, content, message, callback) {\n    this.documents[slug].updated = Date.now();\n    return this.repo.write(slug, 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {\n      return function(err) {\n        if (err) {\n          return callback(err);\n        }\n        return _this.repo.write(slug, filename, content, message, callback);\n      };\n    })(this));\n  };\n\n  DocumentManagerService.prototype.getDocument = function(slug, callback) {\n    if (Object.equal(this.documents, {})) {\n      return this.repo.read('master', 'documents.json', (function(_this) {\n        return function(err, data) {\n          var doc;\n          _this.documents = JSON.parse(data);\n          doc = _this.documents[slug];\n          return _this.repo.read(slug, doc.filename, function(err, content) {\n            if (!content) {\n              content = '';\n            }\n            return callback(doc, content);\n          });\n        };\n      })(this));\n    } else {\n      return callback(this.documents[slug]);\n    }\n  };\n\n  DocumentManagerService.prototype.getReleaseHistory = function(slug, callback) {\n    if (!this.documents[slug]) {\n      callback('not found', null);\n    }\n    return this.repo.getCommits({\n      path: this.documents[slug].filename,\n      sha: 'master'\n    }, callback);\n  };\n\n  DocumentManagerService.prototype.getDocumentHistory = function(slug, callback) {\n    if (!this.documents[slug]) {\n      callback('not found', null);\n    }\n    return this.repo.getCommits({\n      path: this.documents[slug].filename,\n      sha: slug\n    }, callback);\n  };\n\n  DocumentManagerService.prototype.mergeHistory = function(releaseHistory, documentHistory) {\n    var history, v, _i, _j, _len, _len1;\n    history = new Array();\n    for (_i = 0, _len = releaseHistory.length; _i < _len; _i++) {\n      v = releaseHistory[_i];\n      v.commit_type = 'release';\n    }\n    for (_j = 0, _len1 = documentHistory.length; _j < _len1; _j++) {\n      v = documentHistory[_j];\n      v.commit_type = 'draft';\n    }\n    history = releaseHistory.add(documentHistory);\n    history = history.sortBy((function(elem) {\n      return new Date(elem.commit.author.date);\n    }), true);\n    return history;\n  };\n\n  DocumentManagerService.prototype.remove = function(slug, callback) {\n    var filename, i;\n    if (!this.documents[slug]) {\n      callback('not found', null);\n    }\n    filename = this.documents[slug].filename;\n    delete this.documents[slug];\n    i = 0;\n    this.repo.deleteRef('heads/' + slug, (function(_this) {\n      return function(err) {\n        if (callback && ++i === 3) {\n          return callback(null, true);\n        }\n      };\n    })(this));\n    this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {\n      return function(err) {\n        if (callback && ++i === 3) {\n          return callback(null, true);\n        }\n      };\n    })(this));\n    return this.repo[\"delete\"]('master', filename, (function(_this) {\n      return function(err) {\n        if (callback && ++i === 3) {\n          return callback(null, true);\n        }\n      };\n    })(this));\n  };\n\n  DocumentManagerService.prototype.getCommit = function(sha, cb) {\n    if (sha) {\n      return this.repo.getCommit(sha, cb);\n    }\n  };\n\n  DocumentManagerService.prototype.list = function(callback) {\n    return this.repo.read('master', 'documents.json', (function(_this) {\n      return function(err, data) {\n        var list, slug;\n        if (!err) {\n          _this.documents = JSON.parse(data);\n        } else {\n          _this.documents = {};\n        }\n        list = new Array();\n        for (slug in _this.documents) {\n          list.push($.extend({\n            slug: slug\n          }, _this.documents[slug]));\n        }\n        if (callback) {\n          return callback(err, list);\n        }\n      };\n    })(this));\n  };\n\n  return DocumentManagerService;\n\n})(Service);\n\n<<<<<<< HEAD\n},{\"../../config\":1,\"../framework/Service\":19}]},{},[23])\n=======\n},{\"../config\":2,\"../framework/Service\":18}]},{},[22])\n>>>>>>> cfe1fb781b57608bd4ae91ef03c5d37a585849c1\n",
+			"file": "/Users/thyb/projects/content-oauthio/dist/gcm.js",
+			"file_size": 53883,
+			"file_write_time": 130422621350000000,
+			"settings":
+			{
+				"buffer_size": 54826,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "Searching 21 files for \"ctrlEvent\"\n\n/Users/thyb/projects/content-oauthio/dev/coffee/framework/Ctrl.coffee:\n    1: CtrlEvent = require('./CtrlEvent')\n    2  View = require('./View')\n    3  \n    .\n   10  		# @templateUrl = @constructor.name.substr(0, @constructor.name.length - 4).toLowerCase() + '.html'\n   11  		@scope = {}\n   12: 		@event = new CtrlEvent()\n   13  		@view = new View()\n   14  		@services = {}\n\n3 matches in 1 file\n\n\nSearching 21 files for \"@event\"\n\n/Users/thyb/projects/content-oauthio/dev/coffee/framework/App.coffee:\n   12  		# TODO: load env from localstorage\n   13  		@env = new Env()\n   14: 		@event = new GlobalEvent()\n   15  		@ctrlManager = new CtrlManager @\n   16  		@templateManager = TemplateManager\n\n/Users/thyb/projects/content-oauthio/dev/coffee/framework/Ctrl.coffee:\n   10  		# @templateUrl = @constructor.name.substr(0, @constructor.name.length - 4).toLowerCase() + '.html'\n   11  		@scope = {}\n   12: 		@event = new CtrlEvent()\n   13  		@view = new View()\n   14  		@services = {}\n\n2 matches across 2 files\n\n\nSearching 21 files for \"event\"\n\n/Users/thyb/projects/content-oauthio/dev/coffee/main.coffee:\n   46  		'/logout': LogoutCtrl\n   47  \n   48: 	app.event.on 'login', ->\n   49  		$('#user-menu').prepend '<li id=\"user-avatar\" class=\"auth-needed\"><a href=\"https://github.com/' + app.user.get('login') + '\"><img style=\"margin-top: -15px; position: relative; top: 6px\" width=\"32\" src=\"' + app.user.get('avatar_url') + '\" class=\"img-circle\"></a></li>'\n   50  \n   51: 	app.event.on 'logout', ->\n   52  		$('#user-avatar').remove()\n   53  \n\n/Users/thyb/projects/content-oauthio/dev/coffee/framework/App.coffee:\n    1  Router = require('./Router')\n    2  Env = require('./Env')\n    3: GlobalEvent = require('./GlobalEvent')\n    4  CtrlManager = require('./CtrlManager')\n    5  TemplateManager = require('./TemplateManager')\n    .\n   12  		# TODO: load env from localstorage\n   13  		@env = new Env()\n   14: 		@event = new GlobalEvent()\n   15  		@ctrlManager = new CtrlManager @\n   16  		@templateManager = TemplateManager\n\n/Users/thyb/projects/content-oauthio/dev/coffee/framework/Ctrl.coffee:\n    1: CtrlEvent = require('./CtrlEvent')\n    2  View = require('./View')\n    3  \n    .\n   10  		# @templateUrl = @constructor.name.substr(0, @constructor.name.length - 4).toLowerCase() + '.html'\n   11  		@scope = {}\n   12: 		@event = new CtrlEvent()\n   13  		@view = new View()\n   14  		@services = {}\n\n/Users/thyb/projects/content-oauthio/dev/coffee/framework/GlobalEvent.coffee:\n    1: module.exports = class GlobalEvent\n    2  	constructor: () ->\n    3  		@listeners = []\n\n/Users/thyb/projects/content-oauthio/dev/coffee/framework/User.coffee:\n    7  	initialize: () ->\n    8  		if @app.env.get('auth')\n    9: 			@app.event.emit \"login\"\n   10  \n   11  	login: (userinfo, social) ->\n   ..\n   17  			@github = new Github(token: social.access_token, auth: 'oauth') if social.provider == 'github'\n   18  \n   19: 		@app.event.emit \"login\"\n   20  \n   21  	setRight: (@right) ->\n   ..\n   34  		@app.env.set 'provider', ''\n   35  \n   36: 		@app.event.emit 'logout'\n\n14 matches across 5 files\n",
+			"settings":
+			{
+				"buffer_size": 3112,
+				"line_ending": "Unix",
+				"name": "Find Results",
+				"scratch": true
+			}
+		},
+		{
+			"file": "Ctrl.coffee",
+			"settings":
+			{
+				"buffer_size": 886,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "{\n	\"folders\":\n	[\n		{\n			\"follow_symlinks\": true,\n			\"path\": \"/Users/thyb/projects/content-oauthio\"\n		}\n	]\n}\n",
+			"file": "content-oauthio.sublime-project",
+			"file_size": -1,
+			"file_write_time": -1,
+			"settings":
+			{
+				"buffer_size": 108,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"packa",
+				"Package Control: Install Package"
+			],
+			[
+				"html",
+				"Set Syntax: HTML"
+			],
+			[
+				"less",
+				"Set Syntax: LESS"
+			],
+			[
+				"package install",
+				"Package Control: Install Package"
+			],
+			[
+				"traili",
+				"Trailing Spaces: Delete Trailing Spaces"
+			],
+			[
+				"liverelo",
+				"LiveReload: Enable/disable plug-ins"
+			],
+			[
+				"package remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"packagein",
+				"Package Control: Install Package"
+			],
+			[
+				"Livereload",
+				"LiveReload: Enable/disable plug-ins"
+			],
+			[
+				"trai",
+				"Trailing Spaces: Delete Trailing Spaces"
+			],
+			[
+				"coffee",
+				"Coffee: Display JavaScript"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"package",
+				"Package Control: Install Package"
+			],
+			[
+				"package instal",
+				"Package Control: Install Package"
+			],
+			[
+				"packag",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 476.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '7183a2d3e96f11eeadd761d777e62404' + 'e330c659d4bb41d3bdf022e94cab3cd0'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/thyb/projects/gcm/dev/coffee/config.coffee",
+		"/Users/thyb/projects/gcm/js/framework/CtrlEvent.js",
+		"/Users/thyb/projects/gcm/js/config.js",
+		"/Users/thyb/projects/gcm/dev/coffee/framework/User.coffee",
+		"/Users/thyb/projects/gcm/dev/coffee/framework/Ctrl.coffee",
+		"/Users/thyb/projects/gcm/tmpl/main/error/404.html",
+		"/Users/thyb/projects/gcm/tmpl/main/error/403.html",
+		"/Users/thyb/projects/gcm/dev/coffee/controllers/ErrorCtrl.coffee",
+		"/Users/thyb/projects/gcm/dev/coffee/controllers/DocumentCtrl.coffee",
+		"/Users/thyb/projects/gcm/js/controllers/ErrorCtrl.js",
+		"/Users/thyb/projects/gcm/js/controllers/Error.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-browserify/node_modules/browserify-shim/test/fixtures/entry-requires-root-level-var.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-browserify/node_modules/browserify-shim/test/fixtures/entry-requires-cjs.js",
+		"/Users/thyb/projects/gcm/dev/coffee/framework/Env.coffee",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-less/node_modules/less/test/browser/runner-main-spec.js",
+		"/Users/thyb/projects/gcm/dev/coffee/main.coffee",
+		"/Users/thyb/projects/gcm/dev/coffee/framework/App.coffee",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-less/node_modules/less/.grunt/grunt-contrib-jasmine/reporter.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt/node_modules/coffee-script/lib/coffee-script/repl.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-less/node_modules/less/test/browser/runner-errors-options.js",
+		"/Users/thyb/projects/gcm/dev/coffee/framework/Router.coffee",
+		"/Users/thyb/projects/gcm/Gruntfile.js",
+		"/Users/thyb/projects/gcm/dev/coffee/controllers/IndexCtrl.coffee",
+		"/Users/thyb/projects/gcm/tmpl/main/documents.html",
+		"/Users/thyb/projects/gcm/tmpl/main/document.html",
+		"/Users/thyb/projects/gcm/node_modules/browserify/node_modules/vm-browserify/node_modules/indexof/index.js",
+		"/Users/thyb/projects/gcm/node_modules/browserify/index.js",
+		"/Users/thyb/projects/gcm/tmpl/layout/index.html",
+		"/Users/thyb/projects/gcm/index.html",
+		"/Users/thyb/projects/gcm/node_modules/temporary/node_modules/package/test/index.test.js",
+		"/Users/thyb/projects/gcm/node_modules/browserify/node_modules/http-browserify/example/json-stream/node_modules/JSONStream/.travis.yml",
+		"/Users/thyb/projects/gcm/dev/less/main.less",
+		"/Users/thyb/projects/gcm/lib/github.js",
+		"/Users/thyb/projects/gcm/dev/coffee/components/DocumentHistory.coffee",
+		"/Users/thyb/projects/gcm/lib/marked.js",
+		"/Users/thyb/projects/gcm/package.json",
+		"/Users/thyb/projects/gcm/js/framework/LayoutManager.js",
+		"/Users/thyb/projects/gcm/node_modules/browserify/node_modules/JSONStream/LICENSE.APACHE2",
+		"/Users/thyb/projects/gcm/node_modules/browserify/LICENSE",
+		"/Users/thyb/projects/gcm/lib/ace/anchor.js",
+		"/Users/thyb/projects/gcm/lib/ace/mode/gherkin_highlight_rules.js",
+		"/Users/thyb/projects/gcm/lib/ace/mode/coffee.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-harp/node_modules/harp/node_modules/terraform/node_modules/less/test/less/errors/color-func-invalid-color.less",
+		"/Users/thyb/projects/gcm/node_modules/browserify/node_modules/zlib-browserify/node_modules/tape/test/child_ordering.js",
+		"/Users/thyb/projects/gcm/node_modules/temporary/History.md",
+		"/Users/thyb/projects/gcm/node_modules/browserify/test/hash_instance.js",
+		"/Users/thyb/projects/gcm/js/framework/Helpers.js",
+		"/Users/thyb/projects/gcm/node_modules/browserify/node_modules/browser-pack/node_modules/combine-source-map/node_modules/inline-source-map/test/source-content.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-jasmine/node_modules/grunt-lib-phantomjs/node_modules/phantomjs/node_modules/kew/test/context.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-jasmine/CONTRIBUTING.md",
+		"/Users/thyb/projects/gcm/lib/ace/tokenizer.js",
+		"/Users/thyb/projects/gcm/lib/ace/mode/tcl_highlight_rules.js",
+		"/Users/thyb/projects/gcm/lib/ace/mode/typescript_highlight_rules.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-watch/node_modules/tiny-lr-fork/node_modules/faye-websocket/lib/faye/websocket/hybi_parser.js",
+		"/Users/thyb/projects/gcm/node_modules/browserify/test/paths/y/bbb/index.js",
+		"/Users/thyb/projects/gcm/node_modules/browserify/test/standalone_events.js",
+		"/Users/thyb/projects/gcm/js/framework/Service.js",
+		"/Users/thyb/projects/gcm/lib/epiceditor/js/epiceditor.js",
+		"/Users/thyb/projects/gcm/node_modules/temporary/examples/dir.js",
+		"/Users/thyb/projects/gcm/lib/epiceditor/themes/editor/epic-dark.css",
+		"/Users/thyb/projects/gcm/js/controllers/DocumentCtrl.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt/node_modules/js-yaml/examples/sample_document.js",
+		"/Users/thyb/projects/gcm/dev/coffee/controllers/DocumentsCtrl.coffee",
+		"/Users/thyb/projects/gcm/dev/coffee/framework/CtrlManager.coffee",
+		"/Users/thyb/projects/gcm/dev/coffee/controllers/MediasCtrl.coffee",
+		"/Users/thyb/projects/gcm/tmpl/main/index.html",
+		"/Users/thyb/projects/gcm/lib/md5.js",
+		"/Users/thyb/projects/gcm/tmpl/main/medias.html",
+		"/Users/thyb/projects/gcm/node_modules/browserify/test/comment.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-browserify/node_modules/async/component.json",
+		"/Users/thyb/projects/gcm/node_modules/browserify/node_modules/url/node_modules/punycode/vendor/qunit/addons/composite/composite-test.html",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-jasmine/node_modules/grunt-lib-phantomjs/node_modules/phantomjs/lib/phantom/examples/outputEncoding.coffee",
+		"/Users/thyb/projects/gcm/js/components/DocumentHistory.js",
+		"/Users/thyb/projects/gcm/node_modules/temporary/index.js",
+		"/Users/thyb/projects/gcm/js/controllers/IndexCtrl.js",
+		"/Users/thyb/projects/gcm/node_modules/rewire/lib/index.js",
+		"/Users/thyb/projects/gcm/js/services/DocumentManagerService.js",
+		"/Users/thyb/projects/gcm/js/controllers/DocumentsCtrl.js",
+		"/Users/thyb/projects/gcm/js/framework/User.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-coffee/node_modules/coffee-script/node_modules/mkdirp/test/umask_sync.js",
+		"/Users/thyb/projects/gcm/dev/coffee/framework/LayoutManager.coffee",
+		"/Users/thyb/projects/gcm/dev/coffee/framework/TemplateManager.coffee",
+		"/Users/thyb/projects/gcm/dev/coffee/framework/View.coffee",
+		"/Users/thyb/projects/gcm/dev/coffee/framework/GlobalEvent.coffee",
+		"/Users/thyb/projects/gcm/js/framework/View.js",
+		"/Users/thyb/projects/gcm/js/framework/TemplateManager.js",
+		"/Users/thyb/projects/gcm/node_modules/rewire/test/testModules/throwError.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt/node_modules/js-yaml/node_modules/argparse/lib/action/count.js",
+		"/Users/thyb/projects/gcm/node_modules/browserify/node_modules/browser-pack/node_modules/combine-source-map/test/combine-source-map.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-uglify/node_modules/uglify-js/node_modules/optimist/node_modules/wordwrap/example/meat.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-uglify/node_modules/uglify-js/node_modules/async/component.json",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-uglify/node_modules/maxmin/node_modules/gzip-size/node_modules/zlib-browserify/node_modules/tape/node_modules/defined/.travis.yml",
+		"/Users/thyb/projects/gcm/node_modules/grunt-harp/node_modules/harp/node_modules/connect/node_modules/multiparty/test/fixture/http/encoding/menu_seperator.png.http",
+		"/Users/thyb/projects/gcm/dev/coffee/components/containers/ModalComponent.coffee",
+		"/Users/thyb/projects/gcm/js/services/DocumentService.js",
+		"/Users/thyb/projects/gcm/js/controllers/MediasCtrl.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-harp/node_modules/harp/node_modules/terraform/node_modules/stylus/node_modules/cssom/lib/MediaList.js",
+		"/Users/thyb/projects/gcm/node_modules/browserify/test/multi_entry.js",
+		"/Users/thyb/projects/gcm/dev/coffee/controllers/LogoutCtrl.coffee",
+		"/Users/thyb/projects/gcm/js/framework/Ctrl.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-jasmine/junit/TEST-resume.xml",
+		"/Users/thyb/projects/gcm/js/framework/CtrlManager.js",
+		"/Users/thyb/projects/gcm/node_modules/browserify/node_modules/glob/test/cwd-test.js",
+		"/Users/thyb/projects/gcm/js/framework/Router.js",
+		"/Users/thyb/projects/gcm/README.md",
+		"/Users/thyb/projects/gcm/js/controllers/DashboardCtrl.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-jasmine/node_modules/grunt-lib-phantomjs/node_modules/phantomjs/node_modules/adm-zip/headers/dataHeader.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-harp/node_modules/harp/node_modules/terraform/node_modules/stylus/node_modules/sax/test/duplicate-attribute.js",
+		"/Users/thyb/projects/gcm/js/framework/Env.js",
+		"/Users/thyb/projects/gcm/node_modules/browserify/node_modules/derequire/node_modules/esrefactor/test/data/error_nocode.js",
+		"/Users/thyb/projects/gcm/js/main.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-uglify/node_modules/uglify-js/lib/mozilla-ast.js",
+		"/Users/thyb/projects/gcm/js/framework/App.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt/node_modules/js-yaml/node_modules/argparse/lib/argument_parser.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-jasmine/AUTHORS",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-watch/test/fixtures/patterns/lib/edit.js",
+		"/Users/thyb/projects/gcm/node_modules/grunt-contrib-watch/.editorconfig",
+		"/Users/thyb/projects/gcm/node_modules/rewire/lib/getImportGlobalsSrc.js",
+		"/Users/thyb/projects/gcm/tmpl/main/dashboard.html"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			"*.coffee,-node_modules/*",
+			"*.html,-node_modules/*",
+			"*.coffee,-node_modules/*",
+			"*.coffee,-node_modules",
+			"*.coffee,-node_module",
+			"*.coffee"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"event",
+			"@event",
+			"ctrlEvent",
+			"config'",
+			"'config'",
+			"collabora",
+			"repo",
+			"console.log",
+			"firebase",
+			"content",
+			"blockquo",
+			"#epiceditor-preview",
+			"editor",
+			"@editor",
+			"editor",
+			"encod",
+			"++",
+			"liverel",
+			"@m",
+			"@me",
+			"@me\\",
+			"checklocal",
+			"check",
+			"DocHub",
+			"script",
+			"dochub",
+			"md",
+			".md",
+			"console.log",
+			"console",
+			"console.log",
+			"avatar",
+			"username",
+			"remove",
+			"checklocal",
+			"checklocalChanges",
+			"MD5",
+			".username",
+			"@auth",
+			" and",
+			"'/'",
+			"getUser",
+			"logged",
+			"do()",
+			"do ->",
+			"do",
+			"DashboardCtrl",
+			"localStorage",
+			"viewparam.diff",
+			"viewparam.his",
+			"editor",
+			"enableButton",
+			"disableButton",
+			"preview"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/Users/thyb/projects/content-oauthio/dist/gcm.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 54826,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								788,
+								788
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3112,
+						"regions":
+						{
+							"match":
+							{
+								"flags": 112,
+								"regions":
+								[
+									[
+										114,
+										123
+									],
+									[
+										137,
+										146
+									],
+									[
+										346,
+										355
+									],
+									[
+										615,
+										621
+									],
+									[
+										938,
+										944
+									],
+									[
+										1187,
+										1192
+									],
+									[
+										1505,
+										1510
+									],
+									[
+										1721,
+										1726
+									],
+									[
+										1746,
+										1751
+									],
+									[
+										1940,
+										1945
+									],
+									[
+										1958,
+										1963
+									],
+									[
+										2135,
+										2140
+									],
+									[
+										2158,
+										2163
+									],
+									[
+										2351,
+										2356
+									],
+									[
+										2367,
+										2372
+									],
+									[
+										2542,
+										2547
+									],
+									[
+										2746,
+										2751
+									],
+									[
+										2943,
+										2948
+									],
+									[
+										3065,
+										3070
+									]
+								],
+								"scope": ""
+							}
+						},
+						"selection":
+						[
+							[
+								1043,
+								1043
+							]
+						],
+						"settings":
+						{
+							"detect_indentation": false,
+							"line_numbers": false,
+							"output_tag": 3,
+							"result_base_dir": "",
+							"result_file_regex": "^([A-Za-z\\\\/<].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 648.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "Ctrl.coffee",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 886,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								886,
+								886
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Better CoffeeScript/CoffeeScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "content-oauthio.sublime-project",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 108,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 34.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.coffeecompile_output":
+	{
+		"height": 118.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"project": "content-oauthio.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"error",
+				"dev/coffee/controllers/ErrorCtrl.coffee"
+			],
+			[
+				"main.coffee",
+				"dev/coffee/main.coffee"
+			],
+			[
+				"app",
+				"dev/coffee/framework/App.coffee"
+			],
+			[
+				"user",
+				"dev/coffee/framework/User.coffee"
+			],
+			[
+				"github.js",
+				"lib/github.js"
+			],
+			[
+				"documentsctrl",
+				"dev/coffee/controllers/DocumentsCtrl.coffee"
+			],
+			[
+				"indexctrl",
+				"dev/coffee/controllers/IndexCtrl.coffee"
+			],
+			[
+				"index.html",
+				"index.html"
+			],
+			[
+				"documentctrl",
+				"dev/coffee/controllers/DocumentCtrl.coffee"
+			],
+			[
+				"layout/",
+				"tmpl/layout/index.html"
+			],
+			[
+				"gruntfile",
+				"Gruntfile.js"
+			],
+			[
+				"index",
+				"index.html"
+			],
+			[
+				"config",
+				"dev/coffee/config.coffee"
+			],
+			[
+				"historycoffee",
+				"dev/coffee/components/DocumentHistory.coffee"
+			],
+			[
+				"index.",
+				"index.html"
+			],
+			[
+				"editor",
+				"lib/epiceditor/js/epiceditor.js"
+			],
+			[
+				"documentctrl.coffee",
+				"dev/coffee/controllers/DocumentCtrl.coffee"
+			],
+			[
+				"layoutindex",
+				"tmpl/layout/index.html"
+			],
+			[
+				"document",
+				"tmpl/main/document.html"
+			],
+			[
+				"documentsm",
+				"dev/coffee/services/DocumentManagerService.coffee"
+			],
+			[
+				"documents",
+				"tmpl/main/documents.html"
+			],
+			[
+				"user.coffee",
+				"dev/coffee/framework/User.coffee"
+			],
+			[
+				"view",
+				"dev/coffee/framework/View.coffee"
+			],
+			[
+				"template",
+				"dev/coffee/framework/TemplateManager.coffee"
+			],
+			[
+				"documen",
+				"tmpl/main/document.html"
+			],
+			[
+				"",
+				"dev/coffee/services/DocumentManagerService.coffee"
+			],
+			[
+				"router",
+				"dev/coffee/framework/Router.coffee"
+			],
+			[
+				"docum",
+				"tmpl/main/document.html"
+			],
+			[
+				"mediasc",
+				"js/controllers/MediasCtrl.js"
+			],
+			[
+				"document.coffee",
+				"dev/coffee/controllers/DocumentCtrl.coffee"
+			],
+			[
+				"ctrl.coffee",
+				"dev/coffee/framework/Ctrl.coffee"
+			],
+			[
+				"ctrlmanager",
+				"dev/coffee/framework/CtrlManager.coffee"
+			],
+			[
+				"main",
+				"dev/coffee/main.coffee"
+			],
+			[
+				"dashboard.coffee",
+				"dev/coffee/controllers/DashboardCtrl.coffee"
+			],
+			[
+				"dashboard",
+				"tmpl/main/dashboard.html"
+			],
+			[
+				"index.cof",
+				"dev/coffee/controllers/IndexCtrl.coffee"
+			],
+			[
+				"env.coffee",
+				"dev/coffee/framework/Env.coffee"
+			],
+			[
+				"app.coffe",
+				"dev/coffee/framework/App.coffee"
+			],
+			[
+				"epicedio",
+				"lib/epiceditor/js/epiceditor.js"
+			],
+			[
+				"documentmanager",
+				"dev/coffee/services/DocumentManagerService.coffee"
+			],
+			[
+				"document.html",
+				"tmpl/main/document.html"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+			[
+				"",
+				"~/projects/oauthd.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 224.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

@@ -1,6 +1,4 @@
-var Ctrl, CtrlEvent, View;
-
-CtrlEvent = require('./CtrlEvent');
+var Ctrl, View;
 
 View = require('./View');
 
@@ -14,7 +12,6 @@ module.exports = Ctrl = (function() {
     ctrlname = ctrlname.replace(/([A-Z])/g, "-$1");
     this.templateUrl = ctrlname.substr(1).toLowerCase() + '.html';
     this.scope = {};
-    this.event = new CtrlEvent();
     this.view = new View();
     this.services = {};
     this._askedForRedirect = false;
