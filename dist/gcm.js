@@ -2,7 +2,7 @@
 module.exports = {
 	repository: 'content',
 	username: 'thyb',
-	firebase_url: "fiery-fire-8126.firebaseio.com",
+	firebase_url: "",
 	algolia_key: ""
 };
 },{}],2:[function(require,module,exports){
