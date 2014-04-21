@@ -360,7 +360,7 @@ module.exports = class DocumentCtrl extends Ctrl
 				width: 'auto'
 				display: (if $('#editor-mode').hasClass('btn-inverse') then 'block' else 'none')
 
-			if $('#editor').parent().hasClass('firepad') and $('#editor').parent().css('display') == 'none'
+			if $('#editor').parent().hasClass('firepad') and $('#editor').css('display') == 'none'
 				$('#editor').parent().hide()
 
 			$('#preview').css

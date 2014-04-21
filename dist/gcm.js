@@ -615,7 +615,7 @@ module.exports = DocumentCtrl = (function(_super) {
           width: 'auto',
           display: ($('#editor-mode').hasClass('btn-inverse') ? 'block' : 'none')
         });
-        if ($('#editor').parent().hasClass('firepad') && $('#editor').parent().css('display') === 'none') {
+        if ($('#editor').parent().hasClass('firepad') && $('#editor').css('display') === 'none') {
           $('#editor').parent().hide();
         }
         $('#preview').css({
