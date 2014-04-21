@@ -338,7 +338,8 @@ module.exports = class DocumentCtrl extends Ctrl
 			top: '51px'
 			height: ($(window).height() - 51) + 'px'
 			width: '50%'
-
+		if $('#editor').parent().hasClass('firepad')
+			$('#editor').parent().show()
 		$('#preview').css
 			position: 'fixed'
 			left: '50%'
@@ -358,6 +359,9 @@ module.exports = class DocumentCtrl extends Ctrl
 				height: ($(window).height() - 106) + 'px'
 				width: 'auto'
 				display: (if $('#editor-mode').hasClass('btn-inverse') then 'block' else 'none')
+
+			if $('#editor').parent().hasClass('firepad') and $('#editor').parent().css('display') == 'none'
+				$('#editor').parent().hide()
 
 			$('#preview').css
 				position: 'static'

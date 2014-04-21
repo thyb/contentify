@@ -427,6 +427,9 @@ module.exports = DocumentCtrl = (function(_super) {
       height: ($(window).height() - 51) + 'px',
       width: '50%'
     });
+    if ($('#editor').parent().hasClass('firepad')) {
+      $('#editor').parent().show();
+    }
     $('#preview').css({
       position: 'fixed',
       left: '50%',
@@ -448,6 +451,9 @@ module.exports = DocumentCtrl = (function(_super) {
           width: 'auto',
           display: ($('#editor-mode').hasClass('btn-inverse') ? 'block' : 'none')
         });
+        if ($('#editor').parent().hasClass('firepad') && $('#editor').parent().css('display') === 'none') {
+          $('#editor').parent().hide();
+        }
         $('#preview').css({
           position: 'static',
           left: 'auto',
