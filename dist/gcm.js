@@ -92,10 +92,7 @@ module.exports = DocumentHistory = (function() {
         var ind;
         if (!selector.hasClass('active')) {
           ind = selector.index();
-          _this.change(ind);
-          return _this.listeners['select'].each(function(fct) {
-            return fct(_this.history[ind], ind);
-          });
+          return _this.change(ind);
         }
       };
     })(this));
@@ -104,7 +101,12 @@ module.exports = DocumentHistory = (function() {
   DocumentHistory.prototype.change = function(index) {
     this.current = index;
     this.container.find('p.active').removeClass('active');
-    return this.container.find('p:eq(' + index.toString() + ')').addClass('active');
+    this.container.find('p:eq(' + index.toString() + ')').addClass('active');
+    return this.listeners['select'].each((function(_this) {
+      return function(fct) {
+        return fct(_this.history[index], index);
+      };
+    })(this));
   };
 
   DocumentHistory.prototype.render = function(container) {
@@ -348,8 +350,8 @@ module.exports = DocumentCtrl = (function(_super) {
   DocumentCtrl.prototype.autoResizeEditor = function() {
     var editorSel, previewSel, resize, selector;
     $('#document-panel, #preview, #diff').css('overflow-y', 'auto');
-    selector = $('#diff, #document-panel');
-    editorSel = $('#editor');
+    selector = $('#document-panel');
+    editorSel = $('#editor,#diff');
     previewSel = $('#preview');
     resize = (function(_this) {
       return function() {
@@ -467,11 +469,11 @@ module.exports = DocumentCtrl = (function(_super) {
   DocumentCtrl.prototype.setupHistory = function() {
     this.history = new DocumentHistory(this.viewParams.history, this.app.user, this.editor);
     this.history.render($('#history'));
-    return this.history.on('select', (function(_this) {
+    this.history.on('select', (function(_this) {
       return function(item, index) {
         var t;
         if (index === 0) {
-          $('#diff').hide();
+          $('#version, #toolbar-versionning').hide();
           t = 'preview';
           if ($('#editor-mode').hasClass('btn-inverse')) {
             if ($('#editor').parent().hasClass('firepad')) {
@@ -479,20 +481,59 @@ module.exports = DocumentCtrl = (function(_super) {
             }
             t = 'editor';
           }
-          $('#' + t + ', #toolbar').show();
+          $('#' + t + ', #toolbar-editor').show();
           return _this.editor.resize();
         } else {
           return _this.services.documentManager.getCommit(item.sha, function(err, commit) {
             var patch;
             patch = commit.files[0].patch;
             _this.patchPrettyPrint(patch);
-            $('#editor, #toolbar, #preview').hide();
+            $('#raw-diff').html(commit.raw);
+            $('#preview-diff').html(marked(commit.raw));
+            $('#editor, #toolbar-editor, #preview').hide();
             if ($('#editor').parent().hasClass('firepad')) {
               $('#editor').parent().hide();
             }
-            return $('#diff').show();
+            return $('#version, #toolbar-versionning').show();
           });
         }
+      };
+    })(this));
+    $('#revert').click((function(_this) {
+      return function() {
+        var content;
+        if (confirm('Are you sure you want revert to this version? You can undo with `cmd + z`.')) {
+          content = $('#raw-diff').html();
+          _this.editor.setValue(content);
+          _this.history.change(0);
+          _this.editor.clearSelection();
+          _this.editor.focus();
+          return _this.editor.navigateFileStart();
+        }
+      };
+    })(this));
+    $('#preview-version-mode').click((function(_this) {
+      return function() {
+        $('#preview-diff').show();
+        $('#diff, #raw-diff').hide();
+        $('#toolbar-versionning .btn-inverse').addClass('btn-default').removeClass('btn-inverse');
+        return $('#preview-version-mode').removeClass('btn-default').addClass('btn-inverse');
+      };
+    })(this));
+    $('#diff-mode').click((function(_this) {
+      return function() {
+        $('#diff').show();
+        $('#preview-diff, #raw-diff').hide();
+        $('#toolbar-versionning .btn-inverse').addClass('btn-default').removeClass('btn-inverse');
+        return $('#diff-mode').removeClass('btn-default').addClass('btn-inverse');
+      };
+    })(this));
+    return $('#raw-mode').click((function(_this) {
+      return function() {
+        $('#raw-diff').show();
+        $('#diff, #preview-diff').hide();
+        $('#toolbar-versionning .btn-inverse').addClass('btn-default').removeClass('btn-inverse');
+        return $('#raw-mode').removeClass('btn-default').addClass('btn-inverse');
       };
     })(this));
   };
@@ -1786,9 +1827,23 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.getCommit = function(sha, cb) {
-    if (sha) {
-      return this.repo.getCommit(sha, cb);
+    if (!sha) {
+      cb('sha needed');
     }
+    return this.repo.getCommit(sha, (function(_this) {
+      return function(err, commit) {
+        if (err) {
+          return cb(err);
+        }
+        return _this.repo.getBlob(commit.files[0].sha, function(err, data) {
+          if (err) {
+            return cb(err);
+          }
+          commit.raw = data;
+          return cb(null, commit);
+        });
+      };
+    })(this));
   };
 
   DocumentManagerService.prototype.list = function(callback) {

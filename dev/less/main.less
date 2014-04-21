@@ -36,7 +36,7 @@
   z-index: 1040;
 }
 
-#preview{
+.preview-content{
   padding: 10px 20px;
   font-family: Helvetica,arial,freesans,clean,sans-serif;
   font-size:13px;
@@ -46,90 +46,90 @@
           box-sizing: border-box;
 }
 
-#preview>*:first-child{
+.preview-content>*:first-child{
   margin-top:0!important;
 }
 
-#preview>*:last-child{
+.preview-content>*:last-child{
   margin-bottom:0!important;
 }
 
-#preview a{
+.preview-content a{
   color:#4183C4;
   text-decoration:none;
 }
 
-#preview a:hover{
+.preview-content a:hover{
   text-decoration:underline;
 }
 
-#preview h1,
-#preview h2,
-#preview h3,
-#preview h4,
-#preview h5,
-#preview h6{
+.preview-content h1,
+.preview-content h2,
+.preview-content h3,
+.preview-content h4,
+.preview-content h5,
+.preview-content h6{
   margin:20px 0 10px;
   padding:0;
   font-weight:bold;
   -webkit-font-smoothing:antialiased;
 }
 
-#preview h1 tt,
-#preview h1 code,
-#preview h2 tt,
-#preview h2 code,
-#preview h3 tt,
-#preview h3 code,
-#preview h4 tt,
-#preview h4 code,
-#preview h5 tt,
-#preview h5 code,
-#preview h6 tt,
-#preview h6 code{
+.preview-content h1 tt,
+.preview-content h1 code,
+.preview-content h2 tt,
+.preview-content h2 code,
+.preview-content h3 tt,
+.preview-content h3 code,
+.preview-content h4 tt,
+.preview-content h4 code,
+.preview-content h5 tt,
+.preview-content h5 code,
+.preview-content h6 tt,
+.preview-content h6 code{
   font-size:inherit;
 }
 
-#preview h1{
+.preview-content h1{
   font-size:28px;
   color:#000;
 }
 
-#preview h2{
+.preview-content h2{
   font-size:24px;
   border-bottom:1px solid #ccc;
   color:#000;
 }
 
-#preview h3{
+.preview-content h3{
   font-size:18px;
 }
 
-#preview h4{
+.preview-content h4{
   font-size:16px;
 }
 
-#preview h5{
+.preview-content h5{
   font-size:14px;
 }
 
-#preview h6{
+.preview-content h6{
   color:#777;
   font-size:14px;
 }
 
-#preview p,
-#preview blockquote,
-#preview ul,
-#preview ol,
-#preview dl,
-#preview li,
-#preview table,
-#preview pre{
+.preview-content p,
+.preview-content blockquote,
+.preview-content ul,
+.preview-content ol,
+.preview-content dl,
+.preview-content li,
+.preview-content table,
+.preview-content pre{
   margin:15px 0;
 }
 
-#preview hr{
+.preview-content hr{
   background:transparent url('../../images/modules/pulls/dirty-shade.png') repeat-x 0 0;
   border:0 none;
   color:#ccc;
@@ -137,50 +137,50 @@
   padding:0;
 }
 
-#preview>h2:first-child,
-#preview>h1:first-child,
-#preview>h1:first-child+h2,
-#preview>h3:first-child,
-#preview>h4:first-child,
-#preview>h5:first-child,
-#preview>h6:first-child{
+.preview-content>h2:first-child,
+.preview-content>h1:first-child,
+.preview-content>h1:first-child+h2,
+.preview-content>h3:first-child,
+.preview-content>h4:first-child,
+.preview-content>h5:first-child,
+.preview-content>h6:first-child{
   margin-top:0;
   padding-top:0;
 }
 
-#preview h1+p,
-#preview h2+p,
-#preview h3+p,
-#preview h4+p,
-#preview h5+p,
-#preview h6+p{
+.preview-content h1+p,
+.preview-content h2+p,
+.preview-content h3+p,
+.preview-content h4+p,
+.preview-content h5+p,
+.preview-content h6+p{
   margin-top:0;
 }
 
-#preview li p.first{
+.preview-content li p.first{
   display:inline-block;
 }
 
-#preview ul,
-#preview ol{
+.preview-content ul,
+.preview-content ol{
   padding-left:30px;
 }
 
-#preview ul li>:first-child,
-#preview ol li>:first-child{
+.preview-content ul li>:first-child,
+.preview-content ol li>:first-child{
   margin-top:0;
 }
 
-#preview ul li>:last-child,
-#preview ol li>:last-child{
+.preview-content ul li>:last-child,
+.preview-content ol li>:last-child{
   margin-bottom:0;
 }
 
-#preview dl{
+.preview-content dl{
   padding:0;
 }
 
-#preview dl dt{
+.preview-content dl dt{
   font-size:14px;
   font-weight:bold;
   font-style:italic;
@@ -188,47 +188,47 @@
   margin:15px 0 5px;
 }
 
-#preview dl dt:first-child{
+.preview-content dl dt:first-child{
   padding:0;
 }
 
-#preview dl dt>:first-child{
+.preview-content dl dt>:first-child{
   margin-top:0;
 }
 
-#preview dl dt>:last-child{
+.preview-content dl dt>:last-child{
   margin-bottom:0;
 }
 
-#preview dl dd{
+.preview-content dl dd{
   margin:0 0 15px;
   padding:0 15px;
 }
 
-#preview dl dd>:first-child{
+.preview-content dl dd>:first-child{
   margin-top:0;
 }
 
-#preview dl dd>:last-child{
+.preview-content dl dd>:last-child{
   margin-bottom:0;
 }
 
-#preview blockquote{
+.preview-content blockquote{
   border-left:4px solid #DDD;
   padding:0 15px;
   color:#777;
   font-size: 0.85em
 }
 
-#preview blockquote>:first-child{
+.preview-content blockquote>:first-child{
   margin-top:0;
 }
 
-#preview blockquote>:last-child{
+.preview-content blockquote>:last-child{
   margin-bottom:0;
 }
 
-#preview table{
+.preview-content table{
   padding:0;
   border-collapse: collapse;
   border-spacing: 0;
@@ -236,49 +236,49 @@
   font: inherit;
 }
 
-#preview table tr{
+.preview-content table tr{
   border-top:1px solid #ccc;
   background-color:#fff;
   margin:0;
   padding:0;
 }
 
-#preview table tr:nth-child(2n){
+.preview-content table tr:nth-child(2n){
   background-color:#f8f8f8;
 }
 
-#preview table tr th{
+.preview-content table tr th{
   font-weight:bold;
 }
 
-#preview table tr th,
-#preview table tr td{
+.preview-content table tr th,
+.preview-content table tr td{
   border:1px solid #ccc;
   text-align:left;
   margin:0;
   padding:6px 13px;
 }
 
-#preview table tr th>:first-child,
-#preview table tr td>:first-child{
+.preview-content table tr th>:first-child,
+.preview-content table tr td>:first-child{
   margin-top:0;
 }
 
-#preview table tr th>:last-child,
-#preview table tr td>:last-child{
+.preview-content table tr th>:last-child,
+.preview-content table tr td>:last-child{
   margin-bottom:0;
 }
 
-#preview img{
+.preview-content img{
   max-width:100%;
 }
 
-#preview span.frame{
+.preview-content span.frame{
   display:block;
   overflow:hidden;
 }
 
-#preview span.frame>span{
+.preview-content span.frame>span{
   border:1px solid #ddd;
   display:block;
   float:left;
@@ -288,81 +288,81 @@
   width:auto;
 }
 
-#preview span.frame span img{
+.preview-content span.frame span img{
   display:block;
   float:left;
 }
 
-#preview span.frame span span{
+.preview-content span.frame span span{
   clear:both;
   color:#333;
   display:block;
   padding:5px 0 0;
 }
 
-#preview span.align-center{
+.preview-content span.align-center{
   display:block;
   overflow:hidden;
   clear:both;
 }
 
-#preview span.align-center>span{
+.preview-content span.align-center>span{
   display:block;
   overflow:hidden;
   margin:13px auto 0;
   text-align:center;
 }
 
-#preview span.align-center span img{
+.preview-content span.align-center span img{
   margin:0 auto;
   text-align:center;
 }
 
-#preview span.align-right{
+.preview-content span.align-right{
   display:block;
   overflow:hidden;
   clear:both;
 }
 
-#preview span.align-right>span{
+.preview-content span.align-right>span{
   display:block;
   overflow:hidden;
   margin:13px 0 0;
   text-align:right;
 }
 
-#preview span.align-right span img{
+.preview-content span.align-right span img{
   margin:0;
   text-align:right;
 }
 
-#preview span.float-left{
+.preview-content span.float-left{
   display:block;
   margin-right:13px;
   overflow:hidden;
   float:left;
 }
 
-#preview span.float-left span{
+.preview-content span.float-left span{
   margin:13px 0 0;
 }
 
-#preview span.float-right{
+.preview-content span.float-right{
   display:block;
   margin-left:13px;
   overflow:hidden;
   float:right;
 }
 
-#preview span.float-right>span{
+.preview-content span.float-right>span{
   display:block;
   overflow:hidden;
   margin:13px auto 0;
   text-align:right;
 }
 
-#preview code,
-#preview tt{
+.preview-content code,
+.preview-content tt{
   margin:0 2px;
   padding:0 5px;
   white-space:nowrap;
@@ -371,7 +371,7 @@
   border-radius:3px;
 }
 
-#preview pre>code{
+.preview-content pre>code{
   margin:0;
   padding:0;
   white-space:pre;
@@ -379,8 +379,8 @@
   background:transparent;
 }
 
-#preview .highlight pre,
-#preview pre{
+.preview-content .highlight pre,
+.preview-content pre{
   background-color:#f8f8f8;
   border:1px solid #ccc;
   font-size:13px;
@@ -390,8 +390,8 @@
   border-radius:3px;
 }
 
-#preview pre code,
-#preview pre tt{
+.preview-content pre code,
+.preview-content pre tt{
   background-color:transparent;
   border:none;
 }

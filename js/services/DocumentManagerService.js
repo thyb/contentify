@@ -192,9 +192,23 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.getCommit = function(sha, cb) {
-    if (sha) {
-      return this.repo.getCommit(sha, cb);
+    if (!sha) {
+      cb('sha needed');
     }
+    return this.repo.getCommit(sha, (function(_this) {
+      return function(err, commit) {
+        if (err) {
+          return cb(err);
+        }
+        return _this.repo.getBlob(commit.files[0].sha, function(err, data) {
+          if (err) {
+            return cb(err);
+          }
+          commit.raw = data;
+          return cb(null, commit);
+        });
+      };
+    })(this));
   };
 
   DocumentManagerService.prototype.list = function(callback) {

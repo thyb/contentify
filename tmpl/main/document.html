@@ -1,6 +1,6 @@
 <div class="row" style="margin-top:10px">
   <div class="col-xs-9">
-    <div id="toolbar" style="margin-bottom:10px">
+    <div id="toolbar-editor" style="margin-bottom:10px">
       <div class="btn-group">
         <button id="editor-mode" class="btn btn-inverse btn-xs">editor</button>
         <button id="preview-mode" class="btn btn-default btn-xs">preview</button>
@@ -15,9 +15,21 @@
         </ul>
       </div>
     </div>
+    <div id="toolbar-versionning" style="margin-bottom:10px; display: none">
+      <div class="btn-group">
+        <button id="diff-mode" class="btn btn-inverse btn-xs">diff</button>
+        <button id="preview-version-mode" class="btn btn-default btn-xs">preview</button>
+        <button id="raw-mode" class="btn btn-default btn-xs">raw</button>
+      </div>
+      <button id="revert" class="pull-right btn btn-danger btn-xs">Revert to this version</button>
+    </div>
     <div id="editor"></div>
-    <div id="preview" style="display:none"></div>
-    <div id="diff" style="display: none"></div>
+    <div id="preview" class="preview-content" style="display:none"></div>
+    <div id="version" style="display:none">
+      <div id="diff"></div>
+      <div id="preview-diff" class="preview-content" style="display: none"></div>
+      <pre id="raw-diff" style="display: none"></pre>
+    </div>
   </div>
   <div class="col-xs-3" id="document-panel">
     <h4>{{doc.name}}</h4>

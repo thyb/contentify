@@ -72,13 +72,13 @@ module.exports = class DocumentHistory
 			if not selector.hasClass('active')
 				ind = selector.index()
 				@change ind
-				@listeners['select'].each (fct) =>
-					fct @history[ind], ind
 
 	change: (index) ->
 		@current = index
 		@container.find('p.active').removeClass 'active'
 		@container.find('p:eq(' + index.toString() + ')').addClass 'active'
+		@listeners['select'].each (fct) =>
+			fct @history[index], index
 
 	render: (@container) ->
 		@container.html('')

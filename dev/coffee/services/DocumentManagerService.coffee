@@ -117,7 +117,14 @@ module.exports = class DocumentManagerService extends Service
 			callback(null, true) if callback and ++i == 3
 
 	getCommit: (sha, cb) ->
-		@repo.getCommit sha, cb if sha
+		cb 'sha needed' if not sha
+		@repo.getCommit sha, (err, commit) =>
+			return cb err if err
+			@repo.getBlob commit.files[0].sha, (err, data) =>
+			# $.get commit.files[0].raw_url, (data) =>
+				return cb err if err
+				commit.raw = data
+				cb null, commit
 
 	list: (callback) ->
 		@repo.read 'master', 'documents.json', (err, data) =>

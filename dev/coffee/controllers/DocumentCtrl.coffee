@@ -128,8 +128,8 @@ module.exports = class DocumentCtrl extends Ctrl
 
 	autoResizeEditor: () ->
 		$('#document-panel, #preview, #diff').css('overflow-y', 'auto')
-		selector = $('#diff, #document-panel')
-		editorSel = $('#editor')
+		selector = $('#document-panel')
+		editorSel = $('#editor,#diff')
 		previewSel = $('#preview')
 
 		resize = =>
@@ -235,24 +235,55 @@ module.exports = class DocumentCtrl extends Ctrl
 		@history.render $('#history')
 		@history.on 'select', (item, index) =>
 			if index == 0
-				$('#diff').hide()
+				$('#version, #toolbar-versionning').hide()
 				t = 'preview'
 				if $('#editor-mode').hasClass 'btn-inverse'
 					if $('#editor').parent().hasClass 'firepad'
 						$('#editor').parent().show()
 					t = 'editor'
 
-				$('#' + t + ', #toolbar').show()
+				$('#' + t + ', #toolbar-editor').show()
 				@editor.resize()
 			else
 				@services.documentManager.getCommit item.sha, (err, commit) =>
 					patch = commit.files[0].patch
 					@patchPrettyPrint patch
-					$('#editor, #toolbar, #preview').hide()
+
+					$('#raw-diff').html commit.raw
+					$('#preview-diff').html marked(commit.raw)
+					$('#editor, #toolbar-editor, #preview').hide()
 					if $('#editor').parent().hasClass 'firepad'
 						$('#editor').parent().hide()
 
-					$('#diff').show()
+					$('#version, #toolbar-versionning').show()
+
+		$('#revert').click =>
+			if confirm('Are you sure you want revert to this version? You can undo with `cmd + z`.')
+				content = $('#raw-diff').html()
+				@editor.setValue content
+				@history.change 0
+				@editor.clearSelection()
+				@editor.focus()
+				@editor.navigateFileStart()
+
+		$('#preview-version-mode').click =>
+			$('#preview-diff').show()
+			$('#diff, #raw-diff').hide()
+			$('#toolbar-versionning .btn-inverse').addClass('btn-default').removeClass 'btn-inverse'
+			$('#preview-version-mode').removeClass('btn-default').addClass 'btn-inverse'
+
+		$('#diff-mode').click =>
+			$('#diff').show()
+			$('#preview-diff, #raw-diff').hide()
+			$('#toolbar-versionning .btn-inverse').addClass('btn-default').removeClass 'btn-inverse'
+			$('#diff-mode').removeClass('btn-default').addClass 'btn-inverse'
+
+		$('#raw-mode').click =>
+			$('#raw-diff').show()
+			$('#diff, #preview-diff').hide()
+
+			$('#toolbar-versionning .btn-inverse').addClass('btn-default').removeClass 'btn-inverse'
+			$('#raw-mode').removeClass('btn-default').addClass 'btn-inverse'
 
 	updatePreview: ->
 		previewContent = @editor.getValue()

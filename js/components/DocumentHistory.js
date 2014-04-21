@@ -91,10 +91,7 @@ module.exports = DocumentHistory = (function() {
         var ind;
         if (!selector.hasClass('active')) {
           ind = selector.index();
-          _this.change(ind);
-          return _this.listeners['select'].each(function(fct) {
-            return fct(_this.history[ind], ind);
-          });
+          return _this.change(ind);
         }
       };
     })(this));
@@ -103,7 +100,12 @@ module.exports = DocumentHistory = (function() {
   DocumentHistory.prototype.change = function(index) {
     this.current = index;
     this.container.find('p.active').removeClass('active');
-    return this.container.find('p:eq(' + index.toString() + ')').addClass('active');
+    this.container.find('p:eq(' + index.toString() + ')').addClass('active');
+    return this.listeners['select'].each((function(_this) {
+      return function(fct) {
+        return fct(_this.history[index], index);
+      };
+    })(this));
   };
 
   DocumentHistory.prototype.render = function(container) {
