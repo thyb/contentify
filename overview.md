@@ -6,7 +6,7 @@ Overview
 Installation
 ------------
 
-The full management system is a Github Pages you can host and any repository on Github. Just fork the repo [thyb/contentify](https://github.com/thyb/contentify) and you are done. 
+The full management system is a Github Pages you can host on any Github repository. Just fork the repo [thyb/contentify](https://github.com/thyb/contentify), push something to generate the Github page, and you are done. 
 
 [Read more about the installation process](#/learn-more/install)
 
