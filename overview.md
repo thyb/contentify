@@ -34,7 +34,7 @@ Integrate your content in your apps
      
     $('#content').includeContent('readme.md')
 
-[Learn more about the Javascript SDK]
+[Learn more about the Javascript SDK](http://thyb.github.io/contentify/#/learn-more/sdk-js)
 
 **With Node.js**
 
@@ -46,3 +46,4 @@ Integrate your content in your apps
         //content is a string containing the parsed HTML of `readme.md`
     })
 
+[Learn more about the Node.js SDK](http://thyb.github.io/contentify/#/learn-more/sdk-node)
