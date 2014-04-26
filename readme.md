@@ -67,7 +67,7 @@ e.g.
 Enable realtime with Firebase
 -----------------------------
 
-You can edit with your Github collaborators easily by updating `config.js` and `firebase_url` set to your Firebase URL. To get one, just signup on [Firebase](https://firebase.com).
+You can edit in realtime your documents with your Github collaborators by updating `config.js` with the option `firebase_url` set to your Firebase URL. To get one, you just have to signup on [Firebase](https://firebase.com).
 
     {
         ...
