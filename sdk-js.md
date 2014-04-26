@@ -16,7 +16,7 @@ The installation is easy using `npm`
 
 Then you need to include the script in your web page
 
-`<script src="/bower_components/contentify/dist/contentify.js" type="text/javascript"></script>`
+    <script src="/bower_components/contentify/dist/contentify.js" type="text/javascript"></script>
 
 Usage
 -----
@@ -26,23 +26,42 @@ Initialize **contentify** using:
     contentify.intialize(login, repo)
     // eg. contentify.initialize('thyb', 'contentify')
 
-Use the jQuery plugin
+### Using the jQuery plugin
 
-    $('#content').includeContent(filename[, fragment])
+    $('#content').includeContent(filename[, fragment], callback)
     
 `filename` is the file you want to include inside `#content`
 `fragment` is an optional string. (see Fragment chapter)
+`callback` is called when the file is loaded and parsed in HTML
 
 eg
+
+load a file
+
     $('#content').includeContent('readme.md')
+     
+load a file with fragment
+
     $('#content2').includeContent('features.md', 'providers')
 
-Without the jQuery plugin
+load a file with callback
 
-    contentify.getContent(filename[, fragment], callback)
+    $('#content3').includeContent('readme.md', function(elem) {
+        // todo when content is loaded
+    })
+     
+load a file with fragment and callback
+
+    $('#content4').includeContent('features.md', 'providers', function(elem) {
+        // todo when the content is loaded
+    })
+    
+### Without the jQuery plugin
+
+    contentify.getContent(filename, fragment, callback)
 
 `filename` is the file you want to include inside `#content`
-`fragment` is optional
+`fragment` is an optional optional. (see Fragment chapter)
 `callback` is called when the file is loaded and parsed in HTML
 
 eg
