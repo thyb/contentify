@@ -9,5 +9,6 @@ module.exports = class LearnMoreCtrl extends Ctrl
 		doc = @params.doc if @params.doc and @params.doc in @availableDocument
 		$('#menu-' + doc).addClass 'active'
 		$('#learn-content').includeContent doc + '.md', (elem) ->
+			elem.find('img').addClass 'img-responsive'
 			elem.find('pre').each (i,e) ->
 				hljs.highlightBlock(e)

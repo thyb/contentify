@@ -23,6 +23,7 @@ module.exports = LearnMoreCtrl = (function(_super) {
     }
     $('#menu-' + doc).addClass('active');
     return $('#learn-content').includeContent(doc + '.md', function(elem) {
+      elem.find('img').addClass('img-responsive');
       return elem.find('pre').each(function(i, e) {
         return hljs.highlightBlock(e);
       });
