@@ -35,5 +35,12 @@
     "created": 1398480796617,
     "path": "",
     "filename": "faq.md"
+  },
+  "install": {
+    "name": "Install",
+    "extension": "md",
+    "created": 1398525718881,
+    "path": "",
+    "filename": "install.md"
   }
 }
