@@ -43,6 +43,6 @@ Integrate your content in your apps
     contentify.initialize('thyb', 'contentify')
      
     contentify.getContent('readme.md', function(err, content) {
-        //`content` is a string containing the parsed HTML of `readme.md`
+        //content is a string containing the parsed HTML of `readme.md`
     })
 
