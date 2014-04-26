@@ -13,7 +13,7 @@ The full management system is a Github Pages you can host and any repository on 
 Manage your content
 -------------------
 
-> screenshot editor
+![Screenshot](http://thyb.github.io/contentify/img/contentify-screen.png)
 
 1- Now your content can be edited easily by non-technical team in a realtime collaboration. The edition is in Markdownor in HTML directly (personally, i recommend Markdown).
 
