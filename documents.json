@@ -27,6 +27,14 @@
     "extension": "md",
     "created": 1398480770970,
     "path": "",
-    "filename": "overview.md"
+    "filename": "overview.md",
+    "updated": 1398520142433
+  },
+  "faq": {
+    "name": "FAQ",
+    "extension": "md",
+    "created": 1398480796617,
+    "path": "",
+    "filename": "faq.md"
   }
 }
