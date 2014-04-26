@@ -160,6 +160,22 @@ module.exports = DocumentManagerService = (function(_super) {
     return history;
   };
 
+  DocumentManagerService.prototype.rename = function(slug, newSlug, newName, callback) {
+    var doc;
+    if (!this.documents[slug]) {
+      callback('not found', null);
+    }
+    doc = this.documents[slug];
+    if (newSlug !== slug) {
+      if (this.documents[newSlug]) {
+        callback('already exists', null);
+      }
+      this.documents[newSlug] = doc;
+      this.repo.move(doc.filename, doc.newSlug);
+    }
+    return this.documents[newSlug].filename = newName;
+  };
+
   DocumentManagerService.prototype.remove = function(slug, callback) {
     var filename, i;
     if (!this.documents[slug]) {

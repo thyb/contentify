@@ -23,7 +23,7 @@ documentManager =
 repo =
 	construct: ->
  */
-var AlwaysCtrl, App, DocumentCtrl, DocumentsCtrl, ErrorCtrl, IndexCtrl, LogoutCtrl, MediasCtrl;
+var AlwaysCtrl, App, DocumentCtrl, DocumentsCtrl, ErrorCtrl, IndexCtrl, LearnMoreCtrl, LogoutCtrl, MediasCtrl;
 
 App = require('./framework/App');
 
@@ -41,6 +41,8 @@ MediasCtrl = require('./controllers/MediasCtrl');
 
 LogoutCtrl = require('./controllers/LogoutCtrl');
 
+LearnMoreCtrl = require('./controllers/LearnMoreCtrl');
+
 $('document').ready(function() {
   var app;
   OAuth.initialize('poZr5pdrx7yFDfoE-gICayo2cBc');
@@ -48,6 +50,8 @@ $('document').ready(function() {
   app.initializeRouter({
     '/document/:slug': DocumentCtrl,
     '/': IndexCtrl,
+    '/learn-more': LearnMoreCtrl,
+    '/learn-more/:doc': LearnMoreCtrl,
     '/404': ErrorCtrl,
     '/403': ErrorCtrl,
     '/documents': DocumentsCtrl,

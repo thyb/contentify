@@ -15,7 +15,7 @@ module.exports = IndexCtrl = (function(_super) {
   }
 
   IndexCtrl.prototype["do"] = function() {
-    return $('button').click((function(_this) {
+    return $('button.btn-primary').click((function(_this) {
       return function() {
         return OAuth.popup('github', function(err, res) {
           if (err) {

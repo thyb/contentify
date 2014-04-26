@@ -37,4 +37,5 @@ module.exports = class DocumentsCtrl extends Ctrl
 
 			@services.documentManager.create formData, (err) =>
 				$('.modal-backdrop').remove()
+				$('body').removeClass('modal-open')
 				@app.redirect '/document/' + formData.slug

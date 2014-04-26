@@ -102,6 +102,18 @@ module.exports = class DocumentManagerService extends Service
 
 		return history
 
+	rename: (slug, newSlug, newName, callback) ->
+		if not @documents[slug]
+			callback 'not found', null
+
+		doc = @documents[slug]
+		if newSlug != slug
+			callback 'already exists', null if @documents[newSlug]
+
+			@documents[newSlug] = doc
+			@repo.move doc.filename, doc.newSlug
+		@documents[newSlug].filename = newName
+
 	remove: (slug, callback) ->
 		if not @documents[slug]
 			callback 'not found', null

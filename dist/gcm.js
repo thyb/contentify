@@ -161,7 +161,7 @@ module.exports = AlwaysCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10}],3:[function(require,module,exports){
+},{"../framework/Ctrl":11}],3:[function(require,module,exports){
 var Ctrl, DocumentCtrl, DocumentHistory, DocumentManagerService,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -715,7 +715,19 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
     $('#rename-doc-link').click((function(_this) {
       return function() {
+        $('#name-input').val(_this.viewParams.doc.name);
+        $('#slug-input').val(_this.viewParams.slug);
+        $('#rename-document-modal').modal('show');
         return false;
+      };
+    })(this));
+    $('#rename-button').click((function(_this) {
+      return function() {
+        return _this.DocumentManagerService.rename(_this.viewParams.slug, $('#slug-input').val(), $('#name-input').val(), function(err) {
+          if (err) {
+            return false;
+          }
+        });
       };
     })(this));
     $('#fork').click((function(_this) {
@@ -782,7 +794,7 @@ module.exports = DocumentCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../components/DocumentHistory":1,"../framework/Ctrl":10,"../services/DocumentManagerService":21}],4:[function(require,module,exports){
+},{"../components/DocumentHistory":1,"../framework/Ctrl":11,"../services/DocumentManagerService":22}],4:[function(require,module,exports){
 var Ctrl, DocumentManagerService, DocumentsCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -848,6 +860,7 @@ module.exports = DocumentsCtrl = (function(_super) {
         };
         return _this.services.documentManager.create(formData, function(err) {
           $('.modal-backdrop').remove();
+          $('body').removeClass('modal-open');
           return _this.app.redirect('/document/' + formData.slug);
         });
       };
@@ -858,7 +871,7 @@ module.exports = DocumentsCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10,"../services/DocumentManagerService":21}],5:[function(require,module,exports){
+},{"../framework/Ctrl":11,"../services/DocumentManagerService":22}],5:[function(require,module,exports){
 var Ctrl, ErrorCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -883,7 +896,7 @@ module.exports = ErrorCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10}],6:[function(require,module,exports){
+},{"../framework/Ctrl":11}],6:[function(require,module,exports){
 var Ctrl, IndexCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -901,7 +914,7 @@ module.exports = IndexCtrl = (function(_super) {
   }
 
   IndexCtrl.prototype["do"] = function() {
-    return $('button').click((function(_this) {
+    return $('button.btn-primary').click((function(_this) {
       return function() {
         return OAuth.popup('github', function(err, res) {
           if (err) {
@@ -923,7 +936,43 @@ module.exports = IndexCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10}],7:[function(require,module,exports){
+},{"../framework/Ctrl":11}],7:[function(require,module,exports){
+var Ctrl, LearnMoreCtrl,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+Ctrl = require('../framework/Ctrl');
+
+module.exports = LearnMoreCtrl = (function(_super) {
+  __extends(LearnMoreCtrl, _super);
+
+  function LearnMoreCtrl() {
+    return LearnMoreCtrl.__super__.constructor.apply(this, arguments);
+  }
+
+  LearnMoreCtrl.prototype.availableDocument = ['overview', 'install', 'faq', 'sdk-js', 'sdk-node', 'faq', 'about'];
+
+  LearnMoreCtrl.prototype["do"] = function() {
+    var doc, _ref;
+    contentify.initialize('thyb', 'contentify', 'draft');
+    doc = 'overview';
+    if (this.params.doc && (_ref = this.params.doc, __indexOf.call(this.availableDocument, _ref) >= 0)) {
+      doc = this.params.doc;
+    }
+    $('#menu-' + doc).addClass('active');
+    return $('#learn-content').includeContent(doc + '.md', function(elem) {
+      return elem.find('pre').each(function(i, e) {
+        return hljs.highlightBlock(e);
+      });
+    });
+  };
+
+  return LearnMoreCtrl;
+
+})(Ctrl);
+
+},{"../framework/Ctrl":11}],8:[function(require,module,exports){
 var Ctrl, LogoutCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -943,7 +992,7 @@ module.exports = LogoutCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10}],8:[function(require,module,exports){
+},{"../framework/Ctrl":11}],9:[function(require,module,exports){
 var Ctrl, MediasCtrl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -969,7 +1018,7 @@ module.exports = MediasCtrl = (function(_super) {
 
 })(Ctrl);
 
-},{"../framework/Ctrl":10}],9:[function(require,module,exports){
+},{"../framework/Ctrl":11}],10:[function(require,module,exports){
 var App, CtrlManager, Env, GlobalEvent, LayoutManager, Router, TemplateManager, User;
 
 Router = require('./Router');
@@ -1090,7 +1139,7 @@ module.exports = App = (function() {
 
 })();
 
-},{"./CtrlManager":11,"./Env":12,"./GlobalEvent":13,"./LayoutManager":14,"./Router":15,"./TemplateManager":17,"./User":18}],10:[function(require,module,exports){
+},{"./CtrlManager":12,"./Env":13,"./GlobalEvent":14,"./LayoutManager":15,"./Router":16,"./TemplateManager":18,"./User":19}],11:[function(require,module,exports){
 var Ctrl, View;
 
 View = require('./View');
@@ -1153,7 +1202,7 @@ module.exports = Ctrl = (function() {
 
 })();
 
-},{"./View":19}],11:[function(require,module,exports){
+},{"./View":20}],12:[function(require,module,exports){
 var CtrlManager;
 
 module.exports = CtrlManager = (function() {
@@ -1197,7 +1246,7 @@ module.exports = CtrlManager = (function() {
 
 })();
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var Env;
 
 module.exports = Env = (function() {
@@ -1231,7 +1280,7 @@ module.exports = Env = (function() {
 
 })();
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var GlobalEvent;
 
 module.exports = GlobalEvent = (function() {
@@ -1265,7 +1314,7 @@ module.exports = GlobalEvent = (function() {
 
 })();
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var LayoutManager;
 
 module.exports = LayoutManager = (function() {
@@ -1326,7 +1375,7 @@ module.exports = LayoutManager = (function() {
 
 })();
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var Router, View;
 
 View = require('./View');
@@ -1428,7 +1477,7 @@ module.exports = Router = (function() {
 
 })();
 
-},{"./View":19}],16:[function(require,module,exports){
+},{"./View":20}],17:[function(require,module,exports){
 var Service;
 
 module.exports = Service = (function() {
@@ -1438,7 +1487,7 @@ module.exports = Service = (function() {
 
 })();
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var TemplateManager;
 
 module.exports = TemplateManager = (function() {
@@ -1484,7 +1533,7 @@ module.exports = TemplateManager = (function() {
 
 })();
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var User;
 
 module.exports = User = (function() {
@@ -1549,7 +1598,7 @@ module.exports = User = (function() {
 
 })();
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var TemplateManager, View;
 
 TemplateManager = require('./TemplateManager');
@@ -1572,7 +1621,7 @@ module.exports = View = (function() {
 
 })();
 
-},{"./TemplateManager":17}],20:[function(require,module,exports){
+},{"./TemplateManager":18}],21:[function(require,module,exports){
 
 /*
 class GDraft
@@ -1598,7 +1647,7 @@ documentManager =
 repo =
 	construct: ->
  */
-var AlwaysCtrl, App, DocumentCtrl, DocumentsCtrl, ErrorCtrl, IndexCtrl, LogoutCtrl, MediasCtrl;
+var AlwaysCtrl, App, DocumentCtrl, DocumentsCtrl, ErrorCtrl, IndexCtrl, LearnMoreCtrl, LogoutCtrl, MediasCtrl;
 
 App = require('./framework/App');
 
@@ -1616,6 +1665,8 @@ MediasCtrl = require('./controllers/MediasCtrl');
 
 LogoutCtrl = require('./controllers/LogoutCtrl');
 
+LearnMoreCtrl = require('./controllers/LearnMoreCtrl');
+
 $('document').ready(function() {
   var app;
   OAuth.initialize('poZr5pdrx7yFDfoE-gICayo2cBc');
@@ -1623,6 +1674,8 @@ $('document').ready(function() {
   app.initializeRouter({
     '/document/:slug': DocumentCtrl,
     '/': IndexCtrl,
+    '/learn-more': LearnMoreCtrl,
+    '/learn-more/:doc': LearnMoreCtrl,
     '/404': ErrorCtrl,
     '/403': ErrorCtrl,
     '/documents': DocumentsCtrl,
@@ -1638,7 +1691,7 @@ $('document').ready(function() {
   return app.setMenu('#menu').setLayout('index').start();
 });
 
-},{"./controllers/AlwaysCtrl":2,"./controllers/DocumentCtrl":3,"./controllers/DocumentsCtrl":4,"./controllers/ErrorCtrl":5,"./controllers/IndexCtrl":6,"./controllers/LogoutCtrl":7,"./controllers/MediasCtrl":8,"./framework/App":9}],21:[function(require,module,exports){
+},{"./controllers/AlwaysCtrl":2,"./controllers/DocumentCtrl":3,"./controllers/DocumentsCtrl":4,"./controllers/ErrorCtrl":5,"./controllers/IndexCtrl":6,"./controllers/LearnMoreCtrl":7,"./controllers/LogoutCtrl":8,"./controllers/MediasCtrl":9,"./framework/App":10}],22:[function(require,module,exports){
 var DocumentManagerService, Service,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1801,6 +1854,22 @@ module.exports = DocumentManagerService = (function(_super) {
     return history;
   };
 
+  DocumentManagerService.prototype.rename = function(slug, newSlug, newName, callback) {
+    var doc;
+    if (!this.documents[slug]) {
+      callback('not found', null);
+    }
+    doc = this.documents[slug];
+    if (newSlug !== slug) {
+      if (this.documents[newSlug]) {
+        callback('already exists', null);
+      }
+      this.documents[newSlug] = doc;
+      this.repo.move(doc.filename, doc.newSlug);
+    }
+    return this.documents[newSlug].filename = newName;
+  };
+
   DocumentManagerService.prototype.remove = function(slug, callback) {
     var filename, i;
     if (!this.documents[slug]) {
@@ -1878,4 +1947,4 @@ module.exports = DocumentManagerService = (function(_super) {
 
 })(Service);
 
-},{"../framework/Service":16}]},{},[20])
+},{"../framework/Service":17}]},{},[21])

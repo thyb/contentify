@@ -63,6 +63,7 @@ module.exports = DocumentsCtrl = (function(_super) {
         };
         return _this.services.documentManager.create(formData, function(err) {
           $('.modal-backdrop').remove();
+          $('body').removeClass('modal-open');
           return _this.app.redirect('/document/' + formData.slug);
         });
       };

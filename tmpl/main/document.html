@@ -60,9 +60,36 @@
         <span class="caret"></span>
       </button>
       <ul class="dropdown-menu">
-        <!--<li><a id="rename-doc-link" href="#"><i class="glyphicon glyphicon-pencil"></i> Rename</a></li>-->
+        <li><a id="rename-doc-link" href="#"><i class="glyphicon glyphicon-pencil"></i> Rename</a></li>
         <li><a id="remove-doc-link" href="#"><i class="glyphicon glyphicon-fire"></i> Remove</a></li>
       </ul>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="rename-document-modal" tabindex="-1" role="dialog" aria-labelledby="Rename" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Rename this document</h4>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+            <label for="name-input">Name</label>
+            <input type="text" id="name-input" class="form-control" placeholder="New Document 1">
+          </div>
+          <div class="form-group">
+            <label for="slug-input">Slug</label>
+            <input type="text" id="slug-input" class="form-control" placeholder="new-document-1">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" id="rename-button" class="btn btn-primary">Rename</button>
+      </div>
     </div>
   </div>
 </div>

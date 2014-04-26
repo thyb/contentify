@@ -551,7 +551,19 @@ module.exports = DocumentCtrl = (function(_super) {
     })(this));
     $('#rename-doc-link').click((function(_this) {
       return function() {
+        $('#name-input').val(_this.viewParams.doc.name);
+        $('#slug-input').val(_this.viewParams.slug);
+        $('#rename-document-modal').modal('show');
         return false;
+      };
+    })(this));
+    $('#rename-button').click((function(_this) {
+      return function() {
+        return _this.DocumentManagerService.rename(_this.viewParams.slug, $('#slug-input').val(), $('#name-input').val(), function(err) {
+          if (err) {
+            return false;
+          }
+        });
       };
     })(this));
     $('#fork').click((function(_this) {

@@ -30,6 +30,7 @@ DocumentsCtrl = require('./controllers/DocumentsCtrl')
 DocumentCtrl = require('./controllers/DocumentCtrl')
 MediasCtrl = require('./controllers/MediasCtrl')
 LogoutCtrl = require('./controllers/LogoutCtrl')
+LearnMoreCtrl = require('./controllers/LearnMoreCtrl')
 
 $('document').ready ->
 	OAuth.initialize 'poZr5pdrx7yFDfoE-gICayo2cBc'
@@ -39,6 +40,8 @@ $('document').ready ->
 	app.initializeRouter
 		'/document/:slug': DocumentCtrl
 		'/': IndexCtrl
+		'/learn-more': LearnMoreCtrl
+		'/learn-more/:doc': LearnMoreCtrl
 		'/404': ErrorCtrl
 		'/403': ErrorCtrl
 		'/documents': DocumentsCtrl
