@@ -10,7 +10,7 @@ The installation is easy using `npm`
 
 Then you can require contentify in your Node.js application
 
-`var contentify = require('contentify')`
+    var contentify = require('contentify')
 
 Basic usage
 -----------
