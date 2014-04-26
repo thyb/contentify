@@ -53,28 +53,28 @@ You can place in your HTML template `[[ include filename ]]` and this file will 
 You can have template which look something like this for instance:
 
     <div class="col-lg-6">
-        [[include myfile.md#article1]]
+        &#91;&#91; include myfile.md#article1 &#93;&#93;
     </div>
     <div class="col-lg-6>
-        [[include myfile.md#article2]]
+        &#91;&#91; include myfile.md#article2 &#93;&#93;
     </div>
 
 and myfile.md in Contentify looks like
 
-    [[ fragment article1 ]]
+    &#91;&#91; fragment article1 &#93;&#93;
      
     Article1
     ========
      
     Lorem ipsum ...
      
-    [[ /fragment ]]
-    [[ fragment article2 ]]
+    &#91;&#91; /fragment &#93;&#93;
+    &#91;&#91; fragment article2 &#93;&#93;
      
     Article2
     ========
      
     Lorem ipsum ...
      
-    [[ /fragment ]]
+    &#91;&#91; /fragment &#93;&#93;
     
