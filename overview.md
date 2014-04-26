@@ -21,7 +21,7 @@ Manage your content
 
 3- You can save your change as a Draft or as a Release. The production see only the release saves while your development team can hook on the draft saves.
 
-4- Go in the history to review old version (with their changes) and rollback to a specific version if necessary.
+4- You can go in the history to review old version (with their changes) and rollback to a specific version if necessary.
 
 5- You can cut your document in fragment for a smoother integration
 
