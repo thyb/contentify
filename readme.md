@@ -23,6 +23,18 @@ Fork this repository on your account. Then, to build the Github Pages, Github ne
 
 Finally, go on http://[your-github-username].github.io/[your-github-repository] and start editing documents in Markdown or HTML in a simple editor.
 
+Enable realtime with Firebase
+-----------------------------
+
+You can edit in realtime your documents with your Github collaborators by updating `config.js` with the option `firebase_url` set to your Firebase URL. To get one, you just have to signup on [Firebase](https://firebase.com).
+
+    {
+        ...
+        firebase_url: 'xxxx-xxxx-xxxx.firebaseIO.com'
+    }
+
+That's it! You can start editing in realtime with your collaborators.
+
 Installation over Github private pages
 --------------------------------------
 
@@ -63,18 +75,6 @@ e.g.
 ### Start the server
 
     grunt
-
-Enable realtime with Firebase
------------------------------
-
-You can edit in realtime your documents with your Github collaborators by updating `config.js` with the option `firebase_url` set to your Firebase URL. To get one, you just have to signup on [Firebase](https://firebase.com).
-
-    {
-        ...
-        firebase_url: 'xxxx-xxxx-xxxx.firebaseIO.com'
-    }
-
-That's it! You can start editing in realtime with your collaborators.
 
 Why ?
 -----
