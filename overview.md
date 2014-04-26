@@ -3,6 +3,23 @@ Overview
 
 **Contentify** is a manageable content manager in realtime over Github.
 
+Available features
+------------------
+
+* Manage documents - Markdown and HTML support
+ 
+* Editor with preview / fullscreen / syntax coloration etc...
+
+* Real time edition with Github collaborators
+
+* History of all your draft / release with diff
+
+* Unlimited colaborators
+
+* Easy integration with SDKs: Javascript, Node.js
+
+* Simple interface
+
 Installation
 ------------
 
