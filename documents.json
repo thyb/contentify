@@ -6,7 +6,7 @@
     "path": "",
     "filename": "readme.md",
     "lastVersion": "Github Content Manager\n======================\n\nInstallation Javascript\n-----------------------\n\nDownload the [Javascript SDK](sdk/gcm.js)\n\n    <script type=\"text/javascript\" src=\"/path/to/gcm.js\"></script>\n\nInstallation Node.js\n--------------------\n\nInstall `gcm` package using `npm`\n\n    npm install gcm\n\nLicense\n-------\n\nAPACHE2 LICENSE",
-    "updated": 1398463876562
+    "updated": 1398551146950
   },
   "sdk-node": {
     "name": "SDK Node",
@@ -14,5 +14,33 @@
     "created": 1398461942421,
     "path": "",
     "filename": "sdk-node.md"
+  },
+  "sdk-js": {
+    "name": "SDK Javascript",
+    "extension": "md",
+    "created": 1398463908633,
+    "path": "",
+    "filename": "sdk-js.md"
+  },
+  "overview": {
+    "name": "Overview",
+    "extension": "md",
+    "created": 1398480770970,
+    "path": "",
+    "filename": "overview.md"
+  },
+  "faq": {
+    "name": "FAQ",
+    "extension": "md",
+    "created": 1398480796617,
+    "path": "",
+    "filename": "faq.md"
+  },
+  "install": {
+    "name": "Install",
+    "extension": "md",
+    "created": 1398525718881,
+    "path": "",
+    "filename": "install.md"
   }
 }
