@@ -16,7 +16,7 @@ Basic usage
 -----------
 
 Get `readme.md` file
-    
+
     contentify.getContent('readme.md', function(err, content) {
         //content is the html parsed from readme.md
     })
@@ -24,13 +24,13 @@ Get `readme.md` file
 Get a fragment in `features.md`
 
     contentify.getContent('features.md', 'providers', function(err, content) {
-        //`content` contains the html of the fragment `providers` of feature.md
+        //content contains the html of the fragment providers of feature.md
     })
      
 Get multiple fragments in features.md
 
     contentify.getContent('features.md', ['providers', 'sdk'], function(err, contents) {
-        //`contents` is an array with the `providers` fragment and the `sdk` fragment
+        //contents is an array with the providers fragment and the sdk fragment
     })
 
 In Express or Restify
@@ -39,9 +39,9 @@ In Express or Restify
 You can route your html file with contentify
 
     server.get(/^\/templates\/.*\.html/, content.serve({
-        owner: 'thyb', //the owner of the repo of contentify
-        repo: 'contentify', //the repo of contentify
-        mode: 'draft', //draft or release
+        owner: 'thyb', /* the owner of the repo of contentify */
+        repo: 'contentify', /* the repo of contentify */
+        mode: 'draft', /* draft or release */
         directory: __dirname + '/app',
         //if private repository
         user: '',
@@ -55,7 +55,7 @@ You can have template which look something like this for instance:
     <div class="col-lg-6">
         [[ include myfile.md#article1 ]]
     </div>
-    <div class="col-lg-6>
+    <div class="col-lg-6">
         [[ include myfile.md#article2 ]]
     </div>
 
