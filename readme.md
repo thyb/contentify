@@ -9,11 +9,17 @@ Available features
 ------------------
 
 * Manage documents - Markdown and HTML support
+ 
 * Editor with preview / fullscreen / syntax coloration etc...
+
 * Real time edition with Github collaborators
+
 * History of all your draft / release with diff
+
 * Unlimited colaborators
+
 * Easy integration with SDKs: Javascript, Node.js
+
 * Simple interface
 
 Installation over Github Pages
@@ -79,7 +85,7 @@ e.g.
 Why ?
 -----
 
-In my team at OAuth.io, we needed an efficient way for non-developer collaborators to work on the wording of the service without having to learn the HTML and Git/Github so I decided to make an easy way to work collaboratively with them while I can worry on the code and them on the wording.
+In my team at [OAuth.io](https://oauth.io), we needed an efficient way for non-developer collaborators to work on the wording of the service without having to learn the HTML and Git/Github so I decided to make an easy way to work collaboratively with them while I can worry on the code and them on the wording.
 
 License
 -------
