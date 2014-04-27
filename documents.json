@@ -20,7 +20,8 @@
     "extension": "md",
     "created": 1398463908633,
     "path": "",
-    "filename": "sdk-js.md"
+    "filename": "sdk-js.md",
+    "updated": 1398535381449
   },
   "overview": {
     "name": "Overview",
@@ -28,7 +29,8 @@
     "created": 1398480770970,
     "path": "",
     "filename": "overview.md",
-    "updated": 1398551632290
+    "updated": 1398551632290,
+    "filename": "overview.md"
   },
   "faq": {
     "name": "FAQ",
