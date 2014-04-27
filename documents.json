@@ -35,13 +35,15 @@
     "extension": "md",
     "created": 1398480796617,
     "path": "",
-    "filename": "faq.md"
+    "filename": "faq.md",
+    "updated": 1398551378381
   },
   "install": {
     "name": "Install",
     "extension": "md",
     "created": 1398525718881,
     "path": "",
-    "filename": "install.md"
+    "filename": "install.md",
+    "updated": 1398551596133
   }
 }
