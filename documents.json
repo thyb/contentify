@@ -13,7 +13,8 @@
     "extension": "md",
     "created": 1398461942421,
     "path": "",
-    "filename": "sdk-node.md"
+    "filename": "sdk-node.md",
+    "updated": 1398534771537
   },
   "sdk-js": {
     "name": "SDK Javascript",
