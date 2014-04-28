@@ -15,7 +15,7 @@ Then you can require contentify in your Node.js application
 Basic usage
 -----------
 
-Get `readme.md` file
+Get the `readme.md` file
 
     contentify.getContent('readme.md', function(err, content) {
         //content is the html parsed from readme.md
@@ -48,9 +48,9 @@ You can route your html file with contentify
         password: ''
     })
 
-You can place in your HTML template `[[ include filename ]]` and this file will be automatically include from github. All files included are cached so if you need to clear the cache manually, use `contentify.clearCache(filename)` to clear the cache for a specific file or `contentify.clearCache()` for clear all the cache.
+You can place `[[ include filename ]]` in your HTML template and this file will be automatically included from github. All files included are cached so if you need to clear the cache manually, use `contentify.clearCache(filename)` to clear the cache for a specific file or `contentify.clearCache()` to clear the whole cache.
 
-You can have template which look something like this for instance:
+You can have templates that look like this:
 
     <div class="col-lg-6">
         [[ include myfile.md#article1 ]]
