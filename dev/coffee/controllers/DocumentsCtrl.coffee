@@ -27,7 +27,7 @@ module.exports = class DocumentsCtrl extends Ctrl
 				title: $('#name-input').val()
 				filename: $('#filename-input').val()
 
-			@services.documentManager.create filename, title, (err) =>
+			@services.documentManager.create formData.filename, formData.title, (err) =>
 				if err
 					err.msg = JSON.stringify err if not err.msg
 					$('#new-document-modal form .alert').html(err.msg).removeClass 'hide'

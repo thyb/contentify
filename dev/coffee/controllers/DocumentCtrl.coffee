@@ -427,15 +427,15 @@ module.exports = class DocumentCtrl extends Ctrl
 				@remove()
 			return false
 
-		$('#rename-doc-link').click =>
-			$('#name-input').val @viewParams.doc.name
-			$('#filename-input').val @viewParams.filename
-			$('#rename-document-modal').modal('show')
-			return false
+		#$('#rename-doc-link').click =>
+		#	$('#name-input').val @viewParams.doc.name
+		#	$('#filename-input').val @viewParams.filename
+		#	$('#rename-document-modal').modal('show')
+		#	return false
 
-		$('#rename-button').click =>
-			@DocumentManagerService.rename @viewParams.filename, $('#filename-input').val(), $('#name-input').val(), (err) =>
-				return false if err
+		#$('#rename-button').click =>
+		#	@DocumentManagerService.rename @viewParams.filename, $('#filename-input').val(), $('#name-input').val(), (err) =>
+		#		return false if err
 				# TODO: change UI
 
 		$('#fork').click =>

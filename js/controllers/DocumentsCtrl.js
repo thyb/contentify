@@ -53,7 +53,7 @@ module.exports = DocumentsCtrl = (function(_super) {
           title: $('#name-input').val(),
           filename: $('#filename-input').val()
         };
-        return _this.services.documentManager.create(filename, title, function(err) {
+        return _this.services.documentManager.create(formData.filename, formData.title, function(err) {
           if (err) {
             if (!err.msg) {
               err.msg = JSON.stringify(err);

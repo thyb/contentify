@@ -21,36 +21,40 @@ module.exports = class DocumentManagerService extends Service
 				else
 					return callback 'guest'
 
-	create: (params, callback) ->
+	create: (filename, title, callback) ->
+		if not title or not filename
+			return callback
+				error: true
+				code: 4
+				msg: 'Filename and title required'
 
-		if @documents[params.filename]
+		if @documents[filename]
 			return callback
 				error: true
 				code: 1
 				msg: 'File already exists, please choose another one'
 
-		if params.title.length > 70
+
+		if title.length > 70
 			return callback
 				error: true
 				code: 3
-				msg: 'Name too long'
+				msg: 'Title too long'
 
-		if not params.filename.match /^[a-zA-Z0-9-_.\/]+$/i
+		if not filename.match /^[a-zA-Z0-9-_.\/]+$/i
 			return callback
 				error: true
 				code: 2
 				msg: 'The filename should contains alphanumeric characters with `-` or `_` or `.`'
 
-		@documents[params.filename] =
-			title: params.name
+		@documents[filename] =
+			name: title
 			created: Date.now()
 			path: ''
 
-		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Create document ' + params.filename + ' in documents.json', (err) =>
+		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Create document ' + filename + ' in documents.json', (err) =>
 			return callback err if err
-			@repo.branch params.slug, (err) ->
-				return callback err if err
-				callback()
+			callback()
 
 	release: (filename, content, message, callback) ->
 		@documents[filename].updated = Date.now()
@@ -120,7 +124,7 @@ module.exports = class DocumentManagerService extends Service
 		delete @documents[filename]
 		i = 0
 		nbCall = 3
-		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Remove ' + slug, (err) =>
+		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Remove ' + filename, (err) =>
 			callback(null, true) if callback and ++i == nbCall
 		@repo.delete 'draft', filename, (err) =>
 			callback(null, true) if callback and ++i == nbCall

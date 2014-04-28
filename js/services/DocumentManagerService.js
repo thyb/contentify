@@ -34,44 +34,46 @@ module.exports = DocumentManagerService = (function(_super) {
     });
   };
 
-  DocumentManagerService.prototype.create = function(params, callback) {
-    if (this.documents[params.filename]) {
+  DocumentManagerService.prototype.create = function(filename, title, callback) {
+    if (!title || !filename) {
+      return callback({
+        error: true,
+        code: 4,
+        msg: 'Filename and title required'
+      });
+    }
+    if (this.documents[filename]) {
       return callback({
         error: true,
         code: 1,
         msg: 'File already exists, please choose another one'
       });
     }
-    if (params.title.length > 70) {
+    if (title.length > 70) {
       return callback({
         error: true,
         code: 3,
-        msg: 'Name too long'
+        msg: 'Title too long'
       });
     }
-    if (!params.filename.match(/^[a-zA-Z0-9-_.\/]+$/i)) {
+    if (!filename.match(/^[a-zA-Z0-9-_.\/]+$/i)) {
       return callback({
         error: true,
         code: 2,
         msg: 'The filename should contains alphanumeric characters with `-` or `_` or `.`'
       });
     }
-    this.documents[params.filename] = {
-      title: params.name,
+    this.documents[filename] = {
+      name: title,
       created: Date.now(),
       path: ''
     };
-    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + params.filename + ' in documents.json', (function(_this) {
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + filename + ' in documents.json', (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
         }
-        return _this.repo.branch(params.slug, function(err) {
-          if (err) {
-            return callback(err);
-          }
-          return callback();
-        });
+        return callback();
       };
     })(this));
   };
@@ -181,7 +183,7 @@ module.exports = DocumentManagerService = (function(_super) {
     delete this.documents[filename];
     i = 0;
     nbCall = 3;
-    this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {
+    this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + filename, (function(_this) {
       return function(err) {
         if (callback && ++i === nbCall) {
           return callback(null, true);

@@ -715,23 +715,6 @@ module.exports = DocumentCtrl = (function(_super) {
         return false;
       };
     })(this));
-    $('#rename-doc-link').click((function(_this) {
-      return function() {
-        $('#name-input').val(_this.viewParams.doc.name);
-        $('#filename-input').val(_this.viewParams.filename);
-        $('#rename-document-modal').modal('show');
-        return false;
-      };
-    })(this));
-    $('#rename-button').click((function(_this) {
-      return function() {
-        return _this.DocumentManagerService.rename(_this.viewParams.filename, $('#filename-input').val(), $('#name-input').val(), function(err) {
-          if (err) {
-            return false;
-          }
-        });
-      };
-    })(this));
     $('#fork').click((function(_this) {
       return function() {
         return alert('work in progress');
@@ -852,7 +835,7 @@ module.exports = DocumentsCtrl = (function(_super) {
           title: $('#name-input').val(),
           filename: $('#filename-input').val()
         };
-        return _this.services.documentManager.create(filename, title, function(err) {
+        return _this.services.documentManager.create(formData.filename, formData.title, function(err) {
           if (err) {
             if (!err.msg) {
               err.msg = JSON.stringify(err);
@@ -1730,44 +1713,46 @@ module.exports = DocumentManagerService = (function(_super) {
     });
   };
 
-  DocumentManagerService.prototype.create = function(params, callback) {
-    if (this.documents[params.filename]) {
+  DocumentManagerService.prototype.create = function(filename, title, callback) {
+    if (!title || !filename) {
+      return callback({
+        error: true,
+        code: 4,
+        msg: 'Filename and title required'
+      });
+    }
+    if (this.documents[filename]) {
       return callback({
         error: true,
         code: 1,
         msg: 'File already exists, please choose another one'
       });
     }
-    if (params.title.length > 70) {
+    if (title.length > 70) {
       return callback({
         error: true,
         code: 3,
-        msg: 'Name too long'
+        msg: 'Title too long'
       });
     }
-    if (!params.filename.match(/^[a-zA-Z0-9-_.\/]+$/i)) {
+    if (!filename.match(/^[a-zA-Z0-9-_.\/]+$/i)) {
       return callback({
         error: true,
         code: 2,
         msg: 'The filename should contains alphanumeric characters with `-` or `_` or `.`'
       });
     }
-    this.documents[params.filename] = {
-      title: params.name,
+    this.documents[filename] = {
+      name: title,
       created: Date.now(),
       path: ''
     };
-    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + params.filename + ' in documents.json', (function(_this) {
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + filename + ' in documents.json', (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
         }
-        return _this.repo.branch(params.slug, function(err) {
-          if (err) {
-            return callback(err);
-          }
-          return callback();
-        });
+        return callback();
       };
     })(this));
   };
@@ -1877,7 +1862,7 @@ module.exports = DocumentManagerService = (function(_super) {
     delete this.documents[filename];
     i = 0;
     nbCall = 3;
-    this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {
+    this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + filename, (function(_this) {
       return function(err) {
         if (callback && ++i === nbCall) {
           return callback(null, true);
