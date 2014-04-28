@@ -139,12 +139,13 @@ module.exports = class DocumentManagerService extends Service
 
 	list: (callback) ->
 		@repo.read 'config', 'documents.json', (err, data) =>
+			console.log err, data
 			if not err
 				@documents = JSON.parse data
 			else
 				@documents = {}
 			list = new Array()
 			for filename of @documents
-				list.push $.extend(filename: filename, @documents[slug])
+				list.push $.extend(filename: filename, @documents[filename])
 
 			callback err, list if callback

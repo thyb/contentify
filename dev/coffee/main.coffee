@@ -38,7 +38,7 @@ $('document').ready ->
 	app = new App()
 
 	app.initializeRouter
-		'/document/:slug': DocumentCtrl
+		'/document/:filename': DocumentCtrl
 		'/': IndexCtrl
 		'/learn-more': LearnMoreCtrl
 		'/learn-more/:doc': LearnMoreCtrl

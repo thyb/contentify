@@ -228,6 +228,7 @@ module.exports = DocumentManagerService = (function(_super) {
     return this.repo.read('config', 'documents.json', (function(_this) {
       return function(err, data) {
         var filename, list;
+        console.log(err, data);
         if (!err) {
           _this.documents = JSON.parse(data);
         } else {
@@ -237,7 +238,7 @@ module.exports = DocumentManagerService = (function(_super) {
         for (filename in _this.documents) {
           list.push($.extend({
             filename: filename
-          }, _this.documents[slug]));
+          }, _this.documents[filename]));
         }
         if (callback) {
           return callback(err, list);

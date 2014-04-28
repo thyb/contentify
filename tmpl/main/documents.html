@@ -3,9 +3,9 @@
 {{#if documents}}
   <div class="list-group">
   {{#each documents}}
-    <a href="#/document/{{slug}}" class="list-group-item">
+    <a href="#/document/{{filename}}" class="list-group-item">
       <h4 class="list-group-item-heading">{{name}}</h4>
-      <p class="list-group-item-text">{{slug}}.{{extension}}</p>
+      <p class="list-group-item-text">{{filename}}</p>
     </a>
   {{/each}}
   </div>

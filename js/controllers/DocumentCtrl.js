@@ -465,11 +465,7 @@ module.exports = DocumentCtrl = (function(_super) {
     this.autoResizeEditor();
     this.editor = ace.edit('editor');
     this.editor.getSession().setUseWrapMode(true);
-    if (this.viewParams.doc.extension === 'md') {
-      this.editor.getSession().setMode("ace/mode/markdown");
-    } else {
-      this.editor.getSession().setMode("ace/mode/html");
-    }
+    this.editor.getSession().setMode("ace/mode/markdown");
     this.setupTheme();
     $('#preview-mode').click((function(_this) {
       return function() {

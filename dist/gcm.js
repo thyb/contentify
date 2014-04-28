@@ -629,11 +629,7 @@ module.exports = DocumentCtrl = (function(_super) {
     this.autoResizeEditor();
     this.editor = ace.edit('editor');
     this.editor.getSession().setUseWrapMode(true);
-    if (this.viewParams.doc.extension === 'md') {
-      this.editor.getSession().setMode("ace/mode/markdown");
-    } else {
-      this.editor.getSession().setMode("ace/mode/html");
-    }
+    this.editor.getSession().setMode("ace/mode/markdown");
     this.setupTheme();
     $('#preview-mode').click((function(_this) {
       return function() {
@@ -1404,7 +1400,7 @@ module.exports = Router = (function() {
         res = route.match(/\/:([a-zA-Z0-9]+)/);
         res.shift();
         params = res;
-        regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_-]+)').replace(/\//g, '\\/');
+        regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_\\-\\.]+)').replace(/\//g, '\\/');
         res = path.match(new RegExp(regexpStr));
         if (!res) {
           continue;
@@ -1660,7 +1656,7 @@ $('document').ready(function() {
   OAuth.initialize('poZr5pdrx7yFDfoE-gICayo2cBc');
   app = new App();
   app.initializeRouter({
-    '/document/:slug': DocumentCtrl,
+    '/document/:filename': DocumentCtrl,
     '/': IndexCtrl,
     '/learn-more': LearnMoreCtrl,
     '/learn-more/:doc': LearnMoreCtrl,
@@ -1910,6 +1906,7 @@ module.exports = DocumentManagerService = (function(_super) {
     return this.repo.read('config', 'documents.json', (function(_this) {
       return function(err, data) {
         var filename, list;
+        console.log(err, data);
         if (!err) {
           _this.documents = JSON.parse(data);
         } else {
@@ -1919,7 +1916,7 @@ module.exports = DocumentManagerService = (function(_super) {
         for (filename in _this.documents) {
           list.push($.extend({
             filename: filename
-          }, _this.documents[slug]));
+          }, _this.documents[filename]));
         }
         if (callback) {
           return callback(err, list);

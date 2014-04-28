@@ -376,10 +376,8 @@ module.exports = class DocumentCtrl extends Ctrl
 
 		@editor.getSession().setUseWrapMode true
 
-		if @viewParams.doc.extension == 'md'
-			@editor.getSession().setMode "ace/mode/markdown"
-		else
-			@editor.getSession().setMode "ace/mode/html"
+		@editor.getSession().setMode "ace/mode/markdown"
+		# @editor.getSession().setMode "ace/mode/html"
 
 		@setupTheme()
 

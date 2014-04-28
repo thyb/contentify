@@ -28,7 +28,7 @@ module.exports = class Router
 				res.shift()
 				params = res
 
-				regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_-]+)').replace(/\//g, '\\/')
+				regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_\\-\\.]+)').replace(/\//g, '\\/')
 				res = path.match(new RegExp(regexpStr))
 				continue if not res
 				res.shift()
