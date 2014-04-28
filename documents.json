@@ -4,27 +4,27 @@
     "create": 1397153982210,
     "updated": 1397800493636
   },
-  "sdk-node": {
+  "sdk-node.md": {
     "name": "SDK Node",
     "created": 1398461942421,
     "updated": 1398534771537
   },
-  "sdk-js": {
+  "sdk-js.md": {
     "name": "SDK Javascript",
     "created": 1398463908633,
     "updated": 1398535381449
   },
-  "overview": {
+  "overview.md": {
     "name": "Overview",
     "created": 1398480770970,
     "updated": 1398551632290
   },
-  "faq": {
+  "faq.md": {
     "name": "FAQ",
     "created": 1398480796617,
     "updated": 1398551378381
   },
-  "install": {
+  "install.md": {
     "name": "Install",
     "created": 1398525718881,
     "updated": 1398551596133
