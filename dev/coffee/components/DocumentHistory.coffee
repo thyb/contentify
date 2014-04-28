@@ -6,22 +6,36 @@ module.exports = class DocumentHistory
 		@listeners = {}
 
 		for hist in initialHistory
+			author = @getAuthor hist
 			@history.push
 				sha: hist.sha
 				version_type: hist.commit_type
 				message: hist.commit.message
-				login: hist.author.login
-				avatar_url: hist.author.avatar_url
+				login: author.login
+				avatar_url: author.avatar_url
 
 		@generateTemplate()
 
+	getAuthor: (commit) ->
+		if commit.author?.login
+			return {
+				login: commit.author.login
+				avatar_url: commit.author.avatar_url
+			}
+		else
+			return {
+				login: commit.commit.author.name
+				avatar_url: 'http://www.gravatar.com/avatar/' + MD5(commit.commit.author.email.trim().toLowerCase())
+			}
+
 	add: (hist) ->
+		author = @getAuthor hist
 		@history.unshift
 			sha: hist.sha
 			version_type: hist.commit_type
 			message: hist.commit.message
-			login: hist.author.login
-			avatar_url: hist.author.avatar_url
+			login: author.login
+			avatar_url: author.avatar_url
 
 		if @current != 0
 			@current++

@@ -3,31 +3,49 @@ var DocumentHistory;
 
 module.exports = DocumentHistory = (function() {
   function DocumentHistory(initialHistory, me) {
-    var hist, _i, _len;
+    var author, hist, _i, _len;
     this.me = me;
     this.current = 0;
     this.history = [];
     this.listeners = {};
     for (_i = 0, _len = initialHistory.length; _i < _len; _i++) {
       hist = initialHistory[_i];
+      author = this.getAuthor(hist);
       this.history.push({
         sha: hist.sha,
         version_type: hist.commit_type,
         message: hist.commit.message,
-        login: hist.author.login,
-        avatar_url: hist.author.avatar_url
+        login: author.login,
+        avatar_url: author.avatar_url
       });
     }
     this.generateTemplate();
   }
 
+  DocumentHistory.prototype.getAuthor = function(commit) {
+    var _ref;
+    if ((_ref = commit.author) != null ? _ref.login : void 0) {
+      return {
+        login: commit.author.login,
+        avatar_url: commit.author.avatar_url
+      };
+    } else {
+      return {
+        login: commit.commit.author.name,
+        avatar_url: 'http://www.gravatar.com/avatar/' + MD5(commit.commit.author.email.trim().toLowerCase())
+      };
+    }
+  };
+
   DocumentHistory.prototype.add = function(hist) {
+    var author;
+    author = this.getAuthor(hist);
     this.history.unshift({
       sha: hist.sha,
       version_type: hist.commit_type,
       message: hist.commit.message,
-      login: hist.author.login,
-      avatar_url: hist.author.avatar_url
+      login: author.login,
+      avatar_url: author.avatar_url
     });
     if (this.current !== 0) {
       this.current++;
