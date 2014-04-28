@@ -25,14 +25,14 @@ Available features
 Installation over Github Pages
 ------------------------------
 
-Fork this repository on your account. Then, to build the Github Pages, Github need a push. To do it, you can simply change a file with the Github Interface or using the console after clonning the forked repository: `git push origin master`
+Fork this repository on your account. Then, to build the Github Pages, Github needs a push. To do it, you can simply change a file with the Github Interface or by using the console after having cloned the forked repository: `git push origin master`
 
 Finally, go on http://[your-github-username].github.io/[your-github-repository] and start editing documents in Markdown or HTML in a simple editor.
 
 Enable realtime with Firebase
 -----------------------------
 
-You can edit in realtime your documents with your Github collaborators by updating `config.js` with the option `firebase_url` set to your Firebase URL. To get one, you just have to signup on [Firebase](https://firebase.com).
+You can edit your documents in realtime with your Github collaborators by updating `config.js` with the option `firebase_url` set to your Firebase URL. To get one, you just have to signup on [Firebase](https://firebase.com).
 
     {
         ...
@@ -50,7 +50,7 @@ To install **contentify** over a Github **private** repository, you have to clon
     cd content.git
     git push --mirror https://github.com/LOGIN/REPO.git
 
-Then, to disable the Github Pages to be displayed by non collaborator users, Go in https://github.com/LOGIN/REPO, and update `config.js` to put the option `private` set to `true`.
+Then, to prevent the Github Pages from being displayed to non collaborator users, go to https://github.com/LOGIN/REPO, and update `config.js` to put the option `private` set to `true`.
 
     var config = {
         ...
@@ -86,7 +86,7 @@ e.g.
 Why ?
 -----
 
-In my team at [OAuth.io](https://oauth.io), we needed an efficient way for non-developer collaborators to work on the wording of the service without having to learn the HTML and Git/Github so I decided to make an easy way to work collaboratively with them while I can worry on the code and them on the wording.
+My team and I at [OAuth.io](https://oauth.io) needed an efficient way for non-developer collaborators to work on the wording of the service without having to learn the HTML and Git/Github so I decided to make an easy way to work collaboratively with them. Now I can worry about the code and they can worry about the wording.
 
 License
 -------
