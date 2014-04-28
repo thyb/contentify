@@ -181,13 +181,6 @@ module.exports = DocumentCtrl = (function(_super) {
       return this.app.redirect('/');
     }
     this.services.documentManager = new DocumentManagerService(this.app.user.github);
-    Handlebars.registerHelper('releaseDotImg', function(passedString) {
-      if (passedString.substr(0, 6) === 'Delete') {
-        return 'img/delete-dot.png';
-      } else {
-        return 'img/release-dot.png';
-      }
-    });
   }
 
   DocumentCtrl.prototype.unload = function() {
@@ -203,12 +196,12 @@ module.exports = DocumentCtrl = (function(_super) {
           return _this.app.redirect('/403');
         }
         _this.access = access;
-        return _this.services.documentManager.getDocument(_this.params.slug, function(doc, lastContent) {
+        return _this.services.documentManager.getDocument(_this.params.filename, function(doc, lastContent) {
           if (!doc) {
             _this.app.redirect('/documents');
           }
-          return _this.services.documentManager.getDocumentHistory(_this.params.slug, function(err, documentHistory) {
-            return _this.services.documentManager.getReleaseHistory(_this.params.slug, function(err, releaseHistory) {
+          return _this.services.documentManager.getDocumentHistory(_this.params.filename, function(err, documentHistory) {
+            return _this.services.documentManager.getReleaseHistory(_this.params.filename, function(err, releaseHistory) {
               var lastContentHash, localChanges, localContent, merge;
               localContent = lastContent;
               lastContentHash = MD5(lastContent);
@@ -216,7 +209,7 @@ module.exports = DocumentCtrl = (function(_super) {
               merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
               _this.viewParams = {
                 doc: doc,
-                slug: _this.params.slug,
+                filename: _this.params.filename,
                 diff: documentHistory,
                 history: merge,
                 localChanges: localChanges,
@@ -251,7 +244,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.saveDraft = function(callback) {
-    var content, filename, message, slug;
+    var content, filename, message;
     if (!this.draftMessageOpen) {
       $('#draft-add-message').slideDown('fast');
       this.draftMessageOpen = true;
@@ -261,9 +254,8 @@ module.exports = DocumentCtrl = (function(_super) {
     } else {
       message = $("#draft-message").val();
       content = this.editor.getValue();
-      filename = this.viewParams.doc.filename;
-      slug = this.viewParams.slug;
-      this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
+      filename = this.viewParams.filename;
+      this.services.documentManager.saveDraft(filename, content, message, (function(_this) {
         return function(err, res) {
           _this.viewParams.lastContent = content;
           _this.viewParams.lastContentHash = MD5(content);
@@ -284,7 +276,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.release = function(callback) {
-    var changes, content, filename, message, releaseFct, slug;
+    var changes, content, filename, message, releaseFct;
     if (!this.draftMessageOpen) {
       $('#draft-add-message').slideDown('fast');
       this.releaseMessage = true;
@@ -295,11 +287,10 @@ module.exports = DocumentCtrl = (function(_super) {
     } else {
       message = $("#draft-message").val();
       content = this.editor.getValue();
-      filename = this.viewParams.doc.filename;
-      slug = this.viewParams.slug;
+      filename = this.viewParams.filename;
       releaseFct = (function(_this) {
         return function() {
-          return _this.services.documentManager.release(slug, filename, content, message, function(err, res) {
+          return _this.services.documentManager.release(filename, content, message, function(err, res) {
             _this.viewParams.lastContent = content;
             _this.viewParams.lastContentHash = MD5(content);
             _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
@@ -318,7 +309,7 @@ module.exports = DocumentCtrl = (function(_super) {
       })(this);
       changes = this.checkLocalChanges();
       if (changes) {
-        return this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
+        return this.services.documentManager.saveDraft(filename, content, message, (function(_this) {
           return function(err, res) {
             _this.viewParams.lastContent = content;
             _this.viewParams.lastContentHash = MD5(content);
@@ -337,9 +328,9 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.remove = function(callback) {
-    var slug;
-    slug = this.viewParams.slug;
-    return this.services.documentManager.remove(slug, (function(_this) {
+    var filename;
+    filename = this.viewParams.filename;
+    return this.services.documentManager.remove(filename, (function(_this) {
       return function() {
         _this.app.askForRedirect(false);
         return _this.app.redirect('/documents');
@@ -540,10 +531,7 @@ module.exports = DocumentCtrl = (function(_super) {
 
   DocumentCtrl.prototype.updatePreview = function() {
     var previewContent;
-    previewContent = this.editor.getValue();
-    if (this.viewParams.doc.extension === 'md') {
-      previewContent = marked(previewContent);
-    }
+    previewContent = marked(this.editor.getValue());
     return $('#preview').html(previewContent);
   };
 
@@ -716,14 +704,14 @@ module.exports = DocumentCtrl = (function(_super) {
     $('#rename-doc-link').click((function(_this) {
       return function() {
         $('#name-input').val(_this.viewParams.doc.name);
-        $('#slug-input').val(_this.viewParams.slug);
+        $('#filename-input').val(_this.viewParams.filename);
         $('#rename-document-modal').modal('show');
         return false;
       };
     })(this));
     $('#rename-button').click((function(_this) {
       return function() {
-        return _this.DocumentManagerService.rename(_this.viewParams.slug, $('#slug-input').val(), $('#name-input').val(), function(err) {
+        return _this.DocumentManagerService.rename(_this.viewParams.filename, $('#filename-input').val(), $('#name-input').val(), function(err) {
           if (err) {
             return false;
           }
@@ -738,7 +726,7 @@ module.exports = DocumentCtrl = (function(_super) {
     this.setupHistory();
     if (this.access === 'collaborator' && config.firebase_url && config.firebase_url !== '') {
       $('#editor').append('<div id="loader-editor"> <div class="teardrop tearLeft"></div> <div class="teardrop tearRight"></div> <div id="contain1"> <div id="ball-holder1"> <div class="ballSettings ball1"></div> </div> </div> <div id="contain2"> <div id="ball-holder2"> <div class="ballSettings ball2"></div> </div> </div> </div>');
-      this.firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + this.viewParams.slug);
+      this.firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + this.viewParams.filename);
       this.firepad = Firepad.fromACE(this.firepadRef, this.editor);
       this.firepad.on('ready', (function(_this) {
         return function() {
@@ -843,25 +831,24 @@ module.exports = DocumentsCtrl = (function(_super) {
     $('#create-document').click(function() {
       return $('#new-document-modal').modal('show');
     });
-    $('#name-input').keyup(function() {
-      return $('#slug-input').val($(this).val().dasherize());
-    });
     return $('#create-button').click((function(_this) {
       return function() {
-        var formData, type;
-        type = $('#new-document-modal .btn-group label.active').text().trim().toLowerCase();
-        if (type === 'markdown') {
-          type = 'md';
-        }
+        var formData;
         formData = {
-          name: $('#name-input').val(),
-          slug: $('#slug-input').val(),
-          extension: type
+          title: $('#name-input').val(),
+          filename: $('#filename-input').val()
         };
-        return _this.services.documentManager.create(formData, function(err) {
+        return _this.services.documentManager.create(filename, title, function(err) {
+          if (err) {
+            if (!err.msg) {
+              err.msg = JSON.stringify(err);
+            }
+            $('#new-document-modal form .alert').html(err.msg).removeClass('hide');
+            return false;
+          }
           $('.modal-backdrop').remove();
           $('body').removeClass('modal-open');
-          return _this.app.redirect('/document/' + formData.slug);
+          return _this.app.redirect('/document/' + formData.filename);
         });
       };
     })(this));
@@ -1730,35 +1717,33 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.create = function(params, callback) {
-    if (this.documents[params.slug]) {
+    if (this.documents[params.filename]) {
       return callback({
         error: true,
         code: 1,
-        msg: 'Slug already exists, please choose another one'
+        msg: 'File already exists, please choose another one'
       });
     }
-    if (params.extension !== 'md' && params.extension !== 'html') {
-      return callback({
-        error: true,
-        code: 2,
-        msg: 'Unknown extension'
-      });
-    }
-    if (params.name.length > 70) {
+    if (params.title.length > 70) {
       return callback({
         error: true,
         code: 3,
         msg: 'Name too long'
       });
     }
-    this.documents[params.slug] = {
-      name: params.name,
-      extension: params.extension,
+    if (!params.filename.match(/^[a-zA-Z0-9-_.\/]+$/i)) {
+      return callback({
+        error: true,
+        code: 2,
+        msg: 'The filename should contains alphanumeric characters with `-` or `_` or `.`'
+      });
+    }
+    this.documents[params.filename] = {
+      title: params.name,
       created: Date.now(),
-      path: '',
-      filename: params.slug + '.' + params.extension
+      path: ''
     };
-    return this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + params.slug + ' in documents.json', (function(_this) {
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + params.filename + ' in documents.json', (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
@@ -1773,9 +1758,9 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
   };
 
-  DocumentManagerService.prototype.release = function(slug, filename, content, message, callback) {
-    this.documents[slug].updated = Date.now();
-    return this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {
+  DocumentManagerService.prototype.release = function(filename, content, message, callback) {
+    this.documents[filename].updated = Date.now();
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + filename, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
@@ -1785,26 +1770,26 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
   };
 
-  DocumentManagerService.prototype.saveDraft = function(slug, filename, content, message, callback) {
-    this.documents[slug].updated = Date.now();
-    return this.repo.write(slug, 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {
+  DocumentManagerService.prototype.saveDraft = function(filename, content, message, callback) {
+    this.documents[filename].updated = Date.now();
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + filename, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
         }
-        return _this.repo.write(slug, filename, content, message, callback);
+        return _this.repo.write('draft', filename, content, message, callback);
       };
     })(this));
   };
 
-  DocumentManagerService.prototype.getDocument = function(slug, callback) {
+  DocumentManagerService.prototype.getDocument = function(filename, callback) {
     if (Object.equal(this.documents, {})) {
-      return this.repo.read('master', 'documents.json', (function(_this) {
+      return this.repo.read('config', 'documents.json', (function(_this) {
         return function(err, data) {
           var doc;
           _this.documents = JSON.parse(data);
-          doc = _this.documents[slug];
-          return _this.repo.read(slug, doc.filename, function(err, content) {
+          doc = _this.documents[filename];
+          return _this.repo.read('draft', filename, function(err, content) {
             if (!content) {
               content = '';
             }
@@ -1813,27 +1798,27 @@ module.exports = DocumentManagerService = (function(_super) {
         };
       })(this));
     } else {
-      return callback(this.documents[slug]);
+      return callback(this.documents[filename]);
     }
   };
 
-  DocumentManagerService.prototype.getReleaseHistory = function(slug, callback) {
-    if (!this.documents[slug]) {
+  DocumentManagerService.prototype.getReleaseHistory = function(filename, callback) {
+    if (!this.documents[filename]) {
       callback('not found', null);
     }
     return this.repo.getCommits({
-      path: this.documents[slug].filename,
+      path: filename,
       sha: 'master'
     }, callback);
   };
 
-  DocumentManagerService.prototype.getDocumentHistory = function(slug, callback) {
-    if (!this.documents[slug]) {
+  DocumentManagerService.prototype.getDocumentHistory = function(filename, callback) {
+    if (!this.documents[filename]) {
       callback('not found', null);
     }
     return this.repo.getCommits({
-      path: this.documents[slug].filename,
-      sha: slug
+      path: filename,
+      sha: 'draft'
     }, callback);
   };
 
@@ -1855,47 +1840,46 @@ module.exports = DocumentManagerService = (function(_super) {
     return history;
   };
 
-  DocumentManagerService.prototype.rename = function(slug, newSlug, newName, callback) {
+  DocumentManagerService.prototype.rename = function(filename, newFilename, newName, callback) {
     var doc;
-    if (!this.documents[slug]) {
+    if (!this.documents[filename]) {
       callback('not found', null);
     }
-    doc = this.documents[slug];
-    if (newSlug !== slug) {
-      if (this.documents[newSlug]) {
+    doc = this.documents[filename];
+    if (newFilename !== filename) {
+      if (this.documents[newFilename]) {
         callback('already exists', null);
       }
-      this.documents[newSlug] = doc;
-      this.repo.move(doc.filename, doc.newSlug);
+      this.documents[newFilename] = doc;
+      return this.repo.move(filename, newFilename);
     }
-    return this.documents[newSlug].filename = newName;
   };
 
-  DocumentManagerService.prototype.remove = function(slug, callback) {
-    var filename, i;
-    if (!this.documents[slug]) {
+  DocumentManagerService.prototype.remove = function(filename, callback) {
+    var i, nbCall;
+    if (!this.documents[filename]) {
       callback('not found', null);
     }
-    filename = this.documents[slug].filename;
-    delete this.documents[slug];
+    delete this.documents[filename];
     i = 0;
-    this.repo.deleteRef('heads/' + slug, (function(_this) {
+    nbCall = 3;
+    this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {
       return function(err) {
-        if (callback && ++i === 3) {
+        if (callback && ++i === nbCall) {
           return callback(null, true);
         }
       };
     })(this));
-    this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {
+    this.repo["delete"]('draft', filename, (function(_this) {
       return function(err) {
-        if (callback && ++i === 3) {
+        if (callback && ++i === nbCall) {
           return callback(null, true);
         }
       };
     })(this));
     return this.repo["delete"]('master', filename, (function(_this) {
       return function(err) {
-        if (callback && ++i === 3) {
+        if (callback && ++i === nbCall) {
           return callback(null, true);
         }
       };
@@ -1923,18 +1907,18 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.list = function(callback) {
-    return this.repo.read('master', 'documents.json', (function(_this) {
+    return this.repo.read('config', 'documents.json', (function(_this) {
       return function(err, data) {
-        var list, slug;
+        var filename, list;
         if (!err) {
           _this.documents = JSON.parse(data);
         } else {
           _this.documents = {};
         }
         list = new Array();
-        for (slug in _this.documents) {
+        for (filename in _this.documents) {
           list.push($.extend({
-            slug: slug
+            filename: filename
           }, _this.documents[slug]));
         }
         if (callback) {

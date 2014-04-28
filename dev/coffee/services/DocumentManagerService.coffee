@@ -23,73 +23,71 @@ module.exports = class DocumentManagerService extends Service
 
 	create: (params, callback) ->
 
-		if @documents[params.slug]
+		if @documents[params.filename]
 			return callback
-				error: true,
+				error: true
 				code: 1
-				msg: 'Slug already exists, please choose another one'
+				msg: 'File already exists, please choose another one'
 
-		if params.extension != 'md' and params.extension != 'html'
+		if params.title.length > 70
 			return callback
-				error: true,
-				code: 2
-				msg: 'Unknown extension'
-
-		if params.name.length > 70
-			return callback
-				error: true,
+				error: true
 				code: 3
 				msg: 'Name too long'
 
-		@documents[params.slug] =
-			name: params.name
-			extension: params.extension
+		if not params.filename.match /^[a-zA-Z0-9-_.\/]+$/i
+			return callback
+				error: true
+				code: 2
+				msg: 'The filename should contains alphanumeric characters with `-` or `_` or `.`'
+
+		@documents[params.filename] =
+			title: params.name
 			created: Date.now()
 			path: ''
-			filename: params.slug + '.' + params.extension
 
-		@repo.write 'master', 'documents.json', JSON.stringify(@documents, null, 2), 'Create document ' + params.slug + ' in documents.json', (err) =>
+		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Create document ' + params.filename + ' in documents.json', (err) =>
 			return callback err if err
 			@repo.branch params.slug, (err) ->
 				return callback err if err
 				callback()
 
-	release: (slug, filename, content, message, callback) ->
-		@documents[slug].updated = Date.now()
-		@repo.write 'master', 'documents.json', JSON.stringify(@documents, null, 2), 'Update draft ' + slug, (err) =>
+	release: (filename, content, message, callback) ->
+		@documents[filename].updated = Date.now()
+		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Update draft ' + filename, (err) =>
 			return callback err if err
 			@repo.write 'master', filename, content, message, callback
 
-	saveDraft: (slug, filename, content, message, callback) ->
-		@documents[slug].updated = Date.now()
-		@repo.write slug, 'documents.json', JSON.stringify(@documents, null, 2), 'Update draft ' + slug, (err) =>
+	saveDraft: (filename, content, message, callback) ->
+		@documents[filename].updated = Date.now()
+		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Update draft ' + filename, (err) =>
 			return callback err if err
-			@repo.write slug, filename, content, message, callback
+			@repo.write 'draft', filename, content, message, callback
 
-	getDocument: (slug, callback) ->
+	getDocument: (filename, callback) ->
 		if Object.equal @documents, {}
-			@repo.read 'master', 'documents.json', (err, data) =>
+			@repo.read 'config', 'documents.json', (err, data) =>
 				@documents = JSON.parse(data)
-				doc = @documents[slug]
-				@repo.read slug, doc.filename, (err, content) =>
+				doc = @documents[filename]
+				@repo.read 'draft', filename, (err, content) =>
 					content = '' if not content
 					callback doc, content
 		else
-			callback @documents[slug]
+			callback @documents[filename]
 
-	getReleaseHistory: (slug, callback) ->
-		if not @documents[slug]
+	getReleaseHistory: (filename, callback) ->
+		if not @documents[filename]
 			callback 'not found', null
 
-		@repo.getCommits path: @documents[slug].filename, sha: 'master', callback
+		@repo.getCommits path: filename, sha: 'master', callback
 
 	#getDraftHistory: () ->
 
-	getDocumentHistory: (slug, callback) ->
-		if not @documents[slug]
+	getDocumentHistory: (filename, callback) ->
+		if not @documents[filename]
 			callback 'not found', null
 
-		@repo.getCommits path: @documents[slug].filename, sha: slug, callback
+		@repo.getCommits path: filename, sha: 'draft', callback
 
 	mergeHistory: (releaseHistory, documentHistory) ->
 		history = new Array()
@@ -102,31 +100,32 @@ module.exports = class DocumentManagerService extends Service
 
 		return history
 
-	rename: (slug, newSlug, newName, callback) ->
-		if not @documents[slug]
+	# WIP
+	rename: (filename, newFilename, newName, callback) ->
+		if not @documents[filename]
 			callback 'not found', null
 
-		doc = @documents[slug]
-		if newSlug != slug
-			callback 'already exists', null if @documents[newSlug]
+		doc = @documents[filename]
+		if newFilename != filename
+			callback 'already exists', null if @documents[newFilename]
 
-			@documents[newSlug] = doc
-			@repo.move doc.filename, doc.newSlug
-		@documents[newSlug].filename = newName
+			@documents[newFilename] = doc
+			@repo.move filename, newFilename
+		# TODO save documents.json
 
-	remove: (slug, callback) ->
-		if not @documents[slug]
+	remove: (filename, callback) ->
+		if not @documents[filename]
 			callback 'not found', null
 
-		filename = @documents[slug].filename
-		delete @documents[slug]
+		delete @documents[filename]
 		i = 0
-		@repo.deleteRef 'heads/' + slug, (err) =>
-			callback(null, true) if callback and ++i == 3
-		@repo.write 'master', 'documents.json', JSON.stringify(@documents, null, 2), 'Remove ' + slug, (err) =>
-			callback(null, true) if callback and ++i == 3
+		nbCall = 3
+		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Remove ' + slug, (err) =>
+			callback(null, true) if callback and ++i == nbCall
+		@repo.delete 'draft', filename, (err) =>
+			callback(null, true) if callback and ++i == nbCall
 		@repo.delete 'master', filename, (err) =>
-			callback(null, true) if callback and ++i == 3
+			callback(null, true) if callback and ++i == nbCall
 
 	getCommit: (sha, cb) ->
 		cb 'sha needed' if not sha
@@ -139,13 +138,13 @@ module.exports = class DocumentManagerService extends Service
 				cb null, commit
 
 	list: (callback) ->
-		@repo.read 'master', 'documents.json', (err, data) =>
+		@repo.read 'config', 'documents.json', (err, data) =>
 			if not err
 				@documents = JSON.parse data
 			else
 				@documents = {}
 			list = new Array()
-			for slug of @documents
-				list.push $.extend(slug: slug, @documents[slug])
+			for filename of @documents
+				list.push $.extend(filename: filename, @documents[slug])
 
 			callback err, list if callback

@@ -22,20 +22,17 @@ module.exports = class DocumentsCtrl extends Ctrl
 		$('#create-document').click ->
 			$('#new-document-modal').modal('show')
 
-		$('#name-input').keyup ->
-			$('#slug-input').val $(this).val().dasherize()
-
 		$('#create-button').click =>
-			type = $('#new-document-modal .btn-group label.active').text().trim().toLowerCase()
-			if type == 'markdown'
-				type = 'md'
-
 			formData =
-				name: $('#name-input').val()
-				slug: $('#slug-input').val()
-				extension: type
+				title: $('#name-input').val()
+				filename: $('#filename-input').val()
 
-			@services.documentManager.create formData, (err) =>
+			@services.documentManager.create filename, title, (err) =>
+				if err
+					err.msg = JSON.stringify err if not err.msg
+					$('#new-document-modal form .alert').html(err.msg).removeClass 'hide'
+					return false
+
 				$('.modal-backdrop').remove()
 				$('body').removeClass('modal-open')
-				@app.redirect '/document/' + formData.slug
+				@app.redirect '/document/' + formData.filename

@@ -46,25 +46,24 @@ module.exports = DocumentsCtrl = (function(_super) {
     $('#create-document').click(function() {
       return $('#new-document-modal').modal('show');
     });
-    $('#name-input').keyup(function() {
-      return $('#slug-input').val($(this).val().dasherize());
-    });
     return $('#create-button').click((function(_this) {
       return function() {
-        var formData, type;
-        type = $('#new-document-modal .btn-group label.active').text().trim().toLowerCase();
-        if (type === 'markdown') {
-          type = 'md';
-        }
+        var formData;
         formData = {
-          name: $('#name-input').val(),
-          slug: $('#slug-input').val(),
-          extension: type
+          title: $('#name-input').val(),
+          filename: $('#filename-input').val()
         };
-        return _this.services.documentManager.create(formData, function(err) {
+        return _this.services.documentManager.create(filename, title, function(err) {
+          if (err) {
+            if (!err.msg) {
+              err.msg = JSON.stringify(err);
+            }
+            $('#new-document-modal form .alert').html(err.msg).removeClass('hide');
+            return false;
+          }
           $('.modal-backdrop').remove();
           $('body').removeClass('modal-open');
-          return _this.app.redirect('/document/' + formData.slug);
+          return _this.app.redirect('/document/' + formData.filename);
         });
       };
     })(this));

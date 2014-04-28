@@ -10,12 +10,6 @@ module.exports = class DocumentCtrl extends Ctrl
 
 		@services.documentManager = new DocumentManagerService(@app.user.github)
 
-		Handlebars.registerHelper 'releaseDotImg', (passedString) ->
-			if passedString.substr(0, 6) == 'Delete'
-				return 'img/delete-dot.png'
-			else
-				return 'img/release-dot.png'
-
 	unload: () ->
 		super()
 		$(window).unbind 'resize'
@@ -25,10 +19,10 @@ module.exports = class DocumentCtrl extends Ctrl
 		@services.documentManager.checkAccess @app.user.get('login'), (access) =>
 			return @app.redirect '/403' if not access
 			@access = access
-			@services.documentManager.getDocument @params.slug, (doc, lastContent) =>
+			@services.documentManager.getDocument @params.filename, (doc, lastContent) =>
 				@app.redirect '/documents' if not doc
-				@services.documentManager.getDocumentHistory @params.slug, (err, documentHistory) =>
-					@services.documentManager.getReleaseHistory @params.slug, (err, releaseHistory) =>
+				@services.documentManager.getDocumentHistory @params.filename, (err, documentHistory) =>
+					@services.documentManager.getReleaseHistory @params.filename, (err, releaseHistory) =>
 						localContent = lastContent
 						lastContentHash = MD5 lastContent
 						localChanges = false
@@ -36,7 +30,7 @@ module.exports = class DocumentCtrl extends Ctrl
 						merge = @services.documentManager.mergeHistory(releaseHistory, documentHistory)
 						@viewParams =
 							doc: doc
-							slug: @params.slug
+							filename: @params.filename
 							diff: documentHistory
 							history: merge
 							localChanges: localChanges
@@ -66,10 +60,9 @@ module.exports = class DocumentCtrl extends Ctrl
 		else
 			message = $("#draft-message").val()
 			content = @editor.getValue()
-			filename = @viewParams.doc.filename
-			slug = @viewParams.slug
+			filename = @viewParams.filename
 
-			@services.documentManager.saveDraft slug, filename, content, message, (err, res) =>
+			@services.documentManager.saveDraft filename, content, message, (err, res) =>
 				@viewParams.lastContent = content
 				@viewParams.lastContentHash = MD5 content
 
@@ -91,11 +84,10 @@ module.exports = class DocumentCtrl extends Ctrl
 		else
 			message = $("#draft-message").val()
 			content = @editor.getValue()
-			filename = @viewParams.doc.filename
-			slug = @viewParams.slug
+			filename = @viewParams.filename
 
 			releaseFct = =>
-				@services.documentManager.release slug, filename, content, message, (err, res) =>
+				@services.documentManager.release filename, content, message, (err, res) =>
 					@viewParams.lastContent = content
 					@viewParams.lastContentHash = MD5 content
 					@services.documentManager.getCommit res.commit.sha, (err, lastCommit) =>
@@ -109,7 +101,7 @@ module.exports = class DocumentCtrl extends Ctrl
 
 			changes = @checkLocalChanges()
 			if changes
-				@services.documentManager.saveDraft slug, filename, content, message, (err, res) =>
+				@services.documentManager.saveDraft filename, content, message, (err, res) =>
 					@viewParams.lastContent = content
 					@viewParams.lastContentHash = MD5 content
 					@services.documentManager.getCommit res.commit.sha, (err, lastCommit) =>
@@ -121,8 +113,8 @@ module.exports = class DocumentCtrl extends Ctrl
 				releaseFct()
 
 	remove: (callback) ->
-		slug = @viewParams.slug
-		@services.documentManager.remove slug, =>
+		filename = @viewParams.filename
+		@services.documentManager.remove filename, =>
 			@app.askForRedirect false
 			@app.redirect '/documents'
 
@@ -286,9 +278,9 @@ module.exports = class DocumentCtrl extends Ctrl
 			$('#raw-mode').removeClass('btn-default').addClass 'btn-inverse'
 
 	updatePreview: ->
-		previewContent = @editor.getValue()
-		if @viewParams.doc.extension == 'md'
-			previewContent = marked(previewContent)
+		previewContent = marked @editor.getValue()
+		# if @viewParams.doc.extension == 'md'
+		#	previewContent = marked(previewContent)
 		$('#preview').html previewContent
 
 	setupTheme: ->
@@ -439,14 +431,14 @@ module.exports = class DocumentCtrl extends Ctrl
 
 		$('#rename-doc-link').click =>
 			$('#name-input').val @viewParams.doc.name
-			$('#slug-input').val @viewParams.slug
+			$('#filename-input').val @viewParams.filename
 			$('#rename-document-modal').modal('show')
 			return false
 
 		$('#rename-button').click =>
-			@DocumentManagerService.rename @viewParams.slug, $('#slug-input').val(), $('#name-input').val(), (err) =>
+			@DocumentManagerService.rename @viewParams.filename, $('#filename-input').val(), $('#name-input').val(), (err) =>
 				return false if err
-				# change UI
+				# TODO: change UI
 
 		$('#fork').click =>
 			alert 'work in progress'
@@ -468,7 +460,7 @@ module.exports = class DocumentCtrl extends Ctrl
 				</div>
 			</div>
 		</div>'
-			@firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + @viewParams.slug)
+			@firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + @viewParams.filename)
 			@firepad = Firepad.fromACE @firepadRef, @editor
 
 			@firepad.on 'ready', =>

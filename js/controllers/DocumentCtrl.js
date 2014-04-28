@@ -17,13 +17,6 @@ module.exports = DocumentCtrl = (function(_super) {
       return this.app.redirect('/');
     }
     this.services.documentManager = new DocumentManagerService(this.app.user.github);
-    Handlebars.registerHelper('releaseDotImg', function(passedString) {
-      if (passedString.substr(0, 6) === 'Delete') {
-        return 'img/delete-dot.png';
-      } else {
-        return 'img/release-dot.png';
-      }
-    });
   }
 
   DocumentCtrl.prototype.unload = function() {
@@ -39,12 +32,12 @@ module.exports = DocumentCtrl = (function(_super) {
           return _this.app.redirect('/403');
         }
         _this.access = access;
-        return _this.services.documentManager.getDocument(_this.params.slug, function(doc, lastContent) {
+        return _this.services.documentManager.getDocument(_this.params.filename, function(doc, lastContent) {
           if (!doc) {
             _this.app.redirect('/documents');
           }
-          return _this.services.documentManager.getDocumentHistory(_this.params.slug, function(err, documentHistory) {
-            return _this.services.documentManager.getReleaseHistory(_this.params.slug, function(err, releaseHistory) {
+          return _this.services.documentManager.getDocumentHistory(_this.params.filename, function(err, documentHistory) {
+            return _this.services.documentManager.getReleaseHistory(_this.params.filename, function(err, releaseHistory) {
               var lastContentHash, localChanges, localContent, merge;
               localContent = lastContent;
               lastContentHash = MD5(lastContent);
@@ -52,7 +45,7 @@ module.exports = DocumentCtrl = (function(_super) {
               merge = _this.services.documentManager.mergeHistory(releaseHistory, documentHistory);
               _this.viewParams = {
                 doc: doc,
-                slug: _this.params.slug,
+                filename: _this.params.filename,
                 diff: documentHistory,
                 history: merge,
                 localChanges: localChanges,
@@ -87,7 +80,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.saveDraft = function(callback) {
-    var content, filename, message, slug;
+    var content, filename, message;
     if (!this.draftMessageOpen) {
       $('#draft-add-message').slideDown('fast');
       this.draftMessageOpen = true;
@@ -97,9 +90,8 @@ module.exports = DocumentCtrl = (function(_super) {
     } else {
       message = $("#draft-message").val();
       content = this.editor.getValue();
-      filename = this.viewParams.doc.filename;
-      slug = this.viewParams.slug;
-      this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
+      filename = this.viewParams.filename;
+      this.services.documentManager.saveDraft(filename, content, message, (function(_this) {
         return function(err, res) {
           _this.viewParams.lastContent = content;
           _this.viewParams.lastContentHash = MD5(content);
@@ -120,7 +112,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.release = function(callback) {
-    var changes, content, filename, message, releaseFct, slug;
+    var changes, content, filename, message, releaseFct;
     if (!this.draftMessageOpen) {
       $('#draft-add-message').slideDown('fast');
       this.releaseMessage = true;
@@ -131,11 +123,10 @@ module.exports = DocumentCtrl = (function(_super) {
     } else {
       message = $("#draft-message").val();
       content = this.editor.getValue();
-      filename = this.viewParams.doc.filename;
-      slug = this.viewParams.slug;
+      filename = this.viewParams.filename;
       releaseFct = (function(_this) {
         return function() {
-          return _this.services.documentManager.release(slug, filename, content, message, function(err, res) {
+          return _this.services.documentManager.release(filename, content, message, function(err, res) {
             _this.viewParams.lastContent = content;
             _this.viewParams.lastContentHash = MD5(content);
             _this.services.documentManager.getCommit(res.commit.sha, function(err, lastCommit) {
@@ -154,7 +145,7 @@ module.exports = DocumentCtrl = (function(_super) {
       })(this);
       changes = this.checkLocalChanges();
       if (changes) {
-        return this.services.documentManager.saveDraft(slug, filename, content, message, (function(_this) {
+        return this.services.documentManager.saveDraft(filename, content, message, (function(_this) {
           return function(err, res) {
             _this.viewParams.lastContent = content;
             _this.viewParams.lastContentHash = MD5(content);
@@ -173,9 +164,9 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.remove = function(callback) {
-    var slug;
-    slug = this.viewParams.slug;
-    return this.services.documentManager.remove(slug, (function(_this) {
+    var filename;
+    filename = this.viewParams.filename;
+    return this.services.documentManager.remove(filename, (function(_this) {
       return function() {
         _this.app.askForRedirect(false);
         return _this.app.redirect('/documents');
@@ -376,10 +367,7 @@ module.exports = DocumentCtrl = (function(_super) {
 
   DocumentCtrl.prototype.updatePreview = function() {
     var previewContent;
-    previewContent = this.editor.getValue();
-    if (this.viewParams.doc.extension === 'md') {
-      previewContent = marked(previewContent);
-    }
+    previewContent = marked(this.editor.getValue());
     return $('#preview').html(previewContent);
   };
 
@@ -552,14 +540,14 @@ module.exports = DocumentCtrl = (function(_super) {
     $('#rename-doc-link').click((function(_this) {
       return function() {
         $('#name-input').val(_this.viewParams.doc.name);
-        $('#slug-input').val(_this.viewParams.slug);
+        $('#filename-input').val(_this.viewParams.filename);
         $('#rename-document-modal').modal('show');
         return false;
       };
     })(this));
     $('#rename-button').click((function(_this) {
       return function() {
-        return _this.DocumentManagerService.rename(_this.viewParams.slug, $('#slug-input').val(), $('#name-input').val(), function(err) {
+        return _this.DocumentManagerService.rename(_this.viewParams.filename, $('#filename-input').val(), $('#name-input').val(), function(err) {
           if (err) {
             return false;
           }
@@ -574,7 +562,7 @@ module.exports = DocumentCtrl = (function(_super) {
     this.setupHistory();
     if (this.access === 'collaborator' && config.firebase_url && config.firebase_url !== '') {
       $('#editor').append('<div id="loader-editor"> <div class="teardrop tearLeft"></div> <div class="teardrop tearRight"></div> <div id="contain1"> <div id="ball-holder1"> <div class="ballSettings ball1"></div> </div> </div> <div id="contain2"> <div id="ball-holder2"> <div class="ballSettings ball2"></div> </div> </div> </div>');
-      this.firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + this.viewParams.slug);
+      this.firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + this.viewParams.filename);
       this.firepad = Firepad.fromACE(this.firepadRef, this.editor);
       this.firepad.on('ready', (function(_this) {
         return function() {

@@ -35,35 +35,33 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.create = function(params, callback) {
-    if (this.documents[params.slug]) {
+    if (this.documents[params.filename]) {
       return callback({
         error: true,
         code: 1,
-        msg: 'Slug already exists, please choose another one'
+        msg: 'File already exists, please choose another one'
       });
     }
-    if (params.extension !== 'md' && params.extension !== 'html') {
-      return callback({
-        error: true,
-        code: 2,
-        msg: 'Unknown extension'
-      });
-    }
-    if (params.name.length > 70) {
+    if (params.title.length > 70) {
       return callback({
         error: true,
         code: 3,
         msg: 'Name too long'
       });
     }
-    this.documents[params.slug] = {
-      name: params.name,
-      extension: params.extension,
+    if (!params.filename.match(/^[a-zA-Z0-9-_.\/]+$/i)) {
+      return callback({
+        error: true,
+        code: 2,
+        msg: 'The filename should contains alphanumeric characters with `-` or `_` or `.`'
+      });
+    }
+    this.documents[params.filename] = {
+      title: params.name,
       created: Date.now(),
-      path: '',
-      filename: params.slug + '.' + params.extension
+      path: ''
     };
-    return this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + params.slug + ' in documents.json', (function(_this) {
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + params.filename + ' in documents.json', (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
@@ -78,9 +76,9 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
   };
 
-  DocumentManagerService.prototype.release = function(slug, filename, content, message, callback) {
-    this.documents[slug].updated = Date.now();
-    return this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {
+  DocumentManagerService.prototype.release = function(filename, content, message, callback) {
+    this.documents[filename].updated = Date.now();
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + filename, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
@@ -90,26 +88,26 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
   };
 
-  DocumentManagerService.prototype.saveDraft = function(slug, filename, content, message, callback) {
-    this.documents[slug].updated = Date.now();
-    return this.repo.write(slug, 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + slug, (function(_this) {
+  DocumentManagerService.prototype.saveDraft = function(filename, content, message, callback) {
+    this.documents[filename].updated = Date.now();
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + filename, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
         }
-        return _this.repo.write(slug, filename, content, message, callback);
+        return _this.repo.write('draft', filename, content, message, callback);
       };
     })(this));
   };
 
-  DocumentManagerService.prototype.getDocument = function(slug, callback) {
+  DocumentManagerService.prototype.getDocument = function(filename, callback) {
     if (Object.equal(this.documents, {})) {
-      return this.repo.read('master', 'documents.json', (function(_this) {
+      return this.repo.read('config', 'documents.json', (function(_this) {
         return function(err, data) {
           var doc;
           _this.documents = JSON.parse(data);
-          doc = _this.documents[slug];
-          return _this.repo.read(slug, doc.filename, function(err, content) {
+          doc = _this.documents[filename];
+          return _this.repo.read('draft', filename, function(err, content) {
             if (!content) {
               content = '';
             }
@@ -118,27 +116,27 @@ module.exports = DocumentManagerService = (function(_super) {
         };
       })(this));
     } else {
-      return callback(this.documents[slug]);
+      return callback(this.documents[filename]);
     }
   };
 
-  DocumentManagerService.prototype.getReleaseHistory = function(slug, callback) {
-    if (!this.documents[slug]) {
+  DocumentManagerService.prototype.getReleaseHistory = function(filename, callback) {
+    if (!this.documents[filename]) {
       callback('not found', null);
     }
     return this.repo.getCommits({
-      path: this.documents[slug].filename,
+      path: filename,
       sha: 'master'
     }, callback);
   };
 
-  DocumentManagerService.prototype.getDocumentHistory = function(slug, callback) {
-    if (!this.documents[slug]) {
+  DocumentManagerService.prototype.getDocumentHistory = function(filename, callback) {
+    if (!this.documents[filename]) {
       callback('not found', null);
     }
     return this.repo.getCommits({
-      path: this.documents[slug].filename,
-      sha: slug
+      path: filename,
+      sha: 'draft'
     }, callback);
   };
 
@@ -160,47 +158,46 @@ module.exports = DocumentManagerService = (function(_super) {
     return history;
   };
 
-  DocumentManagerService.prototype.rename = function(slug, newSlug, newName, callback) {
+  DocumentManagerService.prototype.rename = function(filename, newFilename, newName, callback) {
     var doc;
-    if (!this.documents[slug]) {
+    if (!this.documents[filename]) {
       callback('not found', null);
     }
-    doc = this.documents[slug];
-    if (newSlug !== slug) {
-      if (this.documents[newSlug]) {
+    doc = this.documents[filename];
+    if (newFilename !== filename) {
+      if (this.documents[newFilename]) {
         callback('already exists', null);
       }
-      this.documents[newSlug] = doc;
-      this.repo.move(doc.filename, doc.newSlug);
+      this.documents[newFilename] = doc;
+      return this.repo.move(filename, newFilename);
     }
-    return this.documents[newSlug].filename = newName;
   };
 
-  DocumentManagerService.prototype.remove = function(slug, callback) {
-    var filename, i;
-    if (!this.documents[slug]) {
+  DocumentManagerService.prototype.remove = function(filename, callback) {
+    var i, nbCall;
+    if (!this.documents[filename]) {
       callback('not found', null);
     }
-    filename = this.documents[slug].filename;
-    delete this.documents[slug];
+    delete this.documents[filename];
     i = 0;
-    this.repo.deleteRef('heads/' + slug, (function(_this) {
+    nbCall = 3;
+    this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {
       return function(err) {
-        if (callback && ++i === 3) {
+        if (callback && ++i === nbCall) {
           return callback(null, true);
         }
       };
     })(this));
-    this.repo.write('master', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + slug, (function(_this) {
+    this.repo["delete"]('draft', filename, (function(_this) {
       return function(err) {
-        if (callback && ++i === 3) {
+        if (callback && ++i === nbCall) {
           return callback(null, true);
         }
       };
     })(this));
     return this.repo["delete"]('master', filename, (function(_this) {
       return function(err) {
-        if (callback && ++i === 3) {
+        if (callback && ++i === nbCall) {
           return callback(null, true);
         }
       };
@@ -228,18 +225,18 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.list = function(callback) {
-    return this.repo.read('master', 'documents.json', (function(_this) {
+    return this.repo.read('config', 'documents.json', (function(_this) {
       return function(err, data) {
-        var list, slug;
+        var filename, list;
         if (!err) {
           _this.documents = JSON.parse(data);
         } else {
           _this.documents = {};
         }
         list = new Array();
-        for (slug in _this.documents) {
+        for (filename in _this.documents) {
           list.push($.extend({
-            slug: slug
+            filename: filename
           }, _this.documents[slug]));
         }
         if (callback) {
