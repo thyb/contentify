@@ -4,16 +4,16 @@ FAQ
 What is Contentify?
 -------------------
 
-**Contentify** is a content manager with a realtime collaboration over Github.
+**Contentify** is a content manager with a realtime collaboration on top of Github.
 
-That means your non technical collaborators can now update the content/wording of your website while the technical collaborators continue to take care of the design / code.
+That means your non technical collaborators can now focus on and change the content/wording of your website without needing the technical collaborators to do so. The latter can continue to take care of the design / code.
 
-How it works?
--------------
+How does it work?
+-----------------
 
-It's just a Github pages hosted on your repository that can manage all your content in a simple way.
+It's just a Github Pages site hosted on your repository that allow you to manage all your content in a simple way.
 
-**Contentify** use:
+**Contentify** uses:
 
 * OAuth.io - to connect users easily with Github
 
@@ -28,24 +28,28 @@ It's just a Github pages hosted on your repository that can manage all your cont
 Is it easy to install?
 ----------------------
 
-YES! You just have to fork the repository [thyb/contentify](https://github.com/thyb/contentify) and push something to regenerate the Github Pages.
+YES! You just have to fork the repository [thyb/contentify](https://github.com/thyb/contentify) and push anything to regenerate the Github Pages:
+
+```sh
+$ git push origin master
+```
 
 If you want more information, go to the [install guide](http://thyb.github.io/contentify/#/learn-more/install)
 
 Is it free?
 -----------
 
-Yes. **Contentify** is fully free.
+Yes. **Contentify** is completely free.
 
-As contentify is built on top of other technology, they may ask you to pay for:
+However, as contentify is built on top of other technology, they may ask you to pay for:
 
-* private content repository ([Github](https://github.com/pricing))
+* A private content repository ([Github](https://github.com/pricing))
 * More than 50 connexion in realtime ([Firebase](https://firebase.com/pricing))
 
 How integrate the content in my app?
 ------------------------------------
 
-With Javascript (browser), use the [Javascript SDK](https://github.com/thyb/contentify-js). It's a jQuery plugin which ease the way you include content.
+With JavaScript (browser), use the [JavaScript SDK](https://github.com/thyb/contentify-js). It's a jQuery plugin which eases the way you include content.
 
     contentify.initialize('thyb','contentify')
     $('#content').includeContent('readme.md')
@@ -58,7 +62,7 @@ With Node.js, use the [Node.js SDK](https://github.com/thyb/contentify-js).
         //todo with content
     })
 
-If you need to integrate it in another techno, you can use the REST API of Github
+If you need to integrate it in another technology, you can use the REST API of Github
 
     GET https://api.github.com/repos/thyb/contentify/contents/readme.md?ref=master
     Accept: application/vnd.github.V3.raw
