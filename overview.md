@@ -6,7 +6,7 @@ Overview
 Available features
 ------------------
 
-* Manage documents - Markdown and HTML support
+* Manage documents in Markdown
  
 * Editor with preview / fullscreen / syntax coloration etc...
 
