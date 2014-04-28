@@ -558,7 +558,7 @@ module.exports = DocumentCtrl = (function(_super) {
     this.setupHistory();
     if (this.access === 'collaborator' && config.firebase_url && config.firebase_url !== '') {
       $('#editor').append('<div id="loader-editor"> <div class="teardrop tearLeft"></div> <div class="teardrop tearRight"></div> <div id="contain1"> <div id="ball-holder1"> <div class="ballSettings ball1"></div> </div> </div> <div id="contain2"> <div id="ball-holder2"> <div class="ballSettings ball2"></div> </div> </div> </div>');
-      this.firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + this.viewParams.filename);
+      this.firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + this.viewParams.filename.replace('.', '-'));
       this.firepad = Firepad.fromACE(this.firepadRef, this.editor);
       this.firepad.on('ready', (function(_this) {
         return function() {

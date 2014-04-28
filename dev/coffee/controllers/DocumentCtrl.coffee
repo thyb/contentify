@@ -458,7 +458,7 @@ module.exports = class DocumentCtrl extends Ctrl
 				</div>
 			</div>
 		</div>'
-			@firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + @viewParams.filename)
+			@firepadRef = new Firebase('https://' + config.firebase_url + '/firepad/' + @viewParams.filename.replace('.', '-'))
 			@firepad = Firepad.fromACE @firepadRef, @editor
 
 			@firepad.on 'ready', =>
