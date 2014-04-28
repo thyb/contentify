@@ -10,7 +10,7 @@ Dependancies
 Installation
 ------------
 
-The installation is easy using `npm`
+The installation is easy using `bower`
 
 `bower install contentify`
 
@@ -58,10 +58,10 @@ load a file with fragment and callback
     
 ### Without the jQuery plugin
 
-    contentify.getContent(filename, fragment, callback)
+    contentify.getContent(filename[, fragment], callback)
 
 `filename` is the file you want to include inside `#content`
-`fragment` is an optional optional. (see Fragment chapter)
+`fragment` is an optional string. (see Fragment chapter)
 `callback` is called when the file is loaded and parsed in HTML
 
 eg
@@ -89,6 +89,6 @@ eg in myfile.md
      
     [[ /fragment ]]
 
-Then, in your javascript, you can specify you want just this part of the document.
+Then, in your javascript, you can specify that you just want this part of the document.
 
     $('#content2').includeContent('myfile.md', 'summary')
