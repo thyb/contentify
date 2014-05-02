@@ -51,7 +51,7 @@ module.exports = DocumentsCtrl = (function(_super) {
         var formData;
         formData = {
           title: $('#name-input').val(),
-          filename: $('#filename-input').val()
+          filename: $('#filename-input').val() + '.md'
         };
         return _this.services.documentManager.create(formData.filename, formData.title, function(err) {
           if (err) {

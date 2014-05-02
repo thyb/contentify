@@ -35,7 +35,7 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.create = function(filename, title, callback) {
-    if (!title || !filename) {
+    if (!title || !filename || filename === '.md') {
       return callback({
         error: true,
         code: 4,

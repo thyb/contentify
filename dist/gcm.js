@@ -833,7 +833,7 @@ module.exports = DocumentsCtrl = (function(_super) {
         var formData;
         formData = {
           title: $('#name-input').val(),
-          filename: $('#filename-input').val()
+          filename: $('#filename-input').val() + '.md'
         };
         return _this.services.documentManager.create(formData.filename, formData.title, function(err) {
           if (err) {
@@ -1714,7 +1714,7 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.create = function(filename, title, callback) {
-    if (!title || !filename) {
+    if (!title || !filename || filename === '.md') {
       return callback({
         error: true,
         code: 4,

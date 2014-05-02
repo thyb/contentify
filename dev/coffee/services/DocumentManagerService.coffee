@@ -22,7 +22,7 @@ module.exports = class DocumentManagerService extends Service
 					return callback 'guest'
 
 	create: (filename, title, callback) ->
-		if not title or not filename
+		if not title or not filename or filename == '.md'
 			return callback
 				error: true
 				code: 4

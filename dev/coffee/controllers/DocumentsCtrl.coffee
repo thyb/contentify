@@ -25,7 +25,7 @@ module.exports = class DocumentsCtrl extends Ctrl
 		$('#create-button').click =>
 			formData =
 				title: $('#name-input').val()
-				filename: $('#filename-input').val()
+				filename: $('#filename-input').val() + '.md'
 
 			@services.documentManager.create formData.filename, formData.title, (err) =>
 				if err
