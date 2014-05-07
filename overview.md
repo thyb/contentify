@@ -10,7 +10,7 @@ Available features
  
 * Editor with preview / fullscreen / syntax coloration etc...
 
-* Realtime edition with Github collaborators
+* Realtime editing with Github collaborators
 
 * History of all your drafts / releases with diff
 
