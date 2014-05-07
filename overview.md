@@ -1,7 +1,7 @@
 Overview
 ========
 
-**Contentify** is a manageable content manager in realtime over Github.
+**Contentify** is a realtime collaborative content manager on top of Github and Github Pages.
 
 Available features
 ------------------
@@ -10,9 +10,9 @@ Available features
  
 * Editor with preview / fullscreen / syntax coloration etc...
 
-* Real time edition with Github collaborators
+* Realtime edition with Github collaborators
 
-* History of all your draft / release with diff
+* History of all your drafts / releases with diff
 
 * Unlimited colaborators
 
@@ -23,7 +23,7 @@ Available features
 Installation
 ------------
 
-The full management system is a Github Pages you can host on any Github repository. Just fork the repo [thyb/contentify](https://github.com/thyb/contentify), push something to generate the Github page, and you are done. 
+The full management system is a Github Pages site that you can host on any Github repository. Just fork the repo [thyb/contentify](https://github.com/thyb/contentify), push something to generate the Github page, and you are done. 
 
 [Read more about the installation process](#/learn-more/install)
 
@@ -32,15 +32,15 @@ Manage your content
 
 ![Screenshot](http://thyb.github.io/contentify/img/contentify-screen.png)
 
-1- Now your content can be edited easily by non-technical team in a realtime collaboration. The edition is in Markdownor in HTML directly (personally, i recommend Markdown).
+1- Now your content can be edited easily by your non-technical team in a realtime collaboration. The edition can be in Markdown as well as in HTML directly (personally, i recommend Markdown).
 
-2- You have an editor with preview of what your writing and collaborate in realtime as you do on Google Drive.
+2- You have an editor with a preview of what you and your collaborators are writing in realtime, as you would do on Google Drive.
 
-3- You can save your change as a Draft or as a Release. The production see only the release saves while your development team can hook on the draft saves.
+3- You can save your changes as a Draft or as a Release. The production only sees the releases, while your development team can hook on the draft saves.
 
-4- You can go in the history to review old version (with their changes) and rollback to a specific version if necessary.
+4- You can go in the history to review old versions (with their changes) and rollback to a specific version if necessary.
 
-5- You can cut your document in fragment for a smoother integration
+5- You can cut your document in fragments for a smoother integration.
 
 Integrate your content in your apps
 -----------------------------------
