@@ -23,6 +23,7 @@ module.exports = DocumentsCtrl = (function(_super) {
         if (!access) {
           return _this.app.redirect('/403');
         }
+        _this.access = access;
         return _this.services.documentManager.list(function(err, data) {
           if (err === 'not found') {
             if (callback) {
@@ -43,6 +44,10 @@ module.exports = DocumentsCtrl = (function(_super) {
   };
 
   DocumentsCtrl.prototype["do"] = function() {
+    if (this.access === 'guest') {
+      $("#create-document").hide();
+      $('#read-only').show();
+    }
     $('#create-document').click(function() {
       return $('#new-document-modal').modal('show');
     });

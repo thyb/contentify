@@ -561,7 +561,7 @@ module.exports = DocumentCtrl = (function(_super) {
       if (this.access === 'guest') {
         this.editor.setReadOnly(true);
         $("#save-draft,#release").hide();
-        $('#fork,#read-only').show();
+        $('#read-only').show();
       }
     }
     this.syncScroll();

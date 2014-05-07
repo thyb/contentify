@@ -743,7 +743,7 @@ module.exports = DocumentCtrl = (function(_super) {
       if (this.access === 'guest') {
         this.editor.setReadOnly(true);
         $("#save-draft,#release").hide();
-        $('#fork,#read-only').show();
+        $('#read-only').show();
       }
     }
     this.syncScroll();
@@ -805,6 +805,7 @@ module.exports = DocumentsCtrl = (function(_super) {
         if (!access) {
           return _this.app.redirect('/403');
         }
+        _this.access = access;
         return _this.services.documentManager.list(function(err, data) {
           if (err === 'not found') {
             if (callback) {
@@ -825,6 +826,10 @@ module.exports = DocumentsCtrl = (function(_super) {
   };
 
   DocumentsCtrl.prototype["do"] = function() {
+    if (this.access === 'guest') {
+      $("#create-document").hide();
+      $('#read-only').show();
+    }
     $('#create-document').click(function() {
       return $('#new-document-modal').modal('show');
     });
@@ -939,7 +944,7 @@ module.exports = LearnMoreCtrl = (function(_super) {
 
   LearnMoreCtrl.prototype["do"] = function() {
     var doc, _ref;
-    contentify.initialize('thyb', 'contentify', 'draft');
+    contentify.initialize('thyb', 'contentify', 'release');
     doc = 'overview';
     if (this.params.doc && (_ref = this.params.doc, __indexOf.call(this.availableDocument, _ref) >= 0)) {
       doc = this.params.doc;

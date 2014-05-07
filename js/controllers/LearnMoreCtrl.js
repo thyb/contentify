@@ -16,7 +16,7 @@ module.exports = LearnMoreCtrl = (function(_super) {
 
   LearnMoreCtrl.prototype["do"] = function() {
     var doc, _ref;
-    contentify.initialize('thyb', 'contentify', 'draft');
+    contentify.initialize('thyb', 'contentify', 'release');
     doc = 'overview';
     if (this.params.doc && (_ref = this.params.doc, __indexOf.call(this.availableDocument, _ref) >= 0)) {
       doc = this.params.doc;

@@ -3,7 +3,7 @@ Ctrl = require('../framework/Ctrl')
 module.exports = class LearnMoreCtrl extends Ctrl
 	availableDocument: ['overview', 'install', 'faq', 'sdk-js', 'sdk-node', 'faq', 'about']
 	do: ->
-		contentify.initialize 'thyb', 'contentify', 'draft'
+		contentify.initialize 'thyb', 'contentify', 'release'
 
 		doc = 'overview'
 		doc = @params.doc if @params.doc and @params.doc in @availableDocument
