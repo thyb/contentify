@@ -474,7 +474,7 @@ module.exports = class DocumentCtrl extends Ctrl
 			if @access == 'guest'
 				@editor.setReadOnly true
 				$("#save-draft,#release").hide()
-				$('#fork,#read-only').show()
+				$('#read-only').show()
 
 		@syncScroll()
 		@updatePreview()

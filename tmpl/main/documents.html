@@ -1,5 +1,7 @@
 <button class="pull-right btn btn-primary" id="create-document">Create a document</button>
 <h1>Documents</h1>
+<span style="display: none" id="read-only"><em style="font-size:12px;color: #f79696">Read only - You are not a collaborator</em></span>
+
 {{#if documents}}
   <div class="list-group">
   {{#each documents}}

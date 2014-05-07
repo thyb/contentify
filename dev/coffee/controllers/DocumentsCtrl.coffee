@@ -12,6 +12,7 @@ module.exports = class DocumentsCtrl extends Ctrl
 	initialize: (callback) ->
 		@services.documentManager.checkAccess @app.user.get('login'), (access) =>
 			return @app.redirect '/403' if not access
+			@access = access
 			@services.documentManager.list (err, data) =>
 				if err == 'not found'
 					return callback documents: null if callback
@@ -19,6 +20,10 @@ module.exports = class DocumentsCtrl extends Ctrl
 				callback documents: data if callback
 
 	do: ->
+		if @access == 'guest'
+				$("#create-document").hide()
+				$('#read-only').show()
+
 		$('#create-document').click ->
 			$('#new-document-modal').modal('show')
 
