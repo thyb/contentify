@@ -16,6 +16,9 @@ User = require('./User');
 
 module.exports = App = (function() {
   function App() {
+    Handlebars.registerHelper('encodeurl', function(text) {
+      return encodeURIComponent(text);
+    });
     this.env = new Env();
     this.event = new GlobalEvent();
     this.ctrlManager = new CtrlManager(this);

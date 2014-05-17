@@ -26,6 +26,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.initialize = function(callback) {
+    this.params.filename = decodeURIComponent(this.params.filename);
     return this.services.documentManager.checkAccess(this.app.user.get('login'), (function(_this) {
       return function(access) {
         if (!access) {

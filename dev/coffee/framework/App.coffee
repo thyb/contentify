@@ -8,6 +8,10 @@ User = require('./User')
 
 module.exports = class App
 	constructor: () ->
+		Handlebars.registerHelper 'encodeurl', (text) ->
+			encodeURIComponent(text)
+
+
 		# TODO: load env from localstorage
 		@env = new Env()
 		@event = new GlobalEvent()

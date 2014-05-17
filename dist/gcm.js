@@ -208,6 +208,7 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.initialize = function(callback) {
+    this.params.filename = decodeURIComponent(this.params.filename);
     return this.services.documentManager.checkAccess(this.app.user.get('login'), (function(_this) {
       return function(access) {
         if (!access) {
@@ -1027,6 +1028,9 @@ User = require('./User');
 
 module.exports = App = (function() {
   function App() {
+    Handlebars.registerHelper('encodeurl', function(text) {
+      return encodeURIComponent(text);
+    });
     this.env = new Env();
     this.event = new GlobalEvent();
     this.ctrlManager = new CtrlManager(this);
@@ -1406,7 +1410,7 @@ module.exports = Router = (function() {
         res = route.match(/\/:([a-zA-Z0-9]+)/);
         res.shift();
         params = res;
-        regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_\\-\\.]+)').replace(/\//g, '\\/');
+        regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_\\-\\.%]+)').replace(/\//g, '\\/');
         res = path.match(new RegExp(regexpStr));
         if (!res) {
           continue;

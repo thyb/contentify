@@ -16,6 +16,7 @@ module.exports = class DocumentCtrl extends Ctrl
 		$('#exit-fullscreen').remove()
 
 	initialize: (callback) ->
+		@params.filename = decodeURIComponent(@params.filename)
 		@services.documentManager.checkAccess @app.user.get('login'), (access) =>
 			return @app.redirect '/403' if not access
 			@access = access
