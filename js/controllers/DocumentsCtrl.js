@@ -79,9 +79,8 @@ module.exports = DocumentsCtrl = (function(_super) {
       return function() {
         var formData;
         formData = {
-          name: $('#name-input').val()
+          name: $('#new-folder-modal .name-input').val()
         };
-        debugger;
         return _this.services.documentManager.createFolder(formData.name, function(err) {
           if (err) {
             if (!err.msg) {

@@ -47,9 +47,7 @@ module.exports = class DocumentsCtrl extends Ctrl
 
 		$('#new-folder-modal .create-button').click =>
 			formData =
-				name: $('#name-input').val()
-
-			debugger
+				name: $('#new-folder-modal .name-input').val()
 
 			@services.documentManager.createFolder formData.name, (err) =>
 				if err
