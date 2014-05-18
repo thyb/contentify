@@ -78,6 +78,26 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
   };
 
+  DocumentManagerService.prototype.createFolder = function(name, callback) {
+    if (this.documents[name]) {
+      return callback({
+        error: true,
+        code: 1,
+        msg: 'File / folder already exists, please choose another one'
+      });
+    }
+    debugger;
+    this.documents[name] = {};
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create folder ' + name + ' in documents.json', (function(_this) {
+      return function(err) {
+        if (err) {
+          return callback(err);
+        }
+        return callback();
+      };
+    })(this));
+  };
+
   DocumentManagerService.prototype.release = function(filename, content, message, callback) {
     this.documents[filename].updated = Date.now();
     return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + filename, (function(_this) {

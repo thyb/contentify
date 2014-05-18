@@ -27,12 +27,31 @@ module.exports = class DocumentsCtrl extends Ctrl
 		$('#create-document').click ->
 			$('#new-document-modal').modal('show')
 
-		$('#create-button').click =>
+		$('#create-folder').click ->
+			$('#new-folder-modal').modal('show')
+
+		$('#new-document-modal .create-button').click =>
 			formData =
 				title: $('#name-input').val()
 				filename: $('#filename-input').val() + '.md'
 
 			@services.documentManager.create formData.filename, formData.title, (err) =>
+				if err
+					err.msg = JSON.stringify err if not err.msg
+					$('#new-document-modal form .alert').html(err.msg).removeClass 'hide'
+					return false
+
+				$('.modal-backdrop').remove()
+				$('body').removeClass('modal-open')
+				@app.redirect '/document/' + formData.filename
+
+		$('#new-folder-modal .create-button').click =>
+			formData =
+				name: $('#name-input').val()
+
+			debugger
+
+			@services.documentManager.createFolder formData.name, (err) =>
 				if err
 					err.msg = JSON.stringify err if not err.msg
 					$('#new-document-modal form .alert').html(err.msg).removeClass 'hide'

@@ -834,7 +834,10 @@ module.exports = DocumentsCtrl = (function(_super) {
     $('#create-document').click(function() {
       return $('#new-document-modal').modal('show');
     });
-    return $('#create-button').click((function(_this) {
+    $('#create-folder').click(function() {
+      return $('#new-folder-modal').modal('show');
+    });
+    $('#new-document-modal .create-button').click((function(_this) {
       return function() {
         var formData;
         formData = {
@@ -842,6 +845,27 @@ module.exports = DocumentsCtrl = (function(_super) {
           filename: $('#filename-input').val() + '.md'
         };
         return _this.services.documentManager.create(formData.filename, formData.title, function(err) {
+          if (err) {
+            if (!err.msg) {
+              err.msg = JSON.stringify(err);
+            }
+            $('#new-document-modal form .alert').html(err.msg).removeClass('hide');
+            return false;
+          }
+          $('.modal-backdrop').remove();
+          $('body').removeClass('modal-open');
+          return _this.app.redirect('/document/' + formData.filename);
+        });
+      };
+    })(this));
+    return $('#new-folder-modal .create-button').click((function(_this) {
+      return function() {
+        var formData;
+        formData = {
+          name: $('#name-input').val()
+        };
+        debugger;
+        return _this.services.documentManager.createFolder(formData.name, function(err) {
           if (err) {
             if (!err.msg) {
               err.msg = JSON.stringify(err);
@@ -1757,6 +1781,26 @@ module.exports = DocumentManagerService = (function(_super) {
       path: ''
     };
     return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + filename + ' in documents.json', (function(_this) {
+      return function(err) {
+        if (err) {
+          return callback(err);
+        }
+        return callback();
+      };
+    })(this));
+  };
+
+  DocumentManagerService.prototype.createFolder = function(name, callback) {
+    if (this.documents[name]) {
+      return callback({
+        error: true,
+        code: 1,
+        msg: 'File / folder already exists, please choose another one'
+      });
+    }
+    debugger;
+    this.documents[name] = {};
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create folder ' + name + ' in documents.json', (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);

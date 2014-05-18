@@ -34,7 +34,6 @@ module.exports = class DocumentManagerService extends Service
 				code: 1
 				msg: 'File already exists, please choose another one'
 
-
 		if title.length > 70
 			return callback
 				error: true
@@ -53,6 +52,20 @@ module.exports = class DocumentManagerService extends Service
 			path: ''
 
 		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Create document ' + filename + ' in documents.json', (err) =>
+			return callback err if err
+			callback()
+
+	createFolder: (name, callback) ->
+		if @documents[name]
+			return callback
+				error: true
+				code: 1
+				msg: 'File / folder already exists, please choose another one'
+
+		debugger
+		@documents[name] = {}
+
+		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Create folder ' + name + ' in documents.json', (err) =>
 			return callback err if err
 			callback()
 

@@ -51,7 +51,10 @@ module.exports = DocumentsCtrl = (function(_super) {
     $('#create-document').click(function() {
       return $('#new-document-modal').modal('show');
     });
-    return $('#create-button').click((function(_this) {
+    $('#create-folder').click(function() {
+      return $('#new-folder-modal').modal('show');
+    });
+    $('#new-document-modal .create-button').click((function(_this) {
       return function() {
         var formData;
         formData = {
@@ -59,6 +62,27 @@ module.exports = DocumentsCtrl = (function(_super) {
           filename: $('#filename-input').val() + '.md'
         };
         return _this.services.documentManager.create(formData.filename, formData.title, function(err) {
+          if (err) {
+            if (!err.msg) {
+              err.msg = JSON.stringify(err);
+            }
+            $('#new-document-modal form .alert').html(err.msg).removeClass('hide');
+            return false;
+          }
+          $('.modal-backdrop').remove();
+          $('body').removeClass('modal-open');
+          return _this.app.redirect('/document/' + formData.filename);
+        });
+      };
+    })(this));
+    return $('#new-folder-modal .create-button').click((function(_this) {
+      return function() {
+        var formData;
+        formData = {
+          name: $('#name-input').val()
+        };
+        debugger;
+        return _this.services.documentManager.createFolder(formData.name, function(err) {
           if (err) {
             if (!err.msg) {
               err.msg = JSON.stringify(err);
