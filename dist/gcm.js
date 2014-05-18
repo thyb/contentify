@@ -208,7 +208,6 @@ module.exports = DocumentCtrl = (function(_super) {
   };
 
   DocumentCtrl.prototype.initialize = function(callback) {
-    this.params.filename = decodeURIComponent(this.params.filename);
     return this.services.documentManager.checkAccess(this.app.user.get('login'), (function(_this) {
       return function(access) {
         if (!access) {
@@ -792,8 +791,8 @@ DocumentManagerService = require('../services/DocumentManagerService');
 module.exports = DocumentsCtrl = (function(_super) {
   __extends(DocumentsCtrl, _super);
 
-  function DocumentsCtrl(app) {
-    DocumentsCtrl.__super__.constructor.call(this, app);
+  function DocumentsCtrl(app, params) {
+    DocumentsCtrl.__super__.constructor.call(this, app, params);
     if (!this.app.user.isAuth()) {
       return this.app.redirect('/');
     }
@@ -807,7 +806,7 @@ module.exports = DocumentsCtrl = (function(_super) {
           return _this.app.redirect('/403');
         }
         _this.access = access;
-        return _this.services.documentManager.list(function(err, data) {
+        return _this.services.documentManager.list(_this.params.foldername, function(err, data) {
           if (err === 'not found') {
             if (callback) {
               return callback({
@@ -1427,13 +1426,13 @@ module.exports = Router = (function() {
 
   Router.prototype._checkPath = function(path) {
     var masterCtrl, masterParams, param, params, regexpStr, res, route;
-    masterParams = new Array();
+    masterParams = {};
     for (route in this._routes) {
       if (route.indexOf('/:') !== -1) {
         res = route.match(/\/:([a-zA-Z0-9]+)/);
         res.shift();
         params = res;
-        regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_\\-\\.%]+)').replace(/\//g, '\\/');
+        regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_\\-\\./]+)').replace(/\//g, '\\/');
         res = path.match(new RegExp(regexpStr));
         if (!res) {
           continue;
@@ -1695,6 +1694,7 @@ $('document').ready(function() {
     '/learn-more/:doc': LearnMoreCtrl,
     '/404': ErrorCtrl,
     '/403': ErrorCtrl,
+    '/documents/:foldername': DocumentsCtrl,
     '/documents': DocumentsCtrl,
     '/medias': MediasCtrl,
     '/logout': LogoutCtrl
@@ -1779,7 +1779,7 @@ module.exports = DocumentManagerService = (function(_super) {
       created: Date.now(),
       path: ''
     };
-    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create document ' + filename + ' in documents.json', (function(_this) {
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Create document ' + filename + ' in documents.json', (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
@@ -1797,9 +1797,9 @@ module.exports = DocumentManagerService = (function(_super) {
         msg: 'File / folder already exists, please choose another one'
       });
     }
-    debugger;
     this.documents[name] = {};
-    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Create folder ' + name + ' in documents.json', (function(_this) {
+    debugger;
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Create folder ' + name + ' in documents.json', (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
@@ -1811,7 +1811,7 @@ module.exports = DocumentManagerService = (function(_super) {
 
   DocumentManagerService.prototype.release = function(filename, content, message, callback) {
     this.documents[filename].updated = Date.now();
-    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + filename, (function(_this) {
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Update draft ' + filename, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
@@ -1823,7 +1823,7 @@ module.exports = DocumentManagerService = (function(_super) {
 
   DocumentManagerService.prototype.saveDraft = function(filename, content, message, callback) {
     this.documents[filename].updated = Date.now();
-    return this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Update draft ' + filename, (function(_this) {
+    return this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Update draft ' + filename, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
@@ -1914,7 +1914,7 @@ module.exports = DocumentManagerService = (function(_super) {
     delete this.documents[filename];
     i = 0;
     nbCall = 3;
-    this.repo.write('config', 'documents.json', JSON.stringify(this.documents, null, 2), 'Remove ' + filename, (function(_this) {
+    this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Remove ' + filename, (function(_this) {
       return function(err) {
         if (callback && ++i === nbCall) {
           return callback(null, true);
@@ -1957,20 +1957,35 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
   };
 
-  DocumentManagerService.prototype.list = function(callback) {
+  DocumentManagerService.prototype.list = function(foldername, callback) {
+    this.parents || (this.parents = new Array());
+    if (foldername) {
+      this.parents.push(foldername);
+    }
     return this.repo.read('config', 'documents.json', (function(_this) {
       return function(err, data) {
-        var filename, list;
+        var dup, filename, isFile, list, parent, sum, url, _i, _len, _ref;
         console.log(err, data);
         if (!err) {
-          _this.documents = JSON.parse(data);
+          _this.root = JSON.parse(data);
+          sum = _this.root;
+          _ref = _this.parents;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            parent = _ref[_i];
+            sum = sum[parent];
+          }
+          _this.documents = sum;
         } else {
           _this.documents = {};
         }
         list = new Array();
         for (filename in _this.documents) {
+          url = ((dup = _this.parents.slice(0)).push(filename) && dup).join('/');
+          isFile = filename.match(/.*\.md$/);
           list.push($.extend({
-            filename: filename
+            url: url,
+            filename: filename,
+            isFile: isFile
           }, _this.documents[filename]));
         }
         if (callback) {

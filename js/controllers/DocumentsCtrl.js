@@ -9,8 +9,8 @@ DocumentManagerService = require('../services/DocumentManagerService');
 module.exports = DocumentsCtrl = (function(_super) {
   __extends(DocumentsCtrl, _super);
 
-  function DocumentsCtrl(app) {
-    DocumentsCtrl.__super__.constructor.call(this, app);
+  function DocumentsCtrl(app, params) {
+    DocumentsCtrl.__super__.constructor.call(this, app, params);
     if (!this.app.user.isAuth()) {
       return this.app.redirect('/');
     }
@@ -24,7 +24,7 @@ module.exports = DocumentsCtrl = (function(_super) {
           return _this.app.redirect('/403');
         }
         _this.access = access;
-        return _this.services.documentManager.list(function(err, data) {
+        return _this.services.documentManager.list(_this.params.foldername, function(err, data) {
           if (err === 'not found') {
             if (callback) {
               return callback({

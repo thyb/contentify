@@ -54,6 +54,7 @@ $('document').ready(function() {
     '/learn-more/:doc': LearnMoreCtrl,
     '/404': ErrorCtrl,
     '/403': ErrorCtrl,
+    '/documents/:foldername': DocumentsCtrl,
     '/documents': DocumentsCtrl,
     '/medias': MediasCtrl,
     '/logout': LogoutCtrl

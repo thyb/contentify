@@ -18,7 +18,9 @@ module.exports = class Ctrl
 			callback if callback()
 
 	initialize: (callback) -> callback() if callback
+
 	do: ->
+
 	render: (callback) ->
 		@initialize (params) =>
 			@view.render @templateUrl, params, @app.router.defaultPlacement, callback

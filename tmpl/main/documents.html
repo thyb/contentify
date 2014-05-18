@@ -6,10 +6,17 @@
 {{#if documents}}
   <div class="list-group">
   {{#each documents}}
-    <a href="#/document/{{encodeurl filename}}" class="list-group-item">
-      <h4 class="list-group-item-heading">{{name}}</h4>
-      <p class="list-group-item-text">{{filename}}</p>
-    </a>
+    {{#if isFile}}
+      <a href="#/document/{{url}}" class="list-group-item">
+        <h4 class="list-group-item-heading">{{name}}</h4>
+        <p class="list-group-item-text">{{filename}}</p>
+      </a>
+    {{else}}
+      <a href="#/documents/{{url}}" class="list-group-item">
+        <h4 class="list-group-item-heading">{{filename}}</h4>
+        <p class="list-group-item-text">(folder)</p>
+      </a>
+    {{/if}}
   {{/each}}
   </div>
 {{else}}

@@ -51,7 +51,7 @@ module.exports = class DocumentManagerService extends Service
 			created: Date.now()
 			path: ''
 
-		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Create document ' + filename + ' in documents.json', (err) =>
+		@repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Create document ' + filename + ' in documents.json', (err) =>
 			return callback err if err
 			callback()
 
@@ -62,22 +62,22 @@ module.exports = class DocumentManagerService extends Service
 				code: 1
 				msg: 'File / folder already exists, please choose another one'
 
-		debugger
 		@documents[name] = {}
+		debugger
 
-		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Create folder ' + name + ' in documents.json', (err) =>
+		@repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Create folder ' + name + ' in documents.json', (err) =>
 			return callback err if err
 			callback()
 
 	release: (filename, content, message, callback) ->
 		@documents[filename].updated = Date.now()
-		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Update draft ' + filename, (err) =>
+		@repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Update draft ' + filename, (err) =>
 			return callback err if err
 			@repo.write 'master', filename, content, message, callback
 
 	saveDraft: (filename, content, message, callback) ->
 		@documents[filename].updated = Date.now()
-		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Update draft ' + filename, (err) =>
+		@repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Update draft ' + filename, (err) =>
 			return callback err if err
 			@repo.write 'draft', filename, content, message, callback
 
@@ -137,7 +137,7 @@ module.exports = class DocumentManagerService extends Service
 		delete @documents[filename]
 		i = 0
 		nbCall = 3
-		@repo.write 'config', 'documents.json', JSON.stringify(@documents, null, 2), 'Remove ' + filename, (err) =>
+		@repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Remove ' + filename, (err) =>
 			callback(null, true) if callback and ++i == nbCall
 		@repo.delete 'draft', filename, (err) =>
 			callback(null, true) if callback and ++i == nbCall
@@ -154,15 +154,26 @@ module.exports = class DocumentManagerService extends Service
 				commit.raw = data
 				cb null, commit
 
-	list: (callback) ->
+	list: (foldername, callback) ->
+		@parents ||= new Array()
+		if foldername then @parents.push foldername
+
 		@repo.read 'config', 'documents.json', (err, data) =>
 			console.log err, data
+
 			if not err
-				@documents = JSON.parse data
+				@root = JSON.parse data
+				sum = @root
+				sum = sum[parent] for parent in @parents
+				@documents = sum
 			else
 				@documents = {}
+
 			list = new Array()
+
 			for filename of @documents
-				list.push $.extend(filename: filename, @documents[filename])
+				url = ((dup = @parents.slice(0)).push(filename) and dup).join('/')
+				isFile = filename.match(/.*\.md$/)
+				list.push $.extend({url, filename, isFile}, @documents[filename])
 
 			callback err, list if callback

@@ -32,13 +32,13 @@ module.exports = Router = (function() {
 
   Router.prototype._checkPath = function(path) {
     var masterCtrl, masterParams, param, params, regexpStr, res, route;
-    masterParams = new Array();
+    masterParams = {};
     for (route in this._routes) {
       if (route.indexOf('/:') !== -1) {
         res = route.match(/\/:([a-zA-Z0-9]+)/);
         res.shift();
         params = res;
-        regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_\\-\\.%]+)').replace(/\//g, '\\/');
+        regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_\\-\\./]+)').replace(/\//g, '\\/');
         res = path.match(new RegExp(regexpStr));
         if (!res) {
           continue;

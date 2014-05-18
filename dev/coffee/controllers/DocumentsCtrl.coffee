@@ -3,8 +3,8 @@ DocumentManagerService = require('../services/DocumentManagerService')
 
 
 module.exports = class DocumentsCtrl extends Ctrl
-	constructor: (app) ->
-		super(app)
+	constructor: (app, params) ->
+		super(app, params)
 		return @app.redirect '/' if not @app.user.isAuth()
 
 		@services.documentManager = new DocumentManagerService(@app.user.github)
@@ -13,7 +13,7 @@ module.exports = class DocumentsCtrl extends Ctrl
 		@services.documentManager.checkAccess @app.user.get('login'), (access) =>
 			return @app.redirect '/403' if not access
 			@access = access
-			@services.documentManager.list (err, data) =>
+			@services.documentManager.list @params.foldername, (err, data) =>
 				if err == 'not found'
 					return callback documents: null if callback
 				@app.documents = data

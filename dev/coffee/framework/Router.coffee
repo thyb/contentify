@@ -20,7 +20,7 @@ module.exports = class Router
 
 	_checkPath: (path) ->
 		#check if path match a route from settings
-		masterParams = new Array()
+		masterParams = {}
 
 		for route of @_routes
 			if route.indexOf('/:') isnt -1
@@ -28,10 +28,11 @@ module.exports = class Router
 				res.shift()
 				params = res
 
-				regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_\\-\\.%]+)').replace(/\//g, '\\/')
+				regexpStr = route.replace(/\/:[a-zA-Z0-9]+/g, '/([a-zA-Z0-9_\\-\\./]+)').replace(/\//g, '\\/')
 				res = path.match(new RegExp(regexpStr))
 				continue if not res
 				res.shift()
+
 				for param of params
 					continue if param == 'index' or param == 'input'
 					masterParams[params[param]] = res[param]

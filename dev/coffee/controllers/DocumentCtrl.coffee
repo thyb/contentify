@@ -5,7 +5,6 @@ DocumentHistory = require('../components/DocumentHistory')
 module.exports = class DocumentCtrl extends Ctrl
 	constructor: (app, params) ->
 		super(app, params)
-
 		return @app.redirect '/' if not @app.user.isAuth()
 
 		@services.documentManager = new DocumentManagerService(@app.user.github)
@@ -16,7 +15,7 @@ module.exports = class DocumentCtrl extends Ctrl
 		$('#exit-fullscreen').remove()
 
 	initialize: (callback) ->
-		@params.filename = decodeURIComponent(@params.filename)
+		# @params.filename = decodeURIComponent(@params.filename)
 		@services.documentManager.checkAccess @app.user.get('login'), (access) =>
 			return @app.redirect '/403' if not access
 			@access = access
