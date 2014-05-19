@@ -91,7 +91,7 @@ module.exports = DocumentsCtrl = (function(_super) {
           }
           $('.modal-backdrop').remove();
           $('body').removeClass('modal-open');
-          return _this.app.redirect('/document/' + formData.filename);
+          return _this.app.redirect('/documents/' + formData.name);
         });
       };
     })(this));

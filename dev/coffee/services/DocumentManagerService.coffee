@@ -63,7 +63,6 @@ module.exports = class DocumentManagerService extends Service
 				msg: 'File / folder already exists, please choose another one'
 
 		@documents[name] = {}
-		debugger
 
 		@repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Create folder ' + name + ' in documents.json', (err) =>
 			return callback err if err

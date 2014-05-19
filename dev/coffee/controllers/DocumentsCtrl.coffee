@@ -57,4 +57,4 @@ module.exports = class DocumentsCtrl extends Ctrl
 
 				$('.modal-backdrop').remove()
 				$('body').removeClass('modal-open')
-				@app.redirect '/document/' + formData.filename
+				@app.redirect '/documents/' + formData.name

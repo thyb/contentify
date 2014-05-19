@@ -87,7 +87,6 @@ module.exports = DocumentManagerService = (function(_super) {
       });
     }
     this.documents[name] = {};
-    debugger;
     return this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Create folder ' + name + ' in documents.json', (function(_this) {
       return function(err) {
         if (err) {

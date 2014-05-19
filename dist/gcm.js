@@ -873,7 +873,7 @@ module.exports = DocumentsCtrl = (function(_super) {
           }
           $('.modal-backdrop').remove();
           $('body').removeClass('modal-open');
-          return _this.app.redirect('/document/' + formData.filename);
+          return _this.app.redirect('/documents/' + formData.name);
         });
       };
     })(this));
@@ -1798,7 +1798,6 @@ module.exports = DocumentManagerService = (function(_super) {
       });
     }
     this.documents[name] = {};
-    debugger;
     return this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Create folder ' + name + ' in documents.json', (function(_this) {
       return function(err) {
         if (err) {
