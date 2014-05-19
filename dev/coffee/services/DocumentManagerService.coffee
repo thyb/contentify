@@ -163,7 +163,6 @@ module.exports = class DocumentManagerService extends Service
 		@repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Remove ' + @filepath, (err) =>
 			callback(null, true) if callback and ++i == nbCall
 		@repo.delete 'draft', @filepath, (err) =>
-			debugger if err
 			callback(null, true) if callback and ++i == nbCall
 		@repo.delete 'master', @filepath, (err) =>
 			callback(null, true) if callback and ++i == nbCall

@@ -1957,9 +1957,6 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
     this.repo["delete"]('draft', this.filepath, (function(_this) {
       return function(err) {
-        if (err) {
-          debugger;
-        }
         if (callback && ++i === nbCall) {
           return callback(null, true);
         }
