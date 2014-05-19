@@ -237,11 +237,25 @@ module.exports = DocumentManagerService = (function(_super) {
     delete this.documents[this.filename];
     i = 0;
     nbCall = 3;
-    return this.repo["delete"]('draft', this.filepath, (function(_this) {
+    this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Remove ' + this.filepath, (function(_this) {
+      return function(err) {
+        if (callback && ++i === nbCall) {
+          return callback(null, true);
+        }
+      };
+    })(this));
+    this.repo["delete"]('draft', this.filepath, (function(_this) {
       return function(err) {
         if (err) {
           debugger;
         }
+        if (callback && ++i === nbCall) {
+          return callback(null, true);
+        }
+      };
+    })(this));
+    return this.repo["delete"]('master', this.filepath, (function(_this) {
+      return function(err) {
         if (callback && ++i === nbCall) {
           return callback(null, true);
         }
