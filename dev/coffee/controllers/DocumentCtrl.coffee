@@ -20,7 +20,7 @@ module.exports = class DocumentCtrl extends Ctrl
 			return @app.redirect '/403' if not access
 			@access = access
 			@services.documentManager.getDocument @params.filename, (doc, lastContent) =>
-				@app.redirect '/documents' if not doc
+				@app.redirect '/404' if not doc
 				@services.documentManager.getDocumentHistory @params.filename, (err, documentHistory) =>
 					@services.documentManager.getReleaseHistory @params.filename, (err, releaseHistory) =>
 						localContent = lastContent

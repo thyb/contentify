@@ -70,41 +70,55 @@ module.exports = class DocumentManagerService extends Service
 			callback()
 
 	release: (filename, content, message, callback) ->
-		@documents[filename].updated = Date.now()
+		if not @filename then @parseFilename(filename)
+		@documents[@filename].updated = Date.now()
+
 		@repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Update draft ' + filename, (err) =>
 			return callback err if err
-			@repo.write 'master', filename, content, message, callback
+			@repo.write 'master', @filepath, content, message, callback
 
 	saveDraft: (filename, content, message, callback) ->
-		@documents[filename].updated = Date.now()
+		if not @filename then @parseFilename(filename)
+		@documents[@filename].updated = Date.now()
+
 		@repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Update draft ' + filename, (err) =>
 			return callback err if err
-			@repo.write 'draft', filename, content, message, callback
+			@repo.write 'draft', @filepath, content, message, callback
 
 	getDocument: (filename, callback) ->
+		if not @filename then @parseFilename(filename)
+
 		if Object.equal @documents, {}
 			@repo.read 'config', 'documents.json', (err, data) =>
-				@documents = JSON.parse(data)
-				doc = @documents[filename]
-				@repo.read 'draft', filename, (err, content) =>
+				@root = JSON.parse(data)
+				doc = @root
+				doc = doc[parent] for parent in @parents
+				@documents = doc
+				doc = @documents[@filename]
+
+				@repo.read 'draft', @filepath, (err, content) =>
 					content = '' if not content
 					callback doc, content
 		else
 			callback @documents[filename]
 
 	getReleaseHistory: (filename, callback) ->
-		if not @documents[filename]
+		if not @filename then @parseFilename(filename)
+
+		if not @documents[@filename]
 			callback 'not found', null
 
-		@repo.getCommits path: filename, sha: 'master', callback
+		@repo.getCommits path: @filepath, sha: 'master', callback
 
 	#getDraftHistory: () ->
 
 	getDocumentHistory: (filename, callback) ->
-		if not @documents[filename]
+		if not @filename then @parseFilename(filename)
+
+		if not @documents[@filename]
 			callback 'not found', null
 
-		@repo.getCommits path: filename, sha: 'draft', callback
+		@repo.getCommits path: @filepath, sha: 'draft', callback
 
 	mergeHistory: (releaseHistory, documentHistory) ->
 		history = new Array()
@@ -117,13 +131,20 @@ module.exports = class DocumentManagerService extends Service
 
 		return history
 
+	parseFilename: (filename) ->
+		@filepath = filename
+		@parents = filename.split('/')
+		@filename = @parents.pop()
+
 	# WIP
 	rename: (filename, newFilename, newName, callback) ->
-		if not @documents[filename]
+		if not @filename then @parseFilename(filename)
+
+		if not @documents[@filename]
 			callback 'not found', null
 
-		doc = @documents[filename]
-		if newFilename != filename
+		doc = @documents[@filename]
+		if newFilename != @filename
 			callback 'already exists', null if @documents[newFilename]
 
 			@documents[newFilename] = doc
@@ -131,18 +152,21 @@ module.exports = class DocumentManagerService extends Service
 		# TODO save documents.json
 
 	remove: (filename, callback) ->
-		if not @documents[filename]
+		if not @filename then @parseFilename(filename)
+
+		if not @documents[@filename]
 			callback 'not found', null
 
-		delete @documents[filename]
+		delete @documents[@filename]
 		i = 0
 		nbCall = 3
-		@repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Remove ' + filename, (err) =>
+		# @repo.write 'config', 'documents.json', JSON.stringify(@root, null, 2), 'Remove ' + @filepath, (err) =>
+		# 	callback(null, true) if callback and ++i == nbCall
+		@repo.delete 'draft', @filepath, (err) =>
+			debugger if err
 			callback(null, true) if callback and ++i == nbCall
-		@repo.delete 'draft', filename, (err) =>
-			callback(null, true) if callback and ++i == nbCall
-		@repo.delete 'master', filename, (err) =>
-			callback(null, true) if callback and ++i == nbCall
+		# @repo.delete 'master', @filepath, (err) =>
+		# 	callback(null, true) if callback and ++i == nbCall
 
 	getCommit: (sha, cb) ->
 		cb 'sha needed' if not sha
@@ -155,8 +179,8 @@ module.exports = class DocumentManagerService extends Service
 				cb null, commit
 
 	list: (foldername, callback) ->
-		@parents ||= new Array()
-		if foldername then @parents.push foldername
+		@parents = new Array()
+		if foldername then @parents = foldername.split('/')
 
 		@repo.read 'config', 'documents.json', (err, data) =>
 			console.log err, data

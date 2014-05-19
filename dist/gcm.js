@@ -216,7 +216,7 @@ module.exports = DocumentCtrl = (function(_super) {
         _this.access = access;
         return _this.services.documentManager.getDocument(_this.params.filename, function(doc, lastContent) {
           if (!doc) {
-            _this.app.redirect('/documents');
+            _this.app.redirect('/404');
           }
           return _this.services.documentManager.getDocumentHistory(_this.params.filename, function(err, documentHistory) {
             return _this.services.documentManager.getReleaseHistory(_this.params.filename, function(err, releaseHistory) {
@@ -1810,37 +1810,53 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.release = function(filename, content, message, callback) {
-    this.documents[filename].updated = Date.now();
+    if (!this.filename) {
+      this.parseFilename(filename);
+    }
+    this.documents[this.filename].updated = Date.now();
     return this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Update draft ' + filename, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
         }
-        return _this.repo.write('master', filename, content, message, callback);
+        return _this.repo.write('master', _this.filepath, content, message, callback);
       };
     })(this));
   };
 
   DocumentManagerService.prototype.saveDraft = function(filename, content, message, callback) {
-    this.documents[filename].updated = Date.now();
+    if (!this.filename) {
+      this.parseFilename(filename);
+    }
+    this.documents[this.filename].updated = Date.now();
     return this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Update draft ' + filename, (function(_this) {
       return function(err) {
         if (err) {
           return callback(err);
         }
-        return _this.repo.write('draft', filename, content, message, callback);
+        return _this.repo.write('draft', _this.filepath, content, message, callback);
       };
     })(this));
   };
 
   DocumentManagerService.prototype.getDocument = function(filename, callback) {
+    if (!this.filename) {
+      this.parseFilename(filename);
+    }
     if (Object.equal(this.documents, {})) {
       return this.repo.read('config', 'documents.json', (function(_this) {
         return function(err, data) {
-          var doc;
-          _this.documents = JSON.parse(data);
-          doc = _this.documents[filename];
-          return _this.repo.read('draft', filename, function(err, content) {
+          var doc, parent, _i, _len, _ref;
+          _this.root = JSON.parse(data);
+          doc = _this.root;
+          _ref = _this.parents;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            parent = _ref[_i];
+            doc = doc[parent];
+          }
+          _this.documents = doc;
+          doc = _this.documents[_this.filename];
+          return _this.repo.read('draft', _this.filepath, function(err, content) {
             if (!content) {
               content = '';
             }
@@ -1854,21 +1870,27 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.getReleaseHistory = function(filename, callback) {
-    if (!this.documents[filename]) {
+    if (!this.filename) {
+      this.parseFilename(filename);
+    }
+    if (!this.documents[this.filename]) {
       callback('not found', null);
     }
     return this.repo.getCommits({
-      path: filename,
+      path: this.filepath,
       sha: 'master'
     }, callback);
   };
 
   DocumentManagerService.prototype.getDocumentHistory = function(filename, callback) {
-    if (!this.documents[filename]) {
+    if (!this.filename) {
+      this.parseFilename(filename);
+    }
+    if (!this.documents[this.filename]) {
       callback('not found', null);
     }
     return this.repo.getCommits({
-      path: filename,
+      path: this.filepath,
       sha: 'draft'
     }, callback);
   };
@@ -1891,13 +1913,22 @@ module.exports = DocumentManagerService = (function(_super) {
     return history;
   };
 
+  DocumentManagerService.prototype.parseFilename = function(filename) {
+    this.filepath = filename;
+    this.parents = filename.split('/');
+    return this.filename = this.parents.pop();
+  };
+
   DocumentManagerService.prototype.rename = function(filename, newFilename, newName, callback) {
     var doc;
-    if (!this.documents[filename]) {
+    if (!this.filename) {
+      this.parseFilename(filename);
+    }
+    if (!this.documents[this.filename]) {
       callback('not found', null);
     }
-    doc = this.documents[filename];
-    if (newFilename !== filename) {
+    doc = this.documents[this.filename];
+    if (newFilename !== this.filename) {
       if (this.documents[newFilename]) {
         callback('already exists', null);
       }
@@ -1908,28 +1939,20 @@ module.exports = DocumentManagerService = (function(_super) {
 
   DocumentManagerService.prototype.remove = function(filename, callback) {
     var i, nbCall;
-    if (!this.documents[filename]) {
+    if (!this.filename) {
+      this.parseFilename(filename);
+    }
+    if (!this.documents[this.filename]) {
       callback('not found', null);
     }
-    delete this.documents[filename];
+    delete this.documents[this.filename];
     i = 0;
     nbCall = 3;
-    this.repo.write('config', 'documents.json', JSON.stringify(this.root, null, 2), 'Remove ' + filename, (function(_this) {
+    return this.repo["delete"]('draft', this.filepath, (function(_this) {
       return function(err) {
-        if (callback && ++i === nbCall) {
-          return callback(null, true);
+        if (err) {
+          debugger;
         }
-      };
-    })(this));
-    this.repo["delete"]('draft', filename, (function(_this) {
-      return function(err) {
-        if (callback && ++i === nbCall) {
-          return callback(null, true);
-        }
-      };
-    })(this));
-    return this.repo["delete"]('master', filename, (function(_this) {
-      return function(err) {
         if (callback && ++i === nbCall) {
           return callback(null, true);
         }
@@ -1958,9 +1981,9 @@ module.exports = DocumentManagerService = (function(_super) {
   };
 
   DocumentManagerService.prototype.list = function(foldername, callback) {
-    this.parents || (this.parents = new Array());
+    this.parents = new Array();
     if (foldername) {
-      this.parents.push(foldername);
+      this.parents = foldername.split('/');
     }
     return this.repo.read('config', 'documents.json', (function(_this) {
       return function(err, data) {

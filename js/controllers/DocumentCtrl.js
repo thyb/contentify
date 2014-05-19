@@ -34,7 +34,7 @@ module.exports = DocumentCtrl = (function(_super) {
         _this.access = access;
         return _this.services.documentManager.getDocument(_this.params.filename, function(doc, lastContent) {
           if (!doc) {
-            _this.app.redirect('/documents');
+            _this.app.redirect('/404');
           }
           return _this.services.documentManager.getDocumentHistory(_this.params.filename, function(err, documentHistory) {
             return _this.services.documentManager.getReleaseHistory(_this.params.filename, function(err, releaseHistory) {
