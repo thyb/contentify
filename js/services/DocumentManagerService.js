@@ -311,7 +311,7 @@ module.exports = DocumentManagerService = (function(_super) {
           }, _this.documents[filename]));
         }
         if (callback) {
-          return callback(err, list);
+          return callback(err, list, _this.root);
         }
       };
     })(this));

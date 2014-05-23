@@ -198,4 +198,4 @@ module.exports = class DocumentManagerService extends Service
 				isFile = filename.match(/.*\.md$/)
 				list.push $.extend({url, filename, isFile}, @documents[filename])
 
-			callback err, list if callback
+			callback err, list, @root if callback
