@@ -31,7 +31,12 @@
   },
   "test": {
     "test1": {
-      "test2": {}
+      "test2": {},
+      "test-doc.md": {
+        "name": "My test document",
+        "created": 1401496227383,
+        "path": ""
+      }
     },
     "test2": {}
   }
