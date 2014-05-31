@@ -41,6 +41,11 @@
         "name": "test2",
         "created": 1401496305698,
         "path": ""
+      },
+      "test-doc3.md": {
+        "name": "test3",
+        "created": 1401496440871,
+        "path": ""
       }
     },
     "test2": {}
