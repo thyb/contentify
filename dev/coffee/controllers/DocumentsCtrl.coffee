@@ -14,10 +14,11 @@ module.exports = class DocumentsCtrl extends Ctrl
 			return @app.redirect '/403' if not access
 			@access = access
 			@services.documentManager.list @params.foldername, (err, data) =>
+				# console.log err, data
 				if err == 'not found'
-					return callback documents: null if callback
+					return @app.redirect '/404'
 				@app.documents = data
-				callback documents: data if callback
+				callback documents: data, documentsPath: @services.documentManager.getCurrentPath() if callback
 
 	do: ->
 		if @access == 'guest'
@@ -43,7 +44,10 @@ module.exports = class DocumentsCtrl extends Ctrl
 
 				$('.modal-backdrop').remove()
 				$('body').removeClass('modal-open')
-				@app.redirect '/document/' + formData.filename
+				if @params.foldername
+					@app.redirect '/document/' + @params.foldername + '/' + formData.filename
+				else
+					@app.redirect '/document/' + formData.filename
 
 		$('#new-folder-modal .create-button').click =>
 			formData =
@@ -57,4 +61,7 @@ module.exports = class DocumentsCtrl extends Ctrl
 
 				$('.modal-backdrop').remove()
 				$('body').removeClass('modal-open')
-				@app.redirect '/documents/' + formData.name
+				if @params.foldername
+					@app.redirect '/documents/' + @params.foldername + '/' + formData.name
+				else
+					@app.redirect '/documents/' + formData.name

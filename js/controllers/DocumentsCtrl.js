@@ -25,17 +25,15 @@ module.exports = DocumentsCtrl = (function(_super) {
         }
         _this.access = access;
         return _this.services.documentManager.list(_this.params.foldername, function(err, data) {
+          console.log(err, data);
           if (err === 'not found') {
-            if (callback) {
-              return callback({
-                documents: null
-              });
-            }
+            return _this.app.redirect('/404');
           }
           _this.app.documents = data;
           if (callback) {
             return callback({
-              documents: data
+              documents: data,
+              documentsPath: _this.services.documentManager.getCurrentPath()
             });
           }
         });
@@ -71,7 +69,11 @@ module.exports = DocumentsCtrl = (function(_super) {
           }
           $('.modal-backdrop').remove();
           $('body').removeClass('modal-open');
-          return _this.app.redirect('/document/' + formData.filename);
+          if (_this.params.foldername) {
+            return _this.app.redirect('/document/' + _this.params.foldername + '/' + formData.filename);
+          } else {
+            return _this.app.redirect('/document/' + formData.filename);
+          }
         });
       };
     })(this));
@@ -91,7 +93,11 @@ module.exports = DocumentsCtrl = (function(_super) {
           }
           $('.modal-backdrop').remove();
           $('body').removeClass('modal-open');
-          return _this.app.redirect('/documents/' + formData.name);
+          if (_this.params.foldername) {
+            return _this.app.redirect('/documents/' + _this.params.foldername + '/' + formData.name);
+          } else {
+            return _this.app.redirect('/documents/' + formData.name);
+          }
         });
       };
     })(this));

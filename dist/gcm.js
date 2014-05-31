@@ -807,17 +807,15 @@ module.exports = DocumentsCtrl = (function(_super) {
         }
         _this.access = access;
         return _this.services.documentManager.list(_this.params.foldername, function(err, data) {
+          console.log(err, data);
           if (err === 'not found') {
-            if (callback) {
-              return callback({
-                documents: null
-              });
-            }
+            return _this.app.redirect('/404');
           }
           _this.app.documents = data;
           if (callback) {
             return callback({
-              documents: data
+              documents: data,
+              documentsPath: _this.services.documentManager.getCurrentPath()
             });
           }
         });
@@ -853,7 +851,11 @@ module.exports = DocumentsCtrl = (function(_super) {
           }
           $('.modal-backdrop').remove();
           $('body').removeClass('modal-open');
-          return _this.app.redirect('/document/' + formData.filename);
+          if (_this.params.foldername) {
+            return _this.app.redirect('/document/' + _this.params.foldername + '/' + formData.filename);
+          } else {
+            return _this.app.redirect('/document/' + formData.filename);
+          }
         });
       };
     })(this));
@@ -873,7 +875,11 @@ module.exports = DocumentsCtrl = (function(_super) {
           }
           $('.modal-backdrop').remove();
           $('body').removeClass('modal-open');
-          return _this.app.redirect('/documents/' + formData.name);
+          if (_this.params.foldername) {
+            return _this.app.redirect('/documents/' + _this.params.foldername + '/' + formData.name);
+          } else {
+            return _this.app.redirect('/documents/' + formData.name);
+          }
         });
       };
     })(this));
@@ -1990,6 +1996,22 @@ module.exports = DocumentManagerService = (function(_super) {
     })(this));
   };
 
+  DocumentManagerService.prototype.getCurrentPath = function() {
+    var f, p, path, _i, _len, _ref;
+    f = [];
+    path = '';
+    _ref = this.parents;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      p = _ref[_i];
+      path += '/' + p;
+      f.push({
+        name: p,
+        path: path
+      });
+    }
+    return f;
+  };
+
   DocumentManagerService.prototype.list = function(foldername, callback) {
     this.parents = new Array();
     if (foldername) {
@@ -1997,19 +2019,28 @@ module.exports = DocumentManagerService = (function(_super) {
     }
     return this.repo.read('config', 'documents.json', (function(_this) {
       return function(err, data) {
-        var dup, filename, isFile, list, parent, sum, url, _i, _len, _ref;
+        var dup, error, filename, isFile, list, parent, sum, url, _i, _len, _ref;
         console.log(err, data);
+        error = false;
         if (!err) {
           _this.root = JSON.parse(data);
           sum = _this.root;
           _ref = _this.parents;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             parent = _ref[_i];
-            sum = sum[parent];
+            if (sum[parent]) {
+              sum = sum[parent];
+            } else {
+              error = true;
+            }
           }
           _this.documents = sum;
         } else {
           _this.documents = {};
+        }
+        console.log('sssss', _this.documents, error);
+        if (error) {
+          return callback('not found');
         }
         list = new Array();
         for (filename in _this.documents) {

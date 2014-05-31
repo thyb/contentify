@@ -176,20 +176,37 @@ module.exports = class DocumentManagerService extends Service
 				commit.raw = data
 				cb null, commit
 
+	getCurrentPath: () ->
+		f = []
+		path = ''
+		for p in @parents
+			path += '/' + p
+			f.push name: p, path: path
+
+		return f
+
 	list: (foldername, callback) ->
 		@parents = new Array()
-		if foldername then @parents = foldername.split('/')
+		@parents = foldername.split('/') if foldername
 
 		@repo.read 'config', 'documents.json', (err, data) =>
-			console.log err, data
+			# console.log err, data
 
+			error = false
 			if not err
 				@root = JSON.parse data
 				sum = @root
-				sum = sum[parent] for parent in @parents
+				for parent in @parents
+					if sum[parent]
+						sum = sum[parent]
+					else
+						error = true
 				@documents = sum
 			else
 				@documents = {}
+
+			# console.log 'sssss', @documents, error
+			return callback 'not found' if error
 
 			list = new Array()
 
