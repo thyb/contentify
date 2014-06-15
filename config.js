@@ -1,6 +1,6 @@
 var config = {
-	repository: 'docs',
-	username: 'oauth-io',
-	firebase_url: "popping-fire-7462.firebaseio.com",
+	repository: 'contentify',
+	username: 'thyb',
+	firebase_url: "",
 	algolia_key: ""
 };
