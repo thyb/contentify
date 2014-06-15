@@ -807,7 +807,6 @@ module.exports = DocumentsCtrl = (function(_super) {
         }
         _this.access = access;
         return _this.services.documentManager.list(_this.params.foldername, function(err, data) {
-          console.log(err, data);
           if (err === 'not found') {
             return _this.app.redirect('/404');
           }
@@ -2020,7 +2019,6 @@ module.exports = DocumentManagerService = (function(_super) {
     return this.repo.read('config', 'documents.json', (function(_this) {
       return function(err, data) {
         var dup, error, filename, isFile, list, parent, sum, url, _i, _len, _ref;
-        console.log(err, data);
         error = false;
         if (!err) {
           _this.root = JSON.parse(data);
@@ -2038,7 +2036,6 @@ module.exports = DocumentManagerService = (function(_super) {
         } else {
           _this.documents = {};
         }
-        console.log('sssss', _this.documents, error);
         if (error) {
           return callback('not found');
         }

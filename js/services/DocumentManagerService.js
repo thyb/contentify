@@ -303,7 +303,6 @@ module.exports = DocumentManagerService = (function(_super) {
     return this.repo.read('config', 'documents.json', (function(_this) {
       return function(err, data) {
         var dup, error, filename, isFile, list, parent, sum, url, _i, _len, _ref;
-        console.log(err, data);
         error = false;
         if (!err) {
           _this.root = JSON.parse(data);
@@ -321,7 +320,6 @@ module.exports = DocumentManagerService = (function(_super) {
         } else {
           _this.documents = {};
         }
-        console.log('sssss', _this.documents, error);
         if (error) {
           return callback('not found');
         }

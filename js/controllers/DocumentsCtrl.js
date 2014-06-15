@@ -25,7 +25,6 @@ module.exports = DocumentsCtrl = (function(_super) {
         }
         _this.access = access;
         return _this.services.documentManager.list(_this.params.foldername, function(err, data) {
-          console.log(err, data);
           if (err === 'not found') {
             return _this.app.redirect('/404');
           }
