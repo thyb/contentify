@@ -49,17 +49,20 @@
           {
             "filename": "test-doc.md",
             "name": "My test document",
-            "created": 1401496227383
+            "created": 1401496227383,
+            "files": []
           },
           {
             "filename": "test-doc2.md",
             "name": "test2",
-            "created": 1401496305698
+            "created": 1401496305698,
+            "files": []
           },
           {
             "filename": "test-doc3.md",
             "name": "test3",
-            "created": 1401496440871
+            "created": 1401496440871,
+            "files": []
           }
         ]
       }
